@@ -81,9 +81,9 @@ export function getTypeofProperty(object: any, key: string) {
     if (type === "number") {
         return object % 1 === 0 ? "int" : "double";
     }
-    if (type === "object" && isMap(object, key)) {
-        return `Map<String,${getMapItemType(object, key)}>`;
-    }
+    // if (type === "object" && isMap(object, key)) {
+    //     return `Map<String,${getMapItemType(object, key)}>`;
+    // }
     return type;
 }
 
@@ -91,15 +91,15 @@ export function isArray(value: any): boolean {
     return Array.isArray(value);
 }
 
-function isSameTypeInArray(value: any, key: string): boolean {
+export function isSameTypeInArray(value: any, key: string): boolean {
     return Array.isArray(value) && value.length !== 0 && value.every(item => getTypeofProperty(item, key) === getTypeofProperty(value[0], key));
 }
 
-function getArrayItemType(obj: any, key: string): string {
+export function getArrayItemType(obj: any, key: string): string {
     return mapTsTypeToDartType(getTypeofProperty(obj[0], key), key, obj) ?? "Object";
 }
 
-function isMap(value: any, key: string): boolean {
+export function isMap(value: any, key: string): boolean {
     return Object.keys(value).length !== 0
         && Object.values(value).every(item => getTypeofProperty(item, key) === getTypeofProperty(Object.values(value)[0], key));
 }
@@ -112,6 +112,7 @@ export function mapTsTypeToDartType(type: string, key: String, obj: any): string
     const types: { [name: string]: string } = {
         "integer": "int",
         "string": "String",
+        "boolean":"bool",
         "object": changeCase.pascalCase(key.toLowerCase()),
         "map": `Map<String,String>`,
         "double": "double"
@@ -121,9 +122,10 @@ export function mapTsTypeToDartType(type: string, key: String, obj: any): string
 
 export function isPremitiveType(type: string, key: String, obj: any): boolean {
     const types = [
-        "integer",
+        "int",
         "string",
-        "double"
+        "double",
+        "boolean"
     ];
     return types.includes(type);
 }

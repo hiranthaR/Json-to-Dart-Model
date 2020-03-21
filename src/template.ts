@@ -1,7 +1,11 @@
 import {
     getTypeofProperty,
     isPremitiveType,
-    mapTsTypeToDartType
+    mapTsTypeToDartType,
+    isArray,
+    isMap,
+    isSameTypeInArray,
+    getArrayItemType
 } from "./lib";
 import * as changeCase from "change-case";
 
@@ -32,10 +36,26 @@ export function getClassTemplate(className: string, obj: any): string {
         ${className}.fromJson(Map<String, dynamic> json){
             ${
         Object.keys(obj)
-            .map(key => `${changeCase.camelCase(key.toLowerCase())} = json['${key}'];`)
+            .map(key => mapInConstructor(obj[key], key))
             .reduce((a, b) => `${a}\n${b}`, "")
         }
         }
     }
     `;
+}
+
+function mapInConstructor(obj: any, key: string): string {
+    if (isPremitiveType(getTypeofProperty(obj, key), key, obj)) {
+        return `${changeCase.camelCase(key.toLowerCase())} = json['${key}'];`;
+    } else {
+        if (isArray(obj)) {
+            if (isSameTypeInArray(obj, key)) {
+                return `${changeCase.camelCase(key.toLowerCase())} = json['${key}'].cast<${getArrayItemType(obj, key)}>();`;
+            } else {
+                return "";
+            }
+        } else {
+            return `${changeCase.camelCase(key.toLowerCase())} = json['${key}'] != null ? ${mapTsTypeToDartType(getTypeofProperty(obj, key), key, obj)}.fromJson(json['${key}']) : null;`;
+        }
+    }
 }
