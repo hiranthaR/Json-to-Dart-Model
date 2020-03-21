@@ -18,6 +18,11 @@ import {
 	parseJson,
 	getTypeofProperty
 } from "./lib";
+
+import {
+	getClassTemplate
+} from "./template";
+
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
@@ -69,18 +74,10 @@ async function transformFromClipboard(uri: Uri) {
 		targetDirectory = uri.fsPath;
 	}
 
-	console.log(changeCase.camelCase(className.toLocaleLowerCase()))
-	console.log(changeCase.snakeCase(className.toLocaleLowerCase()))
-	console.log(changeCase.pascalCase(className.toLocaleLowerCase()))
-
 	getClipboardText()
 		.then(validateLength)
 		.then(parseJson)
-		.then(async selectedText => {
-			var keys = "";
-			Object.keys(selectedText).forEach(key => keys += getTypeofProperty(selectedText[key]) + "\n");
-			pasteToMarker(keys + "\n" + targetDirectory);
-		})
+		.then(json => generateClass(className, <string>targetDirectory, json))
 		.catch(handleError);
 }
 
@@ -105,5 +102,54 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
 			return undefined;
 		}
 		return uri[0].fsPath;
+	});
+}
+
+async function generateClass(
+	className: string,
+	targetDirectory: string,
+	object: any
+) {
+	const classDirectoryPath = `${targetDirectory}/models`;
+	if (!fs.existsSync(classDirectoryPath)) {
+		await createDirectory(classDirectoryPath);
+	}
+
+	await createClass(className, targetDirectory, object);
+}
+
+function createDirectory(targetDirectory: string): Promise<void> {
+	return new Promise((resolve, reject) => {
+		mkdirp(targetDirectory)
+			.then(value => resolve())
+			.catch(error => reject(error));
+	});
+}
+async function createClass(
+	className: string,
+	targetDirectory: string,
+	object: any
+) {
+	const pascalClassName = changeCase.pascalCase(className.toLowerCase());
+	const snakeClassName = changeCase.snakeCase(className.toLowerCase());
+	const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
+
+	if (fs.existsSync(targetPath)) {
+		throw Error(`${snakeClassName}.dart already exists`);
+	}
+
+	return new Promise(async (resolve, reject) => {
+		fs.writeFile(
+			targetPath,
+			getClassTemplate(pascalClassName, object),
+			"utf8",
+			error => {
+				if (error) {
+					reject(error);
+					return;
+				}
+				resolve();
+			}
+		);
 	});
 }
