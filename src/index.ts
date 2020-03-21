@@ -6,7 +6,9 @@ import {
 	pasteToMarker,
 	getSelectedText,
 	validateLength,
-	getViewColumn
+	getViewColumn,
+	parseJson,
+	getTypeofProperty
 } from "./lib";
 import * as path from "path";
 import * as os from "os";
@@ -27,6 +29,7 @@ function transformFromSelection() {
 
 	getSelectedText()
 		.then(validateLength)
+		.then(parseJson)
 		.then(selectedText => {
 			fs.writeFileSync(tmpFilePath, selectedText);
 		})
@@ -39,8 +42,11 @@ function transformFromSelection() {
 function transformFromClipboard() {
 	getClipboardText()
 		.then(validateLength)
+		.then(parseJson)
 		.then(selectedText => {
-			pasteToMarker(selectedText + " passed");
+			var keys = "";
+			Object.keys(selectedText).forEach(key => keys += getTypeofProperty(selectedText[key]) + "\n");
+			pasteToMarker(keys);
 		})
 		.catch(handleError);
 }
