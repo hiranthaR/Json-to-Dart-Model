@@ -15,7 +15,8 @@ import {
 	validateLength,
 	getViewColumn,
 	parseJson,
-	createClass
+	createClass,
+	isArray
 } from "./lib";
 
 
@@ -110,7 +111,15 @@ async function generateClass(
 		await createDirectory(classDirectoryPath);
 	}
 
-	await createClass(className, targetDirectory, object);
+	if (isArray(object)) {
+		if (object.length === 0) {
+			throw Error("nothing to Do.Empty Array!");
+		} else {
+			await createClass(className, targetDirectory, object[0]);
+		}
+	} else {
+		await createClass(className, targetDirectory, object);
+	}
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {
