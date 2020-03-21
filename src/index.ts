@@ -11,23 +11,18 @@ import {
 import {
 	handleError,
 	getClipboardText,
-	pasteToMarker,
 	getSelectedText,
 	validateLength,
 	getViewColumn,
 	parseJson,
-	getTypeofProperty
+	createClass
 } from "./lib";
 
-import {
-	getClassTemplate
-} from "./template";
 
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import * as _ from "lodash";
-import * as changeCase from "change-case";
 import * as mkdirp from "mkdirp";
 
 export function activate(context: ExtensionContext) {
@@ -123,33 +118,5 @@ function createDirectory(targetDirectory: string): Promise<void> {
 		mkdirp(targetDirectory)
 			.then(value => resolve())
 			.catch(error => reject(error));
-	});
-}
-async function createClass(
-	className: string,
-	targetDirectory: string,
-	object: any
-) {
-	const pascalClassName = changeCase.pascalCase(className.toLowerCase());
-	const snakeClassName = changeCase.snakeCase(className.toLowerCase());
-	const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
-
-	if (fs.existsSync(targetPath)) {
-		throw Error(`${snakeClassName}.dart already exists`);
-	}
-
-	return new Promise(async (resolve, reject) => {
-		fs.writeFile(
-			targetPath,
-			getClassTemplate(pascalClassName, object),
-			"utf8",
-			error => {
-				if (error) {
-					reject(error);
-					return;
-				}
-				resolve();
-			}
-		);
 	});
 }

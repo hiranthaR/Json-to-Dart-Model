@@ -1,5 +1,11 @@
 import * as copyPaste from "copy-paste";
 import { ViewColumn, window } from "vscode";
+import * as changeCase from "change-case";
+import {
+	getClassTemplate
+} from "./template";
+import * as fs from "fs";
+
 
 export function getClipboardText() {
     try {
@@ -63,26 +69,89 @@ export function parseJson(json: string): Promise<{ [key: string]: any }> {
         return Promise.reject(new Error("Selected string is not a valid JSON"));
     }
 }
-export function getTypeofProperty(object: any) {
+export function getTypeofProperty(object: any, key: string) {
     if (isArray(object)) {
-        return "array";
+        if (isSameTypeInArray(object, key)) {
+            return `List<${getArrayItemType(object, key)}>`;
+        } else {
+            return `List<Object>`;
+        }
     }
     var type = typeof object + "";
     if (type === "number") {
-        return object % 1 === 0 ? "integer" : "double";
+        return object % 1 === 0 ? "int" : "double";
     }
-    if (type === "object" && isMap(object)) {
-        return "map";
+    if (type === "object" && isMap(object, key)) {
+        return `Map<String,${getMapItemType(object, key)}>`;
     }
     return type;
 }
 
 function isArray(value: any): boolean {
-    return Array.isArray(value) && value.every(item => getTypeofProperty(item) === getTypeofProperty(value[0]));
+    return Array.isArray(value);
 }
 
-function isMap(value: any): boolean {
+function isSameTypeInArray(value: any, key: string): boolean {
+    return Array.isArray(value) && value.length !== 0 && value.every(item => getTypeofProperty(item, key) === getTypeofProperty(value[0], key));
+}
+
+function getArrayItemType(obj: any, key: string): string {
+    return mapTsTypeToDartType(getTypeofProperty(obj[0], key), key, obj) ?? "Object";
+}
+
+function isMap(value: any, key: string): boolean {
     return Object.keys(value).length !== 0
-        && Object.values(value).every(item => getTypeofProperty(item) === getTypeofProperty(Object.values(value)[0]));
+        && Object.values(value).every(item => getTypeofProperty(item, key) === getTypeofProperty(Object.values(value)[0], key));
 }
 
+function getMapItemType(obj: any, key: string): string {
+    return mapTsTypeToDartType(getTypeofProperty(Object.values(obj)[0], key), key, obj) ?? "Object";
+}
+
+export function mapTsTypeToDartType(type: string, key: String, obj: any): string {
+    const types: { [name: string]: string } = {
+        "integer": "int",
+        "string": "String",
+        "object": changeCase.pascalCase(key.toLowerCase()),
+        "map": `Map<String,String>`,
+        "double": "double"
+    };
+    return types[type] ?? type;
+}
+
+export
+    async function createClass(
+        className: string,
+        targetDirectory: string,
+        object: any
+    ) {
+
+    Object.keys(object)
+        .filter(key => getTypeofProperty(object[key], key) === "object")
+        .forEach(async key => {
+            await createClass(key, targetDirectory, object[key]);
+        });
+
+    const pascalClassName = changeCase.pascalCase(className.toLowerCase());
+    const snakeClassName = changeCase.snakeCase(className.toLowerCase());
+    const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
+
+    if (fs.existsSync(targetPath)) {
+        throw Error(`${snakeClassName}.dart already exists`);
+    }
+
+    return new Promise(async (resolve, reject) => {
+        fs.writeFile(
+            targetPath,
+            getClassTemplate(pascalClassName, object),
+            "utf8",
+            error => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve();
+            }
+        );
+    });
+}
