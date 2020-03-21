@@ -4,6 +4,7 @@
 	"description": "Extension convert Json to Dart Model class",
 	"version": "0.0.1",
 	"publisher": "hirantha",
+	"icon": "icon.png",
 	"engines": {
 		"vscode": "^1.38.0"
 	},

@@ -35,19 +35,28 @@ export function activate(context: ExtensionContext) {
 	);
 }
 
-function transformFromSelection() {
-	const tmpFilePath = path.join(os.tmpdir(), "Object.dart");
-	const tmpFileUri = Uri.file(tmpFilePath);
+async function transformFromSelection(uri: Uri) {
+	const className = await promptForBaseClassName();
+	if (_.isNil(className) || className.trim() === "") {
+		window.showErrorMessage("The class name must not be empty");
+		return;
+	}
+
+	let targetDirectory: String | undefined;
+	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
+		targetDirectory = await promptForTargetDirectory();
+		if (_.isNil(targetDirectory)) {
+			window.showErrorMessage("Please select a valid directory");
+			return;
+		}
+	} else {
+		targetDirectory = uri.fsPath;
+	}
 
 	getSelectedText()
 		.then(validateLength)
 		.then(parseJson)
-		.then(selectedText => {
-			fs.writeFileSync(tmpFilePath, selectedText);
-		})
-		.then(() => {
-			commands.executeCommand("vscode.open", tmpFileUri, getViewColumn());
-		})
+		.then(json => generateClass(className, <string>targetDirectory, json))
 		.catch(handleError);
 }
 
