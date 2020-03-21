@@ -67,9 +67,22 @@ export function getTypeofProperty(object: any) {
     if (isArray(object)) {
         return "array";
     }
-    return typeof object;
+    var type = typeof object + "";
+    if (type === "number") {
+        return object % 1 === 0 ? "integer" : "double";
+    }
+    if (type === "object" && isMap(object)) {
+        return "map";
+    }
+    return type;
 }
 
 function isArray(value: any): boolean {
-    return Array.isArray(value) && value.every(item => typeof item === value[0]);
+    return Array.isArray(value) && value.every(item => getTypeofProperty(item) === getTypeofProperty(value[0]));
 }
+
+function isMap(value: any): boolean {
+    return Object.keys(value).length !== 0
+        && Object.values(value).every(item => getTypeofProperty(item) === getTypeofProperty(Object.values(value)[0]));
+}
+
