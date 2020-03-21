@@ -2,7 +2,7 @@ import * as copyPaste from "copy-paste";
 import { ViewColumn, window } from "vscode";
 import * as changeCase from "change-case";
 import {
-	getClassTemplate
+    getClassTemplate
 } from "./template";
 import * as fs from "fs";
 
@@ -117,6 +117,15 @@ export function mapTsTypeToDartType(type: string, key: String, obj: any): string
         "double": "double"
     };
     return types[type] ?? type;
+}
+
+export function isPremitiveType(type: string, key: String, obj: any): boolean {
+    const types = [
+        "integer",
+        "string",
+        "double"
+    ];
+    return types.includes(type);
 }
 
 export
