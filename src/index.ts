@@ -5,7 +5,8 @@ import {
 	commands,
 	window,
 	OpenDialogOptions,
-	workspace
+	workspace,
+	InputBoxOptions
 } from "vscode";
 import {
 	handleError,
@@ -21,6 +22,8 @@ import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
 import * as _ from "lodash";
+import * as changeCase from "change-case";
+import * as mkdirp from "mkdirp";
 
 export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
@@ -48,25 +51,45 @@ function transformFromSelection() {
 }
 
 async function transformFromClipboard(uri: Uri) {
+
+	const className = await promptForBaseClassName();
+	if (_.isNil(className) || className.trim() === "") {
+		window.showErrorMessage("The class name must not be empty");
+		return;
+	}
+
+	let targetDirectory: String | undefined;
+	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
+		targetDirectory = await promptForTargetDirectory();
+		if (_.isNil(targetDirectory)) {
+			window.showErrorMessage("Please select a valid directory");
+			return;
+		}
+	} else {
+		targetDirectory = uri.fsPath;
+	}
+
+	console.log(changeCase.camelCase(className.toLocaleLowerCase()))
+	console.log(changeCase.snakeCase(className.toLocaleLowerCase()))
+	console.log(changeCase.pascalCase(className.toLocaleLowerCase()))
+
 	getClipboardText()
 		.then(validateLength)
 		.then(parseJson)
 		.then(async selectedText => {
-			let targetDirectory;
-			if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
-				targetDirectory = await promptForTargetDirectory();
-				if (_.isNil(targetDirectory)) {
-					window.showErrorMessage("Please select a valid directory");
-					return;
-				}
-			} else {
-				targetDirectory = uri.fsPath;
-			}
 			var keys = "";
 			Object.keys(selectedText).forEach(key => keys += getTypeofProperty(selectedText[key]) + "\n");
 			pasteToMarker(keys + "\n" + targetDirectory);
 		})
 		.catch(handleError);
+}
+
+function promptForBaseClassName(): Thenable<string | undefined> {
+	const classNamePromptOptions: InputBoxOptions = {
+		prompt: "Base Class Name",
+		placeHolder: "Pojo Response"
+	};
+	return window.showInputBox(classNamePromptOptions);
 }
 
 async function promptForTargetDirectory(): Promise<string | undefined> {
