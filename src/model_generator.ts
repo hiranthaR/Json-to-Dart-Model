@@ -9,7 +9,8 @@ import {
 } from "./syntax";
 import {
     navigateNode,
-    camelCase
+    camelCase,
+    mergeObjectList
 } from "./helper";
 import { ASTNode } from "json-to-ast";
 import {
@@ -36,7 +37,7 @@ class Hint {
     };
 }
 
-class ModelGenerator {
+export class ModelGenerator {
     private _rootClassName: string;
     private _privateFields: boolean;
     private allClasses: Array<ClassDefinition> = new Array<ClassDefinition>();
@@ -110,20 +111,20 @@ class ModelGenerator {
                         var toAnalyze;
                         if (!dependency.typeDef.isAmbiguous) {
                             var mergeWithWarning = mergeObjectList(
-                                jsonRawData.get(dependency.name), '$path/${dependency.name}');
+                                jsonRawData.get(dependency.name), `${path}/${dependency.name}`);
                             toAnalyze = mergeWithWarning.result;
-                            warnings.push(mergeWithWarning.warnings);
+                            mergeWithWarning.warnings.forEach((wrn) => warnings.push(wrn));
                         } else {
                             toAnalyze = jsonRawData.get(dependency.name)[0];
                         }
                         var node = navigateNode(astNode, dependency.name);
                         warns = this._generateClassDefinition(dependency.getClassName(), toAnalyze,
-                            '$path/${dependency.name}', node);
+                            `${path}/${dependency.name}`, node);
                     }
                 } else {
                     var node = navigateNode(astNode, dependency.name);
                     warns = this._generateClassDefinition(dependency.getClassName(),
-                        jsonRawData.get(dependency.name), '$path/${dependency.name}', node);
+                        jsonRawData.get(dependency.name), `${path}/${dependency.name}`, node);
                 }
                 if (warns!! !== null) {
                     warns!!.forEach(wrn => warnings.push(wrn));

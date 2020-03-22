@@ -1,6 +1,6 @@
 import * as changeCase from "change-case";
 import {
-    isArray,
+    isArray, isMap, isMapN,
 } from "./lib";
 import {
     ASTNode,
@@ -9,6 +9,40 @@ import {
     LiteralNode
 
 } from "json-to-ast";
+import { WithWarning, Warning, newAmbiguousType } from "./syntax";
+
+export enum ListType { Object, String, Double, Int, Null }
+
+class MergeableListType {
+    listType: ListType;
+    isAmbigous: boolean;
+
+    constructor(listType: ListType, isAmbigous: boolean) {
+        this.isAmbigous = isAmbigous;
+        this.listType = listType;
+    };
+}
+
+function mergeableListType(list: Array<any>): MergeableListType {
+    var t = ListType.Null;
+    var isAmbigous = false;
+    list.forEach((e) => {
+        var inferredType: ListType;
+        if (typeof e + "" === 'number') {
+            inferredType = e % 1 === 0 ? ListType.Int : ListType.Double;
+        } else if (typeof e === 'string') {
+            inferredType = ListType.String;
+        } else if (isMapN(e)) {
+            inferredType = ListType.Object;
+        }
+        if (t !== ListType.Null && t !== inferredType!!) {
+            isAmbigous = true;
+        }
+        t = inferredType!!;
+    });
+    return new MergeableListType(t, isAmbigous);
+}
+
 
 const PRIMITIVE_TYPES: { [name: string]: boolean } = {
     'int': true,
@@ -113,4 +147,111 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
         }
     }
     return false;
+}
+
+export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithWarning<Map<any, any>> {
+    var warnings = new Array<Warning>();
+    var obj = new Map();
+    for (var i = 0; i < list.length; i++) {
+        var toMerge = list[i];
+        if (isMapN(toMerge)) {
+            toMerge.forEach((k: any, v: any) => {
+                var t = getTypeName(obj.get(k));
+                if (obj.get(k) === null) {
+                    obj.set(k, v);
+                } else {
+                    var otherType = getTypeName(v);
+                    if (t !== otherType) {
+                        if (t === 'int' && otherType === 'double') {
+                            // if double was found instead of int, assign the double
+                            obj.set(k, v);
+                        } else if (t !== 'double' && otherType !== 'int') {
+                            // if types are not equal, then
+                            var realIndex = i;
+                            if (idx !== -1) {
+                                realIndex = idx - i;
+                            }
+                            var ambiguosTypePath = `${path}[${realIndex}]/${k}`;
+                            warnings.push(newAmbiguousType(ambiguosTypePath));
+                        }
+                    } else if (t === 'List') {
+                        var l = Array.from(obj.get(k));
+                        var beginIndex = l.length;
+                        l.push(v);
+                        // bug is here
+                        var mergeableType = mergeableListType(l);
+                        if (ListType.Object === mergeableType.listType) {
+                            var mergedList =
+                                mergeObjectList(l, `${path}[${i}]/${k}`, beginIndex);
+                            mergedList.warnings.forEach((wrn) => warnings.push(wrn));
+                            obj.set(k, new Array((mergedList.result)));
+                        } else {
+                            if (l.length > 0) {
+                                obj.set(k, new Array(l[0]));
+                            }
+                            if (mergeableType.isAmbigous) {
+                                warnings.push(newAmbiguousType(`${path}[${i}]/${k}`));
+                            }
+                        }
+                    } else if (t === 'Class') {
+                        var properIndex = i;
+                        if (idx !== -1) {
+                            properIndex = i - idx;
+                        }
+                        var mergedObj = mergeObj(
+                            obj.get(k),
+                            v,
+                            `${path}[${properIndex}]/${k}`,
+                        );
+                        mergedObj.warnings.forEach((wrn) => warnings.push(wrn));
+                        obj.set(k, mergedObj.result);
+                    }
+                }
+            });
+        }
+    }
+    return new WithWarning(obj, warnings);
+}
+
+function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithWarning<Map<any, any>> {
+    var warnings = new Array<Warning>();
+    var clone = new Map(obj);
+    other.forEach((k, v) => {
+        if (clone.get(k) === null) {
+            clone.set(k, v);
+        } else {
+            var otherType = getTypeName(v);
+            var t = getTypeName(clone.get(k));
+            if (t != otherType) {
+                if (t === 'int' && otherType === 'double') {
+                    // if double was found instead of int, assign the double
+                    clone.set(k, v);
+                } else if (typeof v + "" !== 'number' && clone.get(k) % 1 === 0) {
+                    // if types are not equal, then
+                    warnings.push(newAmbiguousType(`${path}/${k}`));
+                }
+            } else if (t === 'List') {
+                var l = Array(clone.get(k));
+                l.push(other.get(k));
+                var mergeableType = mergeableListType(l);
+                if (ListType.Object === mergeableType.listType) {
+                    var mergedList = mergeObjectList(l, `${path}`);
+                    mergedList.warnings.forEach((wrn) => warnings.push(wrn));
+                    clone.set(k, new Array(mergedList.result));
+                } else {
+                    if (l.length > 0) {
+                        clone.set(k, new Array(l[0]));
+                    }
+                    if (mergeableType.isAmbigous) {
+                        warnings.push(newAmbiguousType(`${path}/${k}`));
+                    }
+                }
+            } else if (t === 'Class') {
+                var mergedObj = mergeObj(clone.get(k), other.get(k), `${path}/${k}`);
+                mergedObj.warnings.forEach((wrn) => warnings.push(wrn));
+                clone.set(k, mergedObj.result);
+            }
+        }
+    });
+    return new WithWarning(clone, warnings);
 }

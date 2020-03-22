@@ -103,6 +103,11 @@ export function isMap(value: any, key: string): boolean {
         && Object.values(value).every(item => getTypeofProperty(item, key) === getTypeofProperty(Object.values(value)[0], key));
 }
 
+export function isMapN(value: any): boolean {
+    return Object.keys(value).length !== 0
+        && Object.values(value).every(item => typeof item === typeof Object.values(value)[0]);
+}
+
 function getMapItemType(obj: any, key: string): string {
     return mapTsTypeToDartType(getTypeofProperty(Object.values(obj)[0], key), key, obj) ?? "Object";
 }
