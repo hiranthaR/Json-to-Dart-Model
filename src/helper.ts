@@ -70,8 +70,8 @@ export function getTypeName(obj: any): string {
     }
 }
 
-function navigateNode(astNode: ASTNode, path: string): ASTNode | undefined {
-    let node: ASTNode | undefined;
+export function navigateNode(astNode: ASTNode, path: string): ASTNode {
+    let node: ASTNode;
     if (astNode.type === "Object") {
         var objectNode: ObjectNode = astNode as ObjectNode;
         var propertyNode = objectNode.children[0];
@@ -87,31 +87,30 @@ function navigateNode(astNode: ASTNode, path: string): ASTNode | undefined {
             node = arrayNode.children[index];
         }
     }
-    return node;
+    return node!!;
 }
 
 var _pattern = /([0-9]+)\.{0,1}([0-9]*)e(([-0-9]+))/g;
 
-export function isASTLiteralDouble(astNode:ASTNode):boolean {
+export function isASTLiteralDouble(astNode: ASTNode): boolean {
     if (astNode !== null && astNode.type === "Literal") {
-      var literalNode:LiteralNode = astNode as LiteralNode;
-      var containsPoint = literalNode.raw.includes('.');
-      var containsExponent = literalNode.raw.includes('e');
-      if (containsPoint || containsExponent) {
-        var isDouble = containsPoint;
-        if (containsExponent) {
-          var matches = _pattern.test(literalNode.raw);
-          if (matches !== null) {
-              //TODO: need to fix
-            // var integer = matches[1];
-            // final comma = matches[2];
-            // final exponent = matches[3];
-            // isDouble = _isDoubleWithExponential(integer, comma, exponent);
-          }
+        var literalNode: LiteralNode = astNode as LiteralNode;
+        var containsPoint = literalNode.raw.includes('.');
+        var containsExponent = literalNode.raw.includes('e');
+        if (containsPoint || containsExponent) {
+            var isDouble = containsPoint;
+            if (containsExponent) {
+                var matches = _pattern.test(literalNode.raw);
+                if (matches !== null) {
+                    //TODO: need to fix
+                    // var integer = matches[1];
+                    // final comma = matches[2];
+                    // final exponent = matches[3];
+                    // isDouble = _isDoubleWithExponential(integer, comma, exponent);
+                }
+            }
+            return isDouble;
         }
-        return isDouble;
-      }
     }
     return false;
-  }
-  
+}

@@ -55,17 +55,17 @@ export function getViewColumn(): ViewColumn {
     return activeEditor.viewColumn as any;
 }
 
-export function parseJson(json: string): Promise<{ [key: string]: any }> {
+export function parseJson(json: string): { [key: string]: any } {
     const tryEval = (str: any) => eval(`const a = ${str}; a`);
 
     try {
-        return Promise.resolve(JSON.parse(json));
+        return JSON.parse(json);
     } catch (ignored) { }
 
     try {
-        return Promise.resolve(tryEval(json));
+        return tryEval(json);
     } catch (error) {
-        return Promise.reject(new Error("Selected string is not a valid JSON"));
+        return new Error("Selected string is not a valid JSON");
     }
 }
 export function getTypeofProperty(object: any, key: string) {
@@ -111,7 +111,7 @@ export function mapTsTypeToDartType(type: string, key: String, obj: any): string
     const types: { [name: string]: string } = {
         "integer": "int",
         "string": "String",
-        "boolean":"bool",
+        "boolean": "bool",
         "object": changeCase.pascalCase(key.toLowerCase()),
         "map": `Map<String,String>`,
         "double": "double"

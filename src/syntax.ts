@@ -6,7 +6,42 @@ import {
     camelCase
 } from "./helper";
 import { ASTNode } from "json-to-ast";
-import { validateLength } from "./lib";
+
+export const emptyListWarn = "list is empty";
+export const ambiguousListWarn = "list is ambiguous";
+export const ambiguousTypeWarn = "type is ambiguous";
+
+export class Warning {
+    warning: string;
+    path: string;
+
+    constructor(warning: string, path: string) {
+        this.warning = warning;
+        this.path = path;
+    };
+}
+
+export function newEmptyListWarn(path: string): Warning {
+    return new Warning(emptyListWarn, path);
+}
+
+export function newAmbiguousListWarn(path: string): Warning {
+    return new Warning(ambiguousListWarn, path);
+}
+
+export function newAmbiguousType(path: string): Warning {
+    return new Warning(ambiguousTypeWarn, path);
+}
+
+export class WithWarning<T> {
+    result: T;
+    warnings: Array<Warning>;
+
+    constructor(result: T, warnings: Array<Warning>) {
+        this.result = result;
+        this.warnings = warnings;
+    };
+}
 
 export function jsonParseExpression(key: string, typeDef: TypeDefinition, isPrivate = false) {
     var jsonKey = `json['${key}']`;
@@ -74,7 +109,7 @@ export class TypeDefinition {
 
 }
 
-export function typeDefinitionfromAny(obj: any, astNode: ASTNode) {
+export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
     var isAmbiguous = false;
     var type = getTypeName(obj);
     if (type === 'List') {
@@ -115,12 +150,12 @@ class Dependency {
         this.typeDef = typeDef;
     }
 
-    className(): string {
+    getClassName(): string {
         return camelCase(this.name);
     }
 }
 
-class ClassDefinition {
+export class ClassDefinition {
     private _name: string;
     private _privateFields: boolean;
     fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
