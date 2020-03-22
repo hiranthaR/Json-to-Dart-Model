@@ -1,5 +1,4 @@
 import * as changeCase from "change-case";
-import * as parse from "json-to-ast";
 import {
     isArray,
 } from "./lib";
@@ -25,15 +24,15 @@ const PRIMITIVE_TYPES: { [name: string]: boolean } = {
     'Null': true,
 };
 
-function camelCase(text: string): string {
+export function camelCase(text: string): string {
     return changeCase.camelCase(text);
 }
 
-function pascalCase(text: string): string {
+export function pascalCase(text: string): string {
     return changeCase.pascalCase(text);
 }
 
-function snakeCase(text: string): string {
+export function snakeCase(text: string): string {
     return changeCase.snakeCase(text);
 }
 
@@ -94,7 +93,7 @@ function navigateNode(astNode: ASTNode, path: string): ASTNode | undefined {
 var _pattern = /([0-9]+)\.{0,1}([0-9]*)e(([-0-9]+))/g;
 
 export function isASTLiteralDouble(astNode:ASTNode):boolean {
-    if (astNode != null && astNode.type === "Literal") {
+    if (astNode !== null && astNode.type === "Literal") {
       var literalNode:LiteralNode = astNode as LiteralNode;
       var containsPoint = literalNode.raw.includes('.');
       var containsExponent = literalNode.raw.includes('e');

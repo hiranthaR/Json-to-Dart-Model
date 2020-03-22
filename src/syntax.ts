@@ -2,9 +2,11 @@ import {
     fixFieldName,
     isPrimitiveType,
     isASTLiteralDouble,
-    getTypeName
+    getTypeName,
+    camelCase
 } from "./helper";
 import { ASTNode } from "json-to-ast";
+import { validateLength } from "./lib";
 
 export function jsonParseExpression(key: string, typeDef: TypeDefinition, isPrivate = false) {
     var jsonKey = `json['${key}']`;
@@ -69,6 +71,7 @@ export class TypeDefinition {
             isAmbiguous = false;
         }
     }
+
 }
 
 export function typeDefinitionfromAny(obj: any, astNode: ASTNode) {
@@ -101,4 +104,186 @@ function _buildToJsonClass(expression: string): string {
 function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
     var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
     return `new ${properType}.fromJson(${expression})`;
+}
+
+class Dependency {
+    name: string;
+    typeDef: TypeDefinition;
+
+    constructor(name: string, typeDef: TypeDefinition) {
+        this.name = name;
+        this.typeDef = typeDef;
+    }
+
+    className(): string {
+        return camelCase(this.name);
+    }
+}
+
+class ClassDefinition {
+    private _name: string;
+    private _privateFields: boolean;
+    fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
+
+    getName() { return this._name; }
+    getPrivateFields() { return this._privateFields; }
+
+    getDependencies(): Array<Dependency> {
+        var dependenciesList = new Array<Dependency>();
+        var keys = this.fields.keys();
+        for (let [key, value] of this.fields) {
+            if (!value.isPrimitive) {
+                dependenciesList.push(new Dependency(key, value));
+            }
+        }
+        return dependenciesList;
+    }
+
+    constructor(name: string, privateFields = false) {
+        this._name = name;
+        this._privateFields = privateFields;
+    };
+
+    //     bool operator == (other) {
+    //     if (other is ClassDefinition) {
+    //         ClassDefinition otherClassDef = other;
+    //         return this.isSubsetOf(otherClassDef) && otherClassDef.isSubsetOf(this);
+    //     }
+    //     return false;
+    // }
+
+    // bool isSubsetOf(ClassDefinition other) {
+    //     final List < String > keys = this.fields.keys.toList();
+    //     final int len = keys.length;
+    //     for (int i = 0; i < len; i++) {
+    //         TypeDefinition otherTypeDef = other.fields[keys[i]];
+    //         if (otherTypeDef != null) {
+    //             TypeDefinition typeDef = this.fields[keys[i]];
+    //             if (typeDef != otherTypeDef) {
+    //                 return false;
+    //             }
+    //         } else {
+    //             return false;
+    //         }
+    //     }
+    //     return true;
+    // }
+
+    hasField(otherField: TypeDefinition) {
+        return Array.from(this.fields.keys())
+            .filter((k: string) => this.fields.get(k) === otherField) !==
+            null;
+    }
+
+    addField(name: string, typeDef: TypeDefinition) {
+        this.fields.set(name, typeDef);
+    }
+
+    _addTypeDef(typeDef: TypeDefinition) {
+        var sb = "";
+        sb += (`${typeDef.name}`);
+        if (typeDef.subtype !== null) {
+            sb += (`<${typeDef.subtype}>`);
+        }
+        return sb;
+    }
+
+    private _fieldList(): string {
+        return Array.from(this.fields).map(([key, value]) => {
+            const fieldName = fixFieldName(key, this._privateFields);
+            var sb = "\t" + this._addTypeDef(value) + `${fieldName}\n`;
+            return sb;
+        }).join('\n');
+    }
+
+    _gettersSetters(): string {
+        return Array.from(this.fields).map(([key, value]) => {
+            var publicFieldName =
+                fixFieldName(key, false);
+            var privateFieldName =
+                fixFieldName(key, true);
+            var sb = "";
+            sb += '\t';
+            sb += this._addTypeDef(value);
+            sb += `get ${publicFieldName} => $privateFieldName;\n\tset ${publicFieldName}(`;
+            sb += this._addTypeDef(value);
+            sb += ` ${publicFieldName}) => ${privateFieldName} = ${publicFieldName};`;
+            return sb;
+        }).join('\n');
+    }
+
+    _defaultPrivateConstructor(): string {
+        var sb = "";
+        sb += `\t${this._name}({`;
+        var i = 0;
+        var len = Array.from(this.fields.keys()).length - 1;
+        Array.from(this.fields).map(([key, value]) => {
+            var publicFieldName =
+                fixFieldName(key, false);
+            sb += this._addTypeDef(value);
+            sb += ` ${publicFieldName}`;
+            if (i !== len) {
+                sb += ", ";
+            }
+            i++;
+        });
+        sb += '}) {\n';
+        Array.from(this.fields).map(([key, value]) => {
+            var publicFieldName =
+                fixFieldName(key, false);
+            var privateFieldName =
+                fixFieldName(key, true);
+            sb += `this.${privateFieldName} = ${publicFieldName};\n`;
+        });
+        sb += '}';
+        return sb;
+    }
+    _defaultConstructor(): string {
+        var sb = "";
+        sb += `\t${this._name}({`;
+        var i = 0;
+        var len = Array.from(this.fields.keys()).length - 1;
+        Array.from(this.fields).map(([key, value]) => {
+            var fieldName =
+                fixFieldName(key, this._privateFields);
+            sb += `this.${fieldName}`;
+            if (i !== len) {
+                sb += ', ';
+            }
+            i++;
+        });
+        sb += '});';
+        return sb;
+    }
+
+    _jsonParseFunc(): string {
+        var sb = "";
+        sb += `\t${this._name}`;
+        sb += `.fromJson(Map<String, dynamic> json) {\n`;
+        Array.from(this.fields).map(([key, value]) => {
+            sb += `\t\t${jsonParseExpression(key, value, this._privateFields)}\n`;
+        });
+        sb += '\t}';
+        return sb;
+    }
+
+    _jsonGenFunc(): string {
+        var sb = "";
+        sb +=
+            '\tMap<String, dynamic> toJson() {\n\t\tfinal Map<String, dynamic> data = new Map<String, dynamic>();\n';
+        Array.from(this.fields).map(([key, value]) => {
+            sb += `\t\t${toJsonExpression(key, value, this._privateFields)}\n`;
+        });
+        sb += '\t\treturn data;\n';
+        sb += '\t}';
+        return sb;
+    }
+
+    toString(): string {
+        if (this._privateFields) {
+            return `class ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+        } else {
+            return `class ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+        }
+    }
 }
