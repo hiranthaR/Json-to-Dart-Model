@@ -11,41 +11,41 @@ export function jsonParseExpression(key: string, typeDef: TypeDefinition, isPriv
     var fieldKey =
         fixFieldName(key, isPrivate);
     if (typeDef.isPrimitive) {
-        if (typeDef.name == "List") {
-            return "$fieldKey = json['$key'].cast<$subtype>();";
+        if (typeDef.name === "List") {
+            return `${fieldKey} = json['${key}'].cast<${typeDef.subtype}>();`;
         }
-        return "$fieldKey = json['$key'];";
-    } else if (typeDef.name == "List" && typeDef.subtype == "DateTime") {
-        return "$fieldKey = json['$key'].map((v) => DateTime.tryParse(v));";
-    } else if (typeDef.name == "DateTime") {
-        return "$fieldKey = DateTime.tryParse(json['$key']);";
-    } else if (typeDef.name == 'List') {
+        return `${fieldKey} = json['${key}'];`;
+    } else if (typeDef.name === "List" && typeDef.subtype === "DateTime") {
+        return `${fieldKey} = json['${key}'].map((v) => DateTime.tryParse(v));`;
+    } else if (typeDef.name === "DateTime") {
+        return `${fieldKey} = DateTime.tryParse(json['${key}']);`;
+    } else if (typeDef.name === 'List') {
         // list of class
-        return "if (json['$key'] != null) {\n\t\t\t$fieldKey = new List<$subtype>();\n\t\t\tjson['$key'].forEach((v) { $fieldKey.add(new $subtype.fromJson(v)); });\n\t\t}";
+        return `if (json['${key}'] != null) {\n\t\t\t${fieldKey} = new List<${typeDef.subtype}>();\n\t\t\tjson['${key}'].forEach((v) { ${fieldKey}.add(new ${typeDef.subtype}.fromJson(v)); });\n\t\t}`;
     } else {
         // class
-        return "$fieldKey = json['$key'] != null ? ${_buildParseClass(jsonKey)} : null;";
+        return `${fieldKey} = json['${key}'] != null ? ${_buildParseClass(jsonKey, typeDef)} : null;`;
     }
 }
 
-export  function toJsonExpression( key:string,typeDef:TypeDefinition, privateField:boolean):string {
+export function toJsonExpression(key: string, typeDef: TypeDefinition, privateField: boolean): string {
     var fieldKey =
-        fixFieldName(key,  privateField);
-    var thisKey = 'this.$fieldKey';
+        fixFieldName(key, privateField);
+    var thisKey = `this.${fieldKey}`;
     if (typeDef.isPrimitive) {
-      return "data['$key'] = $thisKey;";
-    } else if (typeDef.name == 'List') {
-      // class list
-      return `if ($thisKey != null) {
-      data['$key'] = $thisKey.map((v) => ${_buildToJsonClass('v')}).toList();
+        return `data['${key}'] = ${thisKey};`;
+    } else if (typeDef.name === 'List') {
+        // class list
+        return `if (${thisKey}!= null) {
+      data['${key}'] = ${thisKey}.map((v) => ${_buildToJsonClass('v')}).toList();
     }`;
     } else {
-      // class
-      return `if ($thisKey != null) {
-      data['$key'] = ${_buildToJsonClass(thisKey)};
+        // class
+        return `if (${thisKey} != null) {
+      data['${key}'] = ${_buildToJsonClass(thisKey)};
     }`;
     }
-  }
+}
 
 export class TypeDefinition {
     name: string;
@@ -63,7 +63,7 @@ export class TypeDefinition {
                 this.name = 'double';
             }
         } else {
-            this.isPrimitive = isPrimitiveType('$name<$subtype>');
+            this.isPrimitive = isPrimitiveType(`${name}<${subtype}>`);
         }
         if (isAmbiguous === null) {
             isAmbiguous = false;
@@ -94,6 +94,11 @@ export function typeDefinitionfromAny(obj: any, astNode: ASTNode) {
     return new TypeDefinition(type, null, isAmbiguous, astNode);
 }
 
-function _buildToJsonClass(expression:string):string {
-    return '$expression.toJson()';
-  }
+function _buildToJsonClass(expression: string): string {
+    return `${expression}.toJson()`;
+}
+
+function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
+    var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
+    return `new ${properType}.fromJson(${expression})`;
+}
