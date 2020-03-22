@@ -37,7 +37,7 @@ function snakeCase(text: string): string {
     return changeCase.snakeCase(text);
 }
 
-function isPrimitiveType(typeName: string) {
+export function isPrimitiveType(typeName: string) {
     var isPrimitive = PRIMITIVE_TYPES[typeName];
     if (isPrimitive === null || isPrimitive === undefined) {
         return false;
@@ -45,7 +45,7 @@ function isPrimitiveType(typeName: string) {
     return isPrimitive;
 }
 
-function fixFlieldName(name: string, isPrivate = false): string {
+export function fixFieldName(name: string, isPrivate = false): string {
     var filedName = camelCase(name);
     if (isPrivate) {
         return `_${filedName}`;
@@ -53,7 +53,7 @@ function fixFlieldName(name: string, isPrivate = false): string {
     return filedName;
 }
 
-function getTypeName(obj: any): string {
+export function getTypeName(obj: any): string {
     var type = typeof obj + "";
     if (type === 'string') {
         return 'String';
@@ -90,3 +90,29 @@ function navigateNode(astNode: ASTNode, path: string): ASTNode | undefined {
     }
     return node;
 }
+
+var _pattern = /([0-9]+)\.{0,1}([0-9]*)e(([-0-9]+))/g;
+
+export function isASTLiteralDouble(astNode:ASTNode):boolean {
+    if (astNode != null && astNode.type === "Literal") {
+      var literalNode:LiteralNode = astNode as LiteralNode;
+      var containsPoint = literalNode.raw.includes('.');
+      var containsExponent = literalNode.raw.includes('e');
+      if (containsPoint || containsExponent) {
+        var isDouble = containsPoint;
+        if (containsExponent) {
+          var matches = _pattern.test(literalNode.raw);
+          if (matches !== null) {
+              //TODO: need to fix
+            // var integer = matches[1];
+            // final comma = matches[2];
+            // final exponent = matches[3];
+            // isDouble = _isDoubleWithExponential(integer, comma, exponent);
+          }
+        }
+        return isDouble;
+      }
+    }
+    return false;
+  }
+  
