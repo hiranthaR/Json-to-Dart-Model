@@ -3,7 +3,8 @@ import {
     isPrimitiveType,
     isASTLiteralDouble,
     getTypeName,
-    camelCase
+    camelCase,
+    pascalCase,
 } from "./helper";
 import { ASTNode } from "json-to-ast";
 
@@ -138,7 +139,7 @@ function _buildToJsonClass(expression: string): string {
 
 function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
     var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
-    return `new ${properType}.fromJson(${expression})`;
+    return `new ${pascalCase(properType)}.fromJson(${expression})`;
 }
 
 class Dependency {
@@ -216,7 +217,7 @@ export class ClassDefinition {
 
     _addTypeDef(typeDef: TypeDefinition) {
         var sb = "";
-        sb += (`${typeDef.name}`);
+        sb += isPrimitiveType(typeDef.name) ? `${typeDef.name}`:`${pascalCase(typeDef.name)}`;
         if (typeDef.subtype !== null) {
             sb += (`<${typeDef.subtype}>`);
         }
@@ -226,7 +227,7 @@ export class ClassDefinition {
     private _fieldList(): string {
         return Array.from(this.fields).map(([key, value]) => {
             const fieldName = fixFieldName(key, this._privateFields);
-            var sb = "\t" + this._addTypeDef(value) + `${fieldName}\n`;
+            var sb = "\t" + this._addTypeDef(value) + ` ${fieldName};`;
             return sb;
         }).join('\n');
     }

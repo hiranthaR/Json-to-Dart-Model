@@ -10,7 +10,8 @@ import {
 import {
     navigateNode,
     camelCase,
-    mergeObjectList
+    mergeObjectList,
+    pascalCase
 } from "./helper";
 import { ASTNode } from "json-to-ast";
 import {
@@ -66,17 +67,16 @@ export class ModelGenerator {
             var node = navigateNode(astNode, '0');
             this._generateClassDefinition(className, jsonRawDynamicData[0], path, node);
         } else {
-            var jsonRawData: Map<any, any> = jsonRawDynamicData;
-            var keys = jsonRawData.keys();
-            var classDefinition = new ClassDefinition(className, this._privateFields);
-            Array.from(keys).forEach((key) => {
+            var jsonRawData: Map<any, any> = new Map(Object.entries(jsonRawDynamicData));
+            var classDefinition = new ClassDefinition(pascalCase(className), this._privateFields);
+            jsonRawData.forEach((value, key) => {
                 var typeDef: TypeDefinition;
                 var hint = this._hintForPath(`${path}/${key}`);
                 var node = navigateNode(astNode, key);
-                if (hint !== null) {
+                if (hint !== null && hint !== undefined) {
                     typeDef = new TypeDefinition(hint.type, null, false, node);
                 } else {
-                    typeDef = typeDefinitionFromAny(jsonRawData.get(key), node);
+                    typeDef = typeDefinitionFromAny(value, node);
                 }
                 if (typeDef.name === 'Class') {
                     typeDef.name = camelCase(key);
@@ -93,7 +93,7 @@ export class ModelGenerator {
                 classDefinition.addField(key, typeDef);
             });
             var similarClass = this.allClasses.filter((cd) => cd === classDefinition)[0];
-            if (similarClass !== null) {
+            if (similarClass !== null && similarClass !== undefined) {
                 var similarClassName = similarClass.getName();
                 var currentClassName = classDefinition.getName();
                 this.sameClassMapping.set(currentClassName, similarClassName);
@@ -126,7 +126,7 @@ export class ModelGenerator {
                     warns = this._generateClassDefinition(dependency.getClassName(),
                         jsonRawData.get(dependency.name), `${path}/${dependency.name}`, node);
                 }
-                if (warns!! !== null) {
+                if (warns!! !== null && warns!! !== undefined) {
                     warns!!.forEach(wrn => warnings.push(wrn));
                 }
             });
@@ -138,7 +138,7 @@ export class ModelGenerator {
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. The dart code is not validated so invalid dart code
     /// might be returned
-    generateUnsafeDart(rawJson: string): DartCode {
+    generateUnsafeDart(rawJson: string): Array<ClassDefinition> {
         var jsonRawData = parseJson(rawJson);
         var astNode = parse(rawJson, {
             loc: true,
@@ -156,15 +156,13 @@ export class ModelGenerator {
                 }
             });
         });
-        return new DartCode(
-            this.allClasses.map((c) => c.toString()).join('\n'), warnings);
+        return this.allClasses;
     }
 
     /// generateDartClasses will generate all classes and append one after another
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. If the generated dart is invalid it will throw an error.
-    generateDartClasses(rawJson: string): DartCode {
-        var unsafeDartCode = this.generateUnsafeDart(rawJson);
-        return new DartCode(unsafeDartCode.getCode(), unsafeDartCode.warnings);
+    generateDartClasses(rawJson: string): Array<ClassDefinition> {
+        return this.generateUnsafeDart(rawJson);
     }
 }

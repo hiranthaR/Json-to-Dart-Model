@@ -5,6 +5,8 @@ import {
     getClassTemplate
 } from "./template";
 import * as fs from "fs";
+import { ModelGenerator } from "./model_generator";
+import { ClassDefinition } from "./syntax";
 
 export function getClipboardText() {
     try {
@@ -138,35 +140,40 @@ export
     async function createClass(
         className: string,
         targetDirectory: string,
-        object: any
+        object: string
     ) {
 
-    Object.keys(object)
-        .filter(key => getTypeofProperty(object[key], key) === "object")
-        .forEach(async key => {
-            await createClass(key, targetDirectory, object[key]);
-        });
+    // Object.keys(object)
+    //     .filter(key => getTypeofProperty(object[key], key) === "object")
+    //     .forEach(async key => {
+    //         await createClass(key, targetDirectory, object[key]);
+    //     });
 
-    const pascalClassName = changeCase.pascalCase(className.toLowerCase());
-    const snakeClassName = changeCase.snakeCase(className.toLowerCase());
-    const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
+    var modelGenerator = new ModelGenerator(className);
+    var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(object);
 
-    if (fs.existsSync(targetPath)) {
-        throw Error(`${snakeClassName}.dart already exists`);
-    }
 
     return new Promise(async (resolve, reject) => {
-        fs.writeFile(
-            targetPath,
-            (getClassTemplate(pascalClassName, object)),
-            "utf8",
-            error => {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve();
+
+        classes.map(async (c) => {
+            const snakeClassName = changeCase.snakeCase(c.getName().toLowerCase());
+            const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
+            if (fs.existsSync(targetPath)) {
+                throw Error(`${snakeClassName}.dart already exists`);
             }
-        );
+
+            await fs.writeFile(
+                targetPath,
+                c.toString(),
+                "utf8",
+                error => {
+                    if (error) {
+                        reject(error);
+                        return;
+                    }
+                    resolve();
+                }
+            );
+        });
     });
 }

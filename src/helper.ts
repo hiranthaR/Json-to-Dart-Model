@@ -127,7 +127,7 @@ export function navigateNode(astNode: ASTNode, path: string): ASTNode {
 var _pattern = /([0-9]+)\.{0,1}([0-9]*)e(([-0-9]+))/g;
 
 export function isASTLiteralDouble(astNode: ASTNode): boolean {
-    if (astNode !== null && astNode.type === "Literal") {
+    if (astNode !== null && astNode !== undefined && astNode.type === "Literal") {
         var literalNode: LiteralNode = astNode as LiteralNode;
         var containsPoint = literalNode.raw.includes('.');
         var containsExponent = literalNode.raw.includes('e');
@@ -153,8 +153,9 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = list[i];
-        if (isMapN(toMerge)) {
+        // var toMerge = list[i];
+        var toMerge = new Map(Object.entries(list[i]));
+        if (toMerge.size !== 0) {
             toMerge.forEach((k: any, v: any) => {
                 var t = getTypeName(obj.get(k));
                 if (obj.get(k) === null) {
@@ -222,7 +223,7 @@ function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithW
         } else {
             var otherType = getTypeName(v);
             var t = getTypeName(clone.get(k));
-            if (t != otherType) {
+            if (t !== otherType) {
                 if (t === 'int' && otherType === 'double') {
                     // if double was found instead of int, assign the double
                     clone.set(k, v);

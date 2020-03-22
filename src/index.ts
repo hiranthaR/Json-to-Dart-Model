@@ -81,8 +81,8 @@ async function transformFromClipboard(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json))
-		.catch(handleError);
+		.then(json => generateClass(className, <string>targetDirectory, json));
+		// .catch(handleError);
 }
 
 function promptForBaseClassName(): Thenable<string | undefined> {
@@ -112,22 +112,14 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
 async function generateClass(
 	className: string,
 	targetDirectory: string,
-	object: any
+	object: string
 ) {
 	const classDirectoryPath = `${targetDirectory}/models`;
 	if (!fs.existsSync(classDirectoryPath)) {
 		await createDirectory(classDirectoryPath);
 	}
+	await createClass(className, targetDirectory, object);
 
-	if (isArray(object)) {
-		if (object.length === 0) {
-			throw Error("nothing to Do.Empty Array!");
-		} else {
-			await createClass(className, targetDirectory, object[0]);
-		}
-	} else {
-		await createClass(className, targetDirectory, object);
-	}
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {
