@@ -16,10 +16,11 @@ import {
 	getViewColumn,
 	parseJson,
 	createClass,
-	isArray
+	isArray,
+	pasteToMarker
 } from "./lib";
 
-
+import * as parse from "json-to-ast";
 import * as path from "path";
 import * as os from "os";
 import * as fs from "fs";
@@ -55,7 +56,6 @@ async function transformFromSelection(uri: Uri) {
 
 	getSelectedText()
 		.then(validateLength)
-		.then(parseJson)
 		.then(json => generateClass(className, <string>targetDirectory, json))
 		.catch(handleError);
 }
@@ -81,7 +81,6 @@ async function transformFromClipboard(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(parseJson)
 		.then(json => generateClass(className, <string>targetDirectory, json))
 		.catch(handleError);
 }

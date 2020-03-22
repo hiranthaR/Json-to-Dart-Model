@@ -6,7 +6,6 @@ import {
 } from "./template";
 import * as fs from "fs";
 
-
 export function getClipboardText() {
     try {
         return Promise.resolve(copyPaste.paste());
@@ -154,7 +153,7 @@ export
     return new Promise(async (resolve, reject) => {
         fs.writeFile(
             targetPath,
-            getClassTemplate(pascalClassName, object),
+            (getClassTemplate(pascalClassName, object)),
             "utf8",
             error => {
                 if (error) {
