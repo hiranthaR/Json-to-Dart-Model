@@ -5,6 +5,8 @@ import {
     getTypeName,
     camelCase,
     pascalCase,
+    snakeCase,
+    isList,
 } from "./helper";
 import { ASTNode } from "json-to-ast";
 
@@ -217,7 +219,7 @@ export class ClassDefinition {
 
     _addTypeDef(typeDef: TypeDefinition) {
         var sb = "";
-        sb += isPrimitiveType(typeDef.name) ? `${typeDef.name}`:`${pascalCase(typeDef.name)}`;
+        sb += isPrimitiveType(typeDef.name) ? `${typeDef.name}` : `${pascalCase(typeDef.name)}`;
         if (typeDef.subtype !== null) {
             sb += (`<${typeDef.subtype}>`);
         }
@@ -230,6 +232,16 @@ export class ClassDefinition {
             var sb = "\t" + this._addTypeDef(value) + ` ${fieldName};`;
             return sb;
         }).join('\n');
+    }
+
+    private _importList(): string {
+        return Array.from(this.fields).map(([key, value]) => {
+            var sb = "";
+            if (!isPrimitiveType(value.name) && !isList(value.name)) {
+                sb = "import \"" + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
+            }
+            return sb;
+        }).join('');
     }
 
     _gettersSetters(): string {
@@ -317,9 +329,9 @@ export class ClassDefinition {
 
     toString(): string {
         if (this._privateFields) {
-            return `class ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._importList()}\n\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         } else {
-            return `class ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._importList()}\n\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         }
     }
 }

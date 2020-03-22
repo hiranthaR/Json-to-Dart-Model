@@ -58,6 +58,10 @@ const PRIMITIVE_TYPES: { [name: string]: boolean } = {
     'Null': true,
 };
 
+export function isList(text: string) {
+    return text.startsWith("List");
+}
+
 export function camelCase(text: string): string {
     return changeCase.camelCase(text);
 }
