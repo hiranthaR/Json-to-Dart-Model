@@ -81,8 +81,8 @@ async function transformFromClipboard(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json));
-		// .catch(handleError);
+		.then(json => generateClass(className, <string>targetDirectory, json))
+		.catch(handleError);
 }
 
 function promptForBaseClassName(): Thenable<string | undefined> {
