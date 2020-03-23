@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Released]
 
+## [1.3.0] - 2020-03-23
+
+- fixed array sub type error when subtype is not a primitive.
+- fixed array sub type import error when subtype is not a primitive.
+- fixed array subtype class generate error.
+
 ## [1.2.0] - 2020-03-23
 
 ### Fixed

@@ -1,5 +1,10 @@
 # JSON to DART
 
+[![GitHub stars](https://img.shields.io/github/stars/hiranthar/Json-to-Dart-Model)](https://github.com/hiranthar/Json-to-Dart-Model/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/hiranthar/Json-to-Dart-Model?style=plastic)](https://github.com/hiranthar/Json-to-Dart-Model/network)
+[![GitHub issues](https://img.shields.io/github/issues/hiranthar/Json-to-Dart-Model?style=plastic)](https://github.com/hiranthar/Json-to-Dart-Model/issues)
+[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://www.hirantha.xyz)
+
 ### Convert JSON object to Dart Model classes
 
 ## Features
