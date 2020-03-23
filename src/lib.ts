@@ -1,9 +1,6 @@
 import * as copyPaste from "copy-paste";
 import { ViewColumn, window } from "vscode";
 import * as changeCase from "change-case";
-import {
-    getClassTemplate
-} from "./template";
 import * as fs from "fs";
 import { ModelGenerator } from "./model_generator";
 import { ClassDefinition } from "./syntax";
@@ -70,48 +67,14 @@ export function parseJson(json: string): { [key: string]: any } {
         return new Error("Selected string is not a valid JSON");
     }
 }
-export function getTypeofProperty(object: any, key: string) {
-    if (isArray(object)) {
-        if (isSameTypeInArray(object, key)) {
-            return `List<${getArrayItemType(object, key)}>`;
-        } else {
-            return `List<Object>`;
-        }
-    }
-    var type = typeof object + "";
-    if (type === "number") {
-        return object % 1 === 0 ? "int" : "double";
-    }
-    // if (type === "object" && isMap(object, key)) {
-    //     return `Map<String,${getMapItemType(object, key)}>`;
-    // }
-    return type;
-}
 
 export function isArray(value: any): boolean {
     return Array.isArray(value);
 }
 
-export function isSameTypeInArray(value: any, key: string): boolean {
-    return Array.isArray(value) && value.length !== 0 && value.every(item => getTypeofProperty(item, key) === getTypeofProperty(value[0], key));
-}
-
-export function getArrayItemType(obj: any, key: string): string {
-    return mapTsTypeToDartType(getTypeofProperty(obj[0], key), key, obj) ?? "Object";
-}
-
-export function isMap(value: any, key: string): boolean {
-    return Object.keys(value).length !== 0
-        && Object.values(value).every(item => getTypeofProperty(item, key) === getTypeofProperty(Object.values(value)[0], key));
-}
-
-export function isMapN(value: any): boolean {
+export function isMap(value: any): boolean {
     return Object.keys(value).length !== 0
         && Object.values(value).every(item => typeof item === typeof Object.values(value)[0]);
-}
-
-function getMapItemType(obj: any, key: string): string {
-    return mapTsTypeToDartType(getTypeofProperty(Object.values(obj)[0], key), key, obj) ?? "Object";
 }
 
 export function mapTsTypeToDartType(type: string, key: String, obj: any): string {
@@ -136,8 +99,7 @@ export function isPremitiveType(type: string, key: String, obj: any): boolean {
     return types.includes(type);
 }
 
-export
-    async function createClass(
+export async function createClass(
         className: string,
         targetDirectory: string,
         object: string

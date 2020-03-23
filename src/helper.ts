@@ -1,6 +1,6 @@
 import * as changeCase from "change-case";
 import {
-    isArray, isMap, isMapN,
+    isArray, isMap,
 } from "./lib";
 import {
     ASTNode,
@@ -32,7 +32,7 @@ function mergeableListType(list: Array<any>): MergeableListType {
             inferredType = e % 1 === 0 ? ListType.Int : ListType.Double;
         } else if (typeof e === 'string') {
             inferredType = ListType.String;
-        } else if (isMapN(e)) {
+        } else if (isMap(e)) {
             inferredType = ListType.Object;
         }
         if (t !== ListType.Null && t !== inferredType!!) {

@@ -13,16 +13,9 @@ import {
 	getClipboardText,
 	getSelectedText,
 	validateLength,
-	getViewColumn,
-	parseJson,
 	createClass,
-	isArray,
-	pasteToMarker
 } from "./lib";
 
-import * as parse from "json-to-ast";
-import * as path from "path";
-import * as os from "os";
 import * as fs from "fs";
 import * as _ from "lodash";
 import * as mkdirp from "mkdirp";

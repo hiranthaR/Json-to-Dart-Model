@@ -11,9 +11,9 @@
 - convert json you selected in to dart model classes.
 
 ### How to use
-1. Select a valid json.Press `Shift + Ctrl + P` and search for `Convert from Selection`. Provide a Base class name and location to save.
+1. Select a valid json.Press `Ctrl + P` and search for `Convert from Selection`. Provide a Base class name and location to save.
 
-2. Copy a valid json.Press `Shift + Ctrl + P` and search for `Convert from Clipboard`. Provide a Base class name and location to save.
+2. Copy a valid json.Press `Ctrl + P` and search for `Convert from Clipboard`. Provide a Base class name and location to save.
 
 3. Useing short cuts 
 

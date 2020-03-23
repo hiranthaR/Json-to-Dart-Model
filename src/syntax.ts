@@ -240,6 +240,9 @@ export class ClassDefinition {
             if (!isPrimitiveType(value.name) && !isList(value.name)) {
                 sb = "import \"" + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
             }
+            if (value.subtype !== null && isList(value.name) && !isPrimitiveType(value.subtype)) {
+                sb = "import \"" + snakeCase(value.subtype) + `.dart";\n`;
+            }
             return sb;
         }).join('');
     }
