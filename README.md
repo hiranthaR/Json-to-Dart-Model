@@ -4,9 +4,24 @@
 
 ## Features
 
-#### Convert from clipboard (`Shift + Ctrl + Alt + V`)
+#### Convert from clipboard
+- convert json you copied in to dart model classes.
 
-#### Convert from selection (`Shift + Ctrl + Alt + S`)
+#### Convert from selection
+- convert json you selected in to dart model classes.
+
+### How to use
+1. Select a valid json.Press `Shift + Ctrl + P` and search for `Convert from Selection`. Provide a Base class name and location to save.
+
+2. Copy a valid json.Press `Shift + Ctrl + P` and search for `Convert from Clipboard`. Provide a Base class name and location to save.
+
+3. Useing short cuts 
+
+## Key bindings
+
+Convert from clipboard (`Shift + Ctrl + Alt + V`)
+
+Convert from selection (`Shift + Ctrl + Alt + S`)
 
 ## Converter
 
@@ -22,7 +37,11 @@
 
 ---
 
-Solution: `sudo apt-get install xclip`
+Solution: 
+
+```console
+    sudo apt-get install xclip
+```
 
 Happens when linux is missing clipboard packages
 
