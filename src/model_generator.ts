@@ -117,9 +117,10 @@ export class ModelGenerator {
                         } else {
                             toAnalyze = jsonRawData.get(dependency.name)[0];
                         }
+                        const obj: any = {};
+                        toAnalyze.forEach((value: any, key: any) => (obj[key] = value));
                         var node = navigateNode(astNode, dependency.name);
-                        warns = this._generateClassDefinition(dependency.getClassName(), toAnalyze,
-                            `${path}/${dependency.name}`, node);
+                        warns = this._generateClassDefinition(dependency.getClassName(), obj, `${path}/${dependency.name}`, node);
                     }
                 } else {
                     var node = navigateNode(astNode, dependency.name);

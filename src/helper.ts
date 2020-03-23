@@ -157,12 +157,11 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        // var toMerge = list[i];
         var toMerge = new Map(Object.entries(list[i]));
         if (toMerge.size !== 0) {
-            toMerge.forEach((k: any, v: any) => {
+            toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));
-                if (obj.get(k) === null) {
+                if (obj.get(k) === undefined) {
                     obj.set(k, v);
                 } else {
                     var otherType = getTypeName(v);
@@ -215,7 +214,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
             });
         }
     }
-    return new WithWarning(obj, warnings);
+   return new WithWarning(obj, warnings);
 }
 
 function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithWarning<Map<any, any>> {
