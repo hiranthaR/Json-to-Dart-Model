@@ -81,7 +81,7 @@ async function transformFromClipboard(uri: Uri) {
 function promptForBaseClassName(): Thenable<string | undefined> {
 	const classNamePromptOptions: InputBoxOptions = {
 		prompt: "Base Class Name",
-		placeHolder: "Pojo Response"
+		placeHolder: "User"
 	};
 	return window.showInputBox(classNamePromptOptions);
 }

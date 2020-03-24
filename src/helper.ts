@@ -138,13 +138,12 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
         if (containsPoint || containsExponent) {
             var isDouble = containsPoint;
             if (containsExponent) {
-                var matches = _pattern.test(literalNode.raw);
+                var matches = literalNode.raw.split(_pattern);
                 if (matches !== null) {
-                    //TODO: need to fix
-                    // var integer = matches[1];
-                    // final comma = matches[2];
-                    // final exponent = matches[3];
-                    // isDouble = _isDoubleWithExponential(integer, comma, exponent);
+                    var integer = matches[1];
+                    var comma = matches[2];
+                    var exponent = matches[3];
+                    isDouble = _isDoubleWithExponential(integer, comma, exponent);
                 }
             }
             return isDouble;
@@ -214,7 +213,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
             });
         }
     }
-   return new WithWarning(obj, warnings);
+    return new WithWarning(obj, warnings);
 }
 
 function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithWarning<Map<any, any>> {
@@ -258,4 +257,21 @@ function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithW
         }
     });
     return new WithWarning(clone, warnings);
+}
+
+function _isDoubleWithExponential(integer: string, comma: string, exponent: string): boolean {
+    var integerNumber = +integer ?? 0;
+    var exponentNumber = +exponent ?? 0;
+    var commaNumber = +comma ?? 0;
+    if (exponentNumber !== null) {
+        if (exponentNumber === 0) {
+            return commaNumber > 0;
+        }
+        if (exponentNumber > 0) {
+            return exponentNumber < comma.length && commaNumber > 0;
+        }
+        return commaNumber > 0 ||
+            ((integerNumber * Math.pow(10, exponentNumber)) % 1 > 0);
+    }
+    return false;
 }

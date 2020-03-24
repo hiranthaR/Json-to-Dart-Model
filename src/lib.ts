@@ -100,31 +100,24 @@ export function isPremitiveType(type: string, key: String, obj: any): boolean {
 }
 
 export async function createClass(
-        className: string,
-        targetDirectory: string,
-        object: string
-    ) {
-
-    // Object.keys(object)
-    //     .filter(key => getTypeofProperty(object[key], key) === "object")
-    //     .forEach(async key => {
-    //         await createClass(key, targetDirectory, object[key]);
-    //     });
+    className: string,
+    targetDirectory: string,
+    object: string
+) {
 
     var modelGenerator = new ModelGenerator(className);
     var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(object);
 
-
     return new Promise(async (resolve, reject) => {
 
-        classes.map(async (c) => {
+        classes.map((c) => {
             const snakeClassName = changeCase.snakeCase(c.getName().toLowerCase());
             const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
             if (fs.existsSync(targetPath)) {
                 throw Error(`${snakeClassName}.dart already exists`);
             }
 
-            await fs.writeFile(
+            fs.writeFile(
                 targetPath,
                 c.toString(),
                 "utf8",
