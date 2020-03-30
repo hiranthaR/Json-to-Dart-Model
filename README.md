@@ -7,7 +7,7 @@
 
 
 ### Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON.
-This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert).
+This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert).Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
 
 - When an empty array is given, it will create a `List<Null>`. Such weird behaviour should warn the user that there is no data to extract.
 - Equal structures are not detected yet (Equal classes are going to be created over and over).
@@ -26,16 +26,22 @@ This library is designed to generate `Flutter` friendly model classes following 
 
 ## Features
 
-#### Convert from clipboard
+#### Convert from clipboard to manual model classes.
 - convert json you copied in to dart model classes.
 
-#### Convert from selection
+#### Convert from selection to manual model classes.
 - convert json you selected in to dart model classes.
+
+#### Convert from clipboard to code generation libraries supported model classes.
+- convert json you copied in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
+
+#### Convert from selection to code generation libraries supported model classes
+- convert json you selected in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
 
 #### Add code generation Libaries to `pubspec.yaml` file.
 - add serializing JSON using code generation libraries to `pubspec.yaml`.
   
-  dependencies
+  structure of the `pubspec.yaml`
     ```yaml
     dependencies:
         # Your other regular dependencies here
@@ -47,11 +53,17 @@ This library is designed to generate `Flutter` friendly model classes following 
         json_serializable: <latest_version>
     ```
 
+
+### Serializing JSON using code generation libraries
+If you prefer to use Code Generation Libraries from the `flutter`, first of all I suggest you to add dependencies to the `pubspec.yaml` file. It also can be done with this extension. You don't need to worry about it also :wink: after that you can convert your `json` to model classes. Then you need to run a shell command to generate rest parts of the models. This is the command according to the flutter's docs `flutter pub run build_runner build`.Yey, :smile: fortunately extenstion automatically opens a new terminal session and run that command for you.
+
+- read more about [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) about **JSON and serialization**
+
+
 ### How to use
-1. Select a valid json.Press `Ctrl + P` and search for `Convert from Selection`. Provide a Base class name and location to save.
+1. Select a valid json.Press `Ctrl + shift + P` and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
 
-2. Copy a valid json.Press `Ctrl + P` and search for `Convert from Clipboard`. Provide a Base class name and location to save.
-
+2. Copy a valid json.Press `Ctrl +shift + P` and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
 
 3. Press `Ctrl + P` and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
 
@@ -62,6 +74,10 @@ This library is designed to generate `Flutter` friendly model classes following 
 Convert from clipboard (`Shift + Ctrl + Alt + V`)
 
 Convert from selection (`Shift + Ctrl + Alt + S`)
+
+Convert from Clipboard to Code Generation supported classes (`Shift + Ctrl + Alt + G`)
+
+Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt + H`)
 
 ## Converter
 
