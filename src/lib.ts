@@ -132,3 +132,55 @@ export async function createClass(
         });
     });
 }
+
+export async function appendDependencyLibraries(targetPath: string): Promise<string> {
+    var pubspec = fs.readFileSync(targetPath, 'utf8');
+    var keyword = "sdk: flutter";
+    var index = pubspec.indexOf(keyword);
+    if (index > 0) {
+        pubspec = pubspec.substring(0, index + keyword.length) + "\n  json_annotation:" + pubspec.substring(index + keyword.length, pubspec.length);
+    }
+
+    return new Promise(async (resolve, reject) => {
+
+        fs.writeFile(
+            targetPath,
+            pubspec.toString(),
+            "utf8",
+            error => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve(targetPath);
+            }
+        );
+
+    });
+};
+
+
+export async function appendDevDependencyLibraries(targetPath: string): Promise<string> {
+    var pubspec = fs.readFileSync(targetPath, 'utf8');
+    var keyword = "sdk: flutter";
+    var index = pubspec.indexOf(keyword, pubspec.indexOf(keyword) + 1);
+    if (index > 0) {
+        pubspec = pubspec.substring(0, index + keyword.length) + "\n  build_runner:\n  json_serializable:" + pubspec.substring(index + keyword.length, pubspec.length);
+    }
+    return new Promise(async (resolve, reject) => {
+
+        fs.writeFile(
+            targetPath,
+            pubspec.toString(),
+            "utf8",
+            error => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                resolve(targetPath);
+            }
+        );
+
+    });
+};

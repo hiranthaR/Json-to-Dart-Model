@@ -14,6 +14,8 @@ import {
 	getSelectedText,
 	validateLength,
 	createClass,
+	appendDependencyLibraries,
+	appendDevDependencyLibraries
 } from "./lib";
 
 import * as fs from "fs";
@@ -26,6 +28,9 @@ export function activate(context: ExtensionContext) {
 	);
 	context.subscriptions.push(
 		commands.registerCommand("jsonToDart.fromClipboard", transformFromClipboard)
+	);
+	context.subscriptions.push(
+		commands.registerCommand("jsonToDart.addCodeGenerationLibraries", addCodeGenerationLibraries)
 	);
 }
 
@@ -121,4 +126,17 @@ function createDirectory(targetDirectory: string): Promise<void> {
 			.then(value => resolve())
 			.catch(error => reject(error));
 	});
+}
+
+async function addCodeGenerationLibraries() {
+	let folderPath = workspace.rootPath;
+	const targetPath = `${folderPath}/pubspec.yaml`;
+
+	if (fs.existsSync(targetPath)) {
+		appendDependencyLibraries(targetPath)
+			.then(appendDevDependencyLibraries)
+			.catch(handleError);
+	} else {
+		window.showErrorMessage("pubspec.yaml does't exist :/");
+	}
 }
