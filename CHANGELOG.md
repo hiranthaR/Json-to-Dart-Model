@@ -5,8 +5,20 @@
 ## [1.5.0] - 2020-03-31
 
 ### Added
+
+- Added command to generate model classes according to code generation libraries.  
+- generate models with selected json.  
+- generate models with copied json.  
+- add terminal session to run build command `flutter pub run build_runner build`
+
+read more about [Serializing JSON using code generation libraries](https://flutter.dev/docs/development/data-and-backend/json#serializing-json-using-code-generation-libraries. 
+
+## [1.5.0] - 2020-03-31
+
+### Added
 - Code generation packages appending command. read more about [Serializing JSON using code generation libraries](https://flutter.dev/docs/development/data-and-backend/json#serializing-json-using-code-generation-libraries). 
-- 
+  
+
 ## [1.4.0] - 2020-03-24
 
 ### Fixed

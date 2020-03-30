@@ -88,6 +88,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 		.then(json => generateClass(className, <string>targetDirectory, json, true))
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
+			terminal.show();
 			terminal.sendText("flutter pub run build_runner build");
 		})
 		.catch(handleError);
@@ -142,6 +143,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
 		.then(json => generateClass(className, <string>targetDirectory, json, true))
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
+			terminal.show();
 			terminal.sendText("flutter pub run build_runner build");
 		})
 		.catch(handleError);
