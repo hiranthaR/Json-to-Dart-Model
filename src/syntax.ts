@@ -235,7 +235,7 @@ export class ClassDefinition {
     }
 
     private _importList(): string {
-        return Array.from(this.fields).map(([key, value]) => {
+        var imports = Array.from(this.fields).map(([key, value]) => {
             var sb = "";
             if (!isPrimitiveType(value.name) && !isList(value.name)) {
                 sb = "import \"" + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
@@ -245,6 +245,12 @@ export class ClassDefinition {
             }
             return sb;
         }).join('');
+
+        if (imports.length === 0) {
+            return imports;
+        } else {
+            return imports + "\n";
+        }
     }
 
     private _codeGenImportList(): string {
@@ -261,7 +267,7 @@ export class ClassDefinition {
             return sb;
         }).join('');
 
-        imports += "\npart '" + snakeCase(this._name) + ".g.dart';\n";
+        imports += "\npart '" + snakeCase(this._name) + ".g.dart';\n\n";
         return imports;
     }
 
@@ -358,17 +364,17 @@ export class ClassDefinition {
 
     toCodeGenString(): string {
         if (this._privateFields) {
-            return `${this._codeGenImportList()}\n\n@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._codeGenImportList()}@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         } else {
-            return `${this._codeGenImportList()}\n\n@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._codeGenImportList()}@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         }
     }
 
     toString(): string {
         if (this._privateFields) {
-            return `${this._importList()}\n\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._importList()}class ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         } else {
-            return `${this._importList()}\n\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+            return `${this._importList()}class ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
         }
     }
 }
