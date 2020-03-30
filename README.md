@@ -32,12 +32,30 @@ This library is designed to generate `Flutter` friendly model classes following 
 #### Convert from selection
 - convert json you selected in to dart model classes.
 
+#### Add code generation Libaries to `pubspec.yaml` file.
+- add serializing JSON using code generation libraries to `pubspec.yaml`
+  
+  dependencies
+    ```yaml
+    dependencies:
+        # Your other regular dependencies here
+        json_annotation: <latest_version>
+
+    dev_dependencies:
+        # Your other dev_dependencies here
+        build_runner: <latest_version>
+        json_serializable: <latest_version>
+    ```
+
 ### How to use
 1. Select a valid json.Press `Ctrl + P` and search for `Convert from Selection`. Provide a Base class name and location to save.
 
 2. Copy a valid json.Press `Ctrl + P` and search for `Convert from Clipboard`. Provide a Base class name and location to save.
 
-3. Useing short cuts 
+
+3. Press `Ctrl + P` and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
+
+4. Useing short cuts 
 
 ## Key bindings
 
