@@ -14,8 +14,6 @@ import {
 	getSelectedText,
 	validateLength,
 	createClass,
-	appendDependencyLibraries,
-	appendDevDependencyLibraries,
 	appendPubspecDependencies
 } from "./lib";
 
