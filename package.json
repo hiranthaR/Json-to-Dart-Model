@@ -21,6 +21,8 @@
 	"activationEvents": [
 		"onCommand:jsonToDart.fromSelection",
 		"onCommand:jsonToDart.fromClipboard",
+		"onCommand:jsonToDart.fromSelectionToCodeGen",
+		"onCommand:jsonToDart.fromClipboardToCodeGen",
 		"onCommand:jsonToDart.addCodeGenerationLibraries"
 	],
 	"repository": {
@@ -45,6 +47,16 @@
 				"command": "jsonToDart.addCodeGenerationLibraries",
 				"title": "Add Code Generation Libraries to pubspec.yaml",
 				"category": "Json to Dart"
+			},
+			{
+				"command": "jsonToDart.fromClipboardToCodeGen",
+				"title": "Convert from Clipboard to Code Generation supported classes",
+				"category": "Json to Dart"
+			},
+			{
+				"command": "jsonToDart.fromSelectionToCodeGen",
+				"title": "Convert from Selection to Code Generation supported classes",
+				"category": "Json to Dart"
 			}
 		],
 		"keybindings": [
@@ -55,6 +67,14 @@
 			{
 				"command": "jsonToDart.fromSelection",
 				"key": "shift+ctrl+alt+S"
+			},
+			{
+				"command": "jsonToDart.fromClipboardToCodeGen",
+				"key": "shift+ctrl+alt+G"
+			},
+			{
+				"command": "jsonToDart.fromSelectionToCodeGen",
+				"key": "shift+ctrl+alt+H"
 			}
 		]
 	},

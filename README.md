@@ -33,7 +33,7 @@ This library is designed to generate `Flutter` friendly model classes following 
 - convert json you selected in to dart model classes.
 
 #### Add code generation Libaries to `pubspec.yaml` file.
-- add serializing JSON using code generation libraries to `pubspec.yaml`
+- add serializing JSON using code generation libraries to `pubspec.yaml`.
   
   dependencies
     ```yaml

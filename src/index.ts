@@ -31,6 +31,12 @@ export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		commands.registerCommand("jsonToDart.addCodeGenerationLibraries", addCodeGenerationLibraries)
 	);
+	context.subscriptions.push(
+		commands.registerCommand("jsonToDart.fromClipboardToCodeGen", transformFromClipboardToCodeGen)
+	);
+	context.subscriptions.push(
+		commands.registerCommand("jsonToDart.fromSelectionToCodeGen", transformFromSelectionToCodeGen)
+	);
 }
 
 async function transformFromSelection(uri: Uri) {
@@ -53,7 +59,31 @@ async function transformFromSelection(uri: Uri) {
 
 	getSelectedText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json))
+		.then(json => generateClass(className, <string>targetDirectory, json, false))
+		.catch(handleError);
+}
+
+async function transformFromSelectionToCodeGen(uri: Uri) {
+	const className = await promptForBaseClassName();
+	if (_.isNil(className) || className.trim() === "") {
+		window.showErrorMessage("The class name must not be empty");
+		return;
+	}
+
+	let targetDirectory: String | undefined;
+	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
+		targetDirectory = await promptForTargetDirectory();
+		if (_.isNil(targetDirectory)) {
+			window.showErrorMessage("Please select a valid directory");
+			return;
+		}
+	} else {
+		targetDirectory = uri.fsPath;
+	}
+
+	getSelectedText()
+		.then(validateLength)
+		.then(json => generateClass(className, <string>targetDirectory, json, true))
 		.catch(handleError);
 }
 
@@ -78,7 +108,32 @@ async function transformFromClipboard(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json))
+		.then(json => generateClass(className, <string>targetDirectory, json, false))
+		.catch(handleError);
+}
+
+async function transformFromClipboardToCodeGen(uri: Uri) {
+
+	const className = await promptForBaseClassName();
+	if (_.isNil(className) || className.trim() === "") {
+		window.showErrorMessage("The class name must not be empty");
+		return;
+	}
+
+	let targetDirectory: String | undefined;
+	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
+		targetDirectory = await promptForTargetDirectory();
+		if (_.isNil(targetDirectory)) {
+			window.showErrorMessage("Please select a valid directory");
+			return;
+		}
+	} else {
+		targetDirectory = uri.fsPath;
+	}
+
+	getClipboardText()
+		.then(validateLength)
+		.then(json => generateClass(className, <string>targetDirectory, json, true))
 		.catch(handleError);
 }
 
@@ -95,7 +150,7 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
 		canSelectMany: false,
 		openLabel: "Select a folder to create the Models",
 		canSelectFolders: true,
-		defaultUri: Uri.parse(workspace.rootPath + "")
+		defaultUri: Uri.parse(workspace.rootPath + "/lib/")
 	};
 
 	return window.showOpenDialog(options).then(uri => {
@@ -109,13 +164,14 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
 async function generateClass(
 	className: string,
 	targetDirectory: string,
-	object: string
+	object: string,
+	codeGen: boolean
 ) {
 	const classDirectoryPath = `${targetDirectory}/models`;
 	if (!fs.existsSync(classDirectoryPath)) {
 		await createDirectory(classDirectoryPath);
 	}
-	await createClass(className, targetDirectory, object);
+	await createClass(className, targetDirectory, object, codeGen);
 
 }
 

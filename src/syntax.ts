@@ -247,6 +247,24 @@ export class ClassDefinition {
         }).join('');
     }
 
+    private _codeGenImportList(): string {
+        var imports = "import 'package:json_annotation/json_annotation.dart';\n";
+
+        imports += Array.from(this.fields).map(([key, value]) => {
+            var sb = "";
+            if (!isPrimitiveType(value.name) && !isList(value.name)) {
+                sb = "import \"" + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
+            }
+            if (value.subtype !== null && isList(value.name) && !isPrimitiveType(value.subtype)) {
+                sb = "import \"" + snakeCase(value.subtype) + `.dart";\n`;
+            }
+            return sb;
+        }).join('');
+
+        imports += "\npart '" + snakeCase(this._name) + ".g.dart';\n";
+        return imports;
+    }
+
     _gettersSetters(): string {
         return Array.from(this.fields).map(([key, value]) => {
             var publicFieldName =
@@ -328,6 +346,22 @@ export class ClassDefinition {
         sb += '\t\treturn data;\n';
         sb += '\t}';
         return sb;
+    }
+
+    _codeGenJsonParseFunc(): string {
+        return `factory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
+    }
+
+    _codeGenJsonGenFunc(): string {
+        return `Map<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
+    }
+
+    toCodeGenString(): string {
+        if (this._privateFields) {
+            return `${this._codeGenImportList()}\n\n@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+        } else {
+            return `${this._codeGenImportList()}\n\n@JsonSerializable()\nclass ${this._name} {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+        }
     }
 
     toString(): string {

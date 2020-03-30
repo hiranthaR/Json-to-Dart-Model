@@ -102,7 +102,8 @@ export function isPremitiveType(type: string, key: String, obj: any): boolean {
 export async function createClass(
     className: string,
     targetDirectory: string,
-    object: string
+    object: string,
+    codeGen: boolean
 ) {
 
     var modelGenerator = new ModelGenerator(className);
@@ -119,7 +120,7 @@ export async function createClass(
 
             fs.writeFile(
                 targetPath,
-                c.toString(),
+                codeGen ? c.toCodeGenString() : c.toString(),
                 "utf8",
                 error => {
                     if (error) {
