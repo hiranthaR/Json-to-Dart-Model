@@ -21,6 +21,8 @@ import * as fs from "fs";
 import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
+import cp = require('child_process');
+
 export function activate(context: ExtensionContext) {
 	context.subscriptions.push(
 		commands.registerCommand("jsonToDart.fromSelection", transformFromSelection)
@@ -84,6 +86,10 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 	getSelectedText()
 		.then(validateLength)
 		.then(json => generateClass(className, <string>targetDirectory, json, true))
+		.then(_ => {
+			let terminal = window.createTerminal("pub get");
+			terminal.sendText("flutter pub run build_runner build");
+		})
 		.catch(handleError);
 }
 
@@ -134,6 +140,10 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
 	getClipboardText()
 		.then(validateLength)
 		.then(json => generateClass(className, <string>targetDirectory, json, true))
+		.then(_ => {
+			let terminal = window.createTerminal("pub get");
+			terminal.sendText("flutter pub run build_runner build");
+		})
 		.catch(handleError);
 }
 
