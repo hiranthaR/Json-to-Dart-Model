@@ -133,39 +133,17 @@ export async function createClass(
     });
 }
 
-export async function appendDependencyLibraries(targetPath: string): Promise<string> {
+export async function appendDependencies(targetPath: string, dependency: string, dev: boolean): Promise<string> {
     var pubspec = fs.readFileSync(targetPath, 'utf8');
     var keyword = "sdk: flutter";
-    var index = pubspec.indexOf(keyword);
-    if (index > 0) {
-        pubspec = pubspec.substring(0, index + keyword.length) + "\n  json_annotation:" + pubspec.substring(index + keyword.length, pubspec.length);
+
+    if (pubspec.includes(dependency)) {
+        return Promise.reject(new Error("Dependcies already exist!"));
     }
 
-    return new Promise(async (resolve, reject) => {
-
-        fs.writeFile(
-            targetPath,
-            pubspec.toString(),
-            "utf8",
-            error => {
-                if (error) {
-                    reject(error);
-                    return;
-                }
-                resolve(targetPath);
-            }
-        );
-
-    });
-};
-
-
-export async function appendDevDependencyLibraries(targetPath: string): Promise<string> {
-    var pubspec = fs.readFileSync(targetPath, 'utf8');
-    var keyword = "sdk: flutter";
-    var index = pubspec.indexOf(keyword, pubspec.indexOf(keyword) + 1);
+    var index = pubspec.indexOf(keyword, dev ? 1 + pubspec.indexOf(keyword) : pubspec.indexOf(keyword));
     if (index > 0) {
-        pubspec = pubspec.substring(0, index + keyword.length) + "\n  build_runner:\n  json_serializable:" + pubspec.substring(index + keyword.length, pubspec.length);
+        pubspec = pubspec.substring(0, index + keyword.length) + dependency + pubspec.substring(index + keyword.length, pubspec.length);
     }
     return new Promise(async (resolve, reject) => {
 
@@ -178,9 +156,21 @@ export async function appendDevDependencyLibraries(targetPath: string): Promise<
                     reject(error);
                     return;
                 }
-                resolve(targetPath);
+                resolve();
             }
         );
 
     });
 };
+
+export async function appendPubspecDependencies(targetPath: string) {
+    const dependency = "\n  json_annotation:";
+    const devDependency1 = "\n  build_runner:";
+    const devDependency2 = "\n  json_serializable:";
+
+    return Promise.all([
+        await appendDependencies(targetPath, dependency, false),
+        await appendDependencies(targetPath, devDependency1, true),
+        await appendDependencies(targetPath, devDependency2, true),
+    ]);
+}

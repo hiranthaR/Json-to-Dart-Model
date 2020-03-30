@@ -15,7 +15,8 @@ import {
 	validateLength,
 	createClass,
 	appendDependencyLibraries,
-	appendDevDependencyLibraries
+	appendDevDependencyLibraries,
+	appendPubspecDependencies
 } from "./lib";
 
 import * as fs from "fs";
@@ -133,8 +134,8 @@ async function addCodeGenerationLibraries() {
 	const targetPath = `${folderPath}/pubspec.yaml`;
 
 	if (fs.existsSync(targetPath)) {
-		appendDependencyLibraries(targetPath)
-			.then(appendDevDependencyLibraries)
+		appendPubspecDependencies(targetPath)
+			.then(_ => window.showInformationMessage("Dependencies added!"))
 			.catch(handleError);
 	} else {
 		window.showErrorMessage("pubspec.yaml does't exist :/");
