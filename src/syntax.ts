@@ -259,6 +259,17 @@ export class ClassDefinition {
       .join("\n");
   }
 
+  private _fieldListCodeGen(): string {
+    return Array.from(this.fields)
+      .map(([key, value]) => {
+        const fieldName = fixFieldName(key, this._privateFields);
+        var sb = "\t" + `@JsonKey(name: '${key}')\n`;
+        sb += "\t" + this._addTypeDef(value) + ` ${fieldName};`;
+        return sb;
+      })
+      .join("\n");
+  }
+
   private _importList(): string {
     var imports = Array.from(this.fields)
       .map(([key, value]) => {
@@ -399,11 +410,11 @@ export class ClassDefinition {
     if (this._privateFields) {
       return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } {\n${this._fieldListCodeGen()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
     } else {
       return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } {\n${this._fieldListCodeGen()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
     }
   }
 
