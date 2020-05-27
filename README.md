@@ -112,6 +112,5 @@ Happens when linux is missing clipboard packages
 
 feel free to contact me anytime :blush:
 
-- [https://www.hirantha.xyz](https://www.hirantha.xyz)
+- [https://hirantha.xyz](https://hirantha.xyz)
 - [github](https://github.com/hiranthar)
-- [facebook](https://www.facebook.com/sahanhirantha)
