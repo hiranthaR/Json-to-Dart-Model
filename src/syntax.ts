@@ -46,32 +46,47 @@ export class WithWarning<T> {
   }
 }
 
-export function jsonParseExpression(
+/**
+ * Returns a string representation of a value obtained from a JSON
+ * @param valueKey The key of the value in the JSON
+ */
+export function valueFromJson(valueKey: string): string {
+  return `json['${valueKey}']`;
+}
+
+/**
+ * Returns a string representation of a value beign assigned to a field/prop
+ * @param key The field/prop name
+ * @param value The value to assign to the field/prop
+ */
+export function joinAsClass(key: string, value: string): string {
+  return `${key}: ${value},`;
+}
+
+export function jsonParseValue(
   key: string,
-  typeDef: TypeDefinition,
-  isPrivate = false
+  typeDef: TypeDefinition
 ) {
-  var jsonKey = `json['${key}']`;
-  var fieldKey = fixFieldName(key, isPrivate);
+  const jsonValue = valueFromJson(key);
+  let formatedValue = '';
   if (typeDef.isPrimitive) {
     if (typeDef.name === "List") {
-      return `${fieldKey} = json['${key}'].cast<${typeDef.subtype}>();`;
+      formatedValue = `${jsonValue}.cast<${typeDef.subtype}>()`;
+    } else {
+      formatedValue = jsonValue;
     }
-    return `${fieldKey} = json['${key}'];`;
   } else if (typeDef.name === "List" && typeDef.subtype === "DateTime") {
-    return `${fieldKey} = json['${key}'].map((v) => DateTime.tryParse(v));`;
+    formatedValue = `${jsonValue}.map((v) => DateTime.tryParse(v));`;
   } else if (typeDef.name === "DateTime") {
-    return `${fieldKey} = DateTime.tryParse(json['${key}']);`;
+    formatedValue = `DateTime.tryParse(${jsonValue});`;
   } else if (typeDef.name === "List") {
     // list of class
-    return `if (json['${key}'] != null) {\n\t\t\t${fieldKey} = new List<${typeDef.subtype}>();\n\t\t\tjson['${key}'].forEach((v) { ${fieldKey}.add(new ${typeDef.subtype}.fromJson(v)); });\n\t\t}`;
+    formatedValue = `${jsonValue} != null ? ${jsonValue}.map((v) => new ${typeDef.subtype}.fromJson(v)).toList() : null`;
   } else {
     // class
-    return `${fieldKey} = json['${key}'] != null ? ${_buildParseClass(
-      jsonKey,
-      typeDef
-    )} : null;`;
+    formatedValue = `${jsonValue} != null ? ${_buildParseClass(jsonValue, typeDef)} : null`;
   }
+  return formatedValue;
 }
 
 export function toJsonExpression(
@@ -249,29 +264,58 @@ export class ClassDefinition {
     return sb;
   }
 
-  private _fieldList(): string {
+  private _fieldList(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._privateFields);
-        var sb = "\t" + this._addTypeDef(value) + ` ${fieldName};`;
+        var sb = "\t"; 
+        if (equatable) {
+          sb += this._finalFieldKeyword();
+        }
+        sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
       })
       .join("\n");
   }
 
-  private _fieldListCodeGen(): string {
+  private _fieldListCodeGen(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._privateFields);
         var sb = "\t" + `@JsonKey(name: '${key}')\n`;
-        sb += "\t" + this._addTypeDef(value) + ` ${fieldName};`;
+        sb += "\t";
+        if (equatable) {
+          sb += this._finalFieldKeyword();
+        }
+        sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
       })
       .join("\n");
   }
+  
+  private _equatableImport(): string {
+    return "import 'package:equatable/equatable.dart';\n";
+  }
 
-  private _importList(): string {
-    var imports = Array.from(this.fields)
+  /**
+   * Returns a list of props that equatable needs to work properly
+   * @param print Whether the props should be printed or not
+   */
+  private equatablePropList(print: boolean = false): string {
+    if (!print) {
+      return '';
+    }
+    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `this.${field}`).join(',\n\t\t')}\n\t];`;
+  }
+
+  private _finalFieldKeyword(): string {
+    return 'final ';
+  }
+
+  private _importList(equatable: boolean = false): string {
+    var imports = equatable ? this._equatableImport() : '';
+    
+    imports += Array.from(this.fields)
       .map(([key, value]) => {
         var sb = "";
         if (!isPrimitiveType(value.name) && !isList(value.name)) {
@@ -295,8 +339,11 @@ export class ClassDefinition {
     }
   }
 
-  private _codeGenImportList(): string {
+  private _codeGenImportList(equatable: boolean = false): string {
     var imports = "import 'package:json_annotation/json_annotation.dart';\n";
+    if (equatable) {
+      imports += this._equatableImport();
+    }
 
     imports += Array.from(this.fields)
       .map(([key, value]) => {
@@ -377,12 +424,12 @@ export class ClassDefinition {
 
   _jsonParseFunc(): string {
     var sb = "";
-    sb += `\t${this._name}`;
-    sb += `.fromJson(Map<String, dynamic> json) {\n`;
-    Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t${jsonParseExpression(key, value, this._privateFields)}\n`;
-    });
-    sb += "\t}";
+    sb += `\tfactory ${this._name}`;
+    sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this._name}(\n`;
+    sb += Array.from(this.fields).map(([key, value]) => {
+      return `\t\t\t${joinAsClass(fixFieldName(key, this._privateFields), jsonParseValue(key, value))}`;
+    }).join('\n');
+    sb += "\n\t\t);\n\t}";
     return sb;
   }
 
@@ -406,27 +453,27 @@ export class ClassDefinition {
     return `Map<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
   }
 
-  toCodeGenString(): string {
+  toCodeGenString(equatable: boolean = false): string {
     if (this._privateFields) {
-      return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
+      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldListCodeGen()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     } else {
-      return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
+      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldListCodeGen()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 
-  toString(): string {
+  toString(equatable: boolean = false): string {
     if (this._privateFields) {
-      return `${this._importList()}class ${
+      return `${this._importList(equatable)}class ${
         this._name
-      } {\n${this._fieldList()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     } else {
-      return `${this._importList()}class ${
+      return `${this._importList(equatable)}class ${
         this._name
-      } {\n${this._fieldList()}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 }

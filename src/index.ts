@@ -48,6 +48,8 @@ async function transformFromSelection(uri: Uri) {
 		return;
 	}
 
+	const equatable = await promptForEquatableCompatibility();
+
 	let targetDirectory: String | undefined;
 	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
 		targetDirectory = await promptForTargetDirectory();
@@ -61,7 +63,7 @@ async function transformFromSelection(uri: Uri) {
 
 	getSelectedText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json, false))
+		.then(json => generateClass(className, <string>targetDirectory, json, false, equatable))
 		.catch(handleError);
 }
 
@@ -72,6 +74,8 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 		return;
 	}
 
+	const equatable = await promptForEquatableCompatibility();
+
 	let targetDirectory: String | undefined;
 	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
 		targetDirectory = await promptForTargetDirectory();
@@ -85,7 +89,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 
 	getSelectedText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json, true))
+		.then(json => generateClass(className, <string>targetDirectory, json, true, equatable))
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
 			terminal.show();
@@ -102,6 +106,8 @@ async function transformFromClipboard(uri: Uri) {
 		return;
 	}
 
+	const equatable = await promptForEquatableCompatibility();
+
 	let targetDirectory: String | undefined;
 	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
 		targetDirectory = await promptForTargetDirectory();
@@ -115,7 +121,7 @@ async function transformFromClipboard(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json, false))
+		.then(json => generateClass(className, <string>targetDirectory, json, false, equatable))
 		.catch(handleError);
 }
 
@@ -127,6 +133,8 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
 		return;
 	}
 
+	const equatable = await promptForEquatableCompatibility();
+
 	let targetDirectory: String | undefined;
 	if (_.isNil(_.get(uri, "fsPath")) || !fs.lstatSync(uri.fsPath).isDirectory()) {
 		targetDirectory = await promptForTargetDirectory();
@@ -140,7 +148,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
 
 	getClipboardText()
 		.then(validateLength)
-		.then(json => generateClass(className, <string>targetDirectory, json, true))
+		.then(json => generateClass(className, <string>targetDirectory, json, true, equatable))
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
 			terminal.show();
@@ -155,6 +163,21 @@ function promptForBaseClassName(): Thenable<string | undefined> {
 		placeHolder: "User"
 	};
 	return window.showInputBox(classNamePromptOptions);
+}
+
+async function promptForEquatableCompatibility(): Promise<boolean> {
+	const selection = await window.showQuickPick(
+		[
+			{
+				label: 'No',
+				picked: true,
+			}, 
+			{label: 'Yes'}
+		],
+		{placeHolder: 'Enable support for advanced equality check? (Equatable)'}
+	);
+	if (selection?.label === "Yes") {return true;}
+	else {return false;}
 }
 
 async function promptForTargetDirectory(): Promise<string | undefined> {
@@ -177,13 +200,14 @@ async function generateClass(
 	className: string,
 	targetDirectory: string,
 	object: string,
-	codeGen: boolean
+	codeGen: boolean,
+	equatable: boolean = false,
 ) {
 	const classDirectoryPath = `${targetDirectory}/models`;
 	if (!fs.existsSync(classDirectoryPath)) {
 		await createDirectory(classDirectoryPath);
 	}
-	await createClass(className, targetDirectory, object, codeGen);
+	await createClass(className, targetDirectory, object, codeGen, equatable);
 
 }
 
