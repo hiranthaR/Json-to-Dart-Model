@@ -399,22 +399,22 @@ export class ClassDefinition {
   }
 
   _codeGenJsonParseFunc(): string {
-    return `factory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
+    return `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
   }
 
   _codeGenJsonGenFunc(): string {
-    return `Map<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
+    return `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
   }
 
   toCodeGenString(): string {
     if (this._privateFields) {
       return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldListCodeGen()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } {\n${this._fieldListCodeGen()}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}\n}\n`;
     } else {
       return `${this._codeGenImportList()}@JsonSerializable()\nclass ${
         this._name
-      } {\n${this._fieldListCodeGen()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n}\n`;
+      } {\n${this._fieldListCodeGen()}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n${this._codeGenJsonGenFunc()}\n}\n`;
     }
   }
 
