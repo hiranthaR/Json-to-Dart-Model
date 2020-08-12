@@ -26,23 +26,23 @@ This library is designed to generate `Flutter` friendly model classes following 
 
 #### Convert from clipboard to manual model classes
 
-- convert json you copied in to dart model classes.
+- Convert json you copied in to dart model classes.
 
 #### Convert from selection to manual model classes
 
-- convert json you selected in to dart model classes.
+- Convert json you selected in to dart model classes.
 
 #### Convert from clipboard to code generation libraries supported model classes
 
-- convert json you copied in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
+- Convert json you copied in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
 
 #### Convert from selection to code generation libraries supported model classes
 
-- convert json you selected in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
+- Convert json you selected in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
 
 #### Add code generation Libaries to `pubspec.yaml` file
 
-- add serializing JSON using code generation libraries to `pubspec.yaml`.
+- Add serializing JSON using code generation libraries to `pubspec.yaml`.
   
   structure of the `pubspec.yaml`
 
@@ -59,7 +59,7 @@ This library is designed to generate `Flutter` friendly model classes following 
 
 #### Add advanced equality comparability with `Equatable`
 
-- Add the ability to compare your generated models in a better way with `Equatable`. You can check if 2 classes, that are diferent instances, are the same __*without a single line of extra code*__.
+- Add the ability to compare your generated models in a better way with `Equatable`. You can check if 2 classes, that are diferent instances, are equals __*without a single line of extra code*__.
 
 ### Serializing JSON using code generation libraries
 
@@ -72,9 +72,9 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 ### How to use
 
-1. Select a valid json.Press `Ctrl + shift + P` and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
+1. Select a valid json. Press `Ctrl + shift + P` and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
 
-2. Copy a valid json.Press `Ctrl +shift + P` and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
+2. Copy a valid json. Press `Ctrl +shift + P` and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
 
 3. Press `Ctrl + P` and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
 
@@ -82,15 +82,15 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 #### Code equality
 
-You just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of making ready the advanced code equality check in your Dart models
+You just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check in your Dart models
 
 ![Equality check menu](./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png "Equality check menu")
 
 ## Key bindings
 
-Convert from clipboard (`Shift + Ctrl + Alt + V`)
+Convert from Clipboard (`Shift + Ctrl + Alt + V`)
 
-Convert from selection (`Shift + Ctrl + Alt + S`)
+Convert from Selection (`Shift + Ctrl + Alt + S`)
 
 Convert from Clipboard to Code Generation supported classes (`Shift + Ctrl + Alt + G`)
 
@@ -121,11 +121,11 @@ Happens when linux is missing clipboard packages
 
 - [Repository](https://github.com/hiranthar/Json-to-Dart-Model.git)
 - [Issues](https://github.com/hiranthar/Json-to-Dart-Model.git/issues)
-- [Change log](https://github.com/hiranthar/Json-to-Dart-Model.git/blob/master/CHANGELOG.md)
+- [Changelog](https://github.com/hiranthar/Json-to-Dart-Model.git/blob/master/CHANGELOG.md)
 
 ### Contact me
 
 Feel free to contact me anytime :blush:
 
 - [https://hirantha.xyz](https://hirantha.xyz)
-- [github](https://github.com/hiranthar)
+- [Github](https://github.com/hiranthar)
