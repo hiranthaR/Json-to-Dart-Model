@@ -446,22 +446,22 @@ export class ClassDefinition {
   }
 
   _codeGenJsonParseFunc(): string {
-    return `factory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
+    return `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
   }
 
   _codeGenJsonGenFunc(): string {
-    return `Map<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
+    return `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
   }
 
   toCodeGenString(equatable: boolean = false): string {
     if (this._privateFields) {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
         this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     } else {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
         this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 

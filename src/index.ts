@@ -93,7 +93,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
 			terminal.show();
-			terminal.sendText("flutter pub run build_runner build");
+			terminal.sendText("flutter pub run build_runner build --delete-conflicting-outputs");
 		})
 		.catch(handleError);
 }
@@ -152,7 +152,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
 		.then(_ => {
 			let terminal = window.createTerminal("pub get");
 			terminal.show();
-			terminal.sendText("flutter pub run build_runner build");
+			terminal.sendText("flutter pub run build_runner build --delete-conflicting-outputs");
 		})
 		.catch(handleError);
 }
