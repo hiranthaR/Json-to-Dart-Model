@@ -2,6 +2,13 @@
 
 ## [Released]
 
+## [2.4.0] - 2020-08-14
+
+### Fixed
+- Files stop generating when some dart file is duplicated
+- Field names are bad formatted in the equatable related `props` override
+- Cannot read type of undefined
+
 ## [2.3.0] - 2020-08-14
 
 ### Fixed
