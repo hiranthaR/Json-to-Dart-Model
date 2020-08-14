@@ -305,7 +305,7 @@ export class ClassDefinition {
     if (!print) {
       return '';
     }
-    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `this.${field}`).join(',\n\t\t')}\n\t];`;
+    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `this.${fixFieldName(field, this._privateFields)}`).join(',\n\t\t')}\n\t];`;
   }
 
   private _finalFieldKeyword(): string {

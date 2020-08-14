@@ -119,7 +119,8 @@ export async function createClass(
       const snakeClassName = changeCase.snakeCase(c.getName());
       const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
       if (fs.existsSync(targetPath)) {
-        throw Error(`${snakeClassName}.dart already exists`);
+        handleError(Error(`${snakeClassName}.dart already exists`));
+		return;
       }
 
       fs.writeFile(
