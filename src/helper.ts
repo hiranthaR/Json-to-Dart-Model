@@ -110,7 +110,7 @@ export function getTypeName(obj: any): string {
 
 export function navigateNode(astNode: ASTNode, path: string): ASTNode {
     let node: ASTNode;
-    if (astNode.type === "Object") {
+    if (astNode?.type === "Object") {
         var objectNode: ObjectNode = astNode as ObjectNode;
         var propertyNode = objectNode.children[0];
         if (propertyNode !== null) {
@@ -118,7 +118,7 @@ export function navigateNode(astNode: ASTNode, path: string): ASTNode {
             node = propertyNode.value;
         }
     }
-    if (astNode.type === "Array") {
+    if (astNode?.type === "Array") {
         var arrayNode: ArrayNode = astNode as ArrayNode;
         var index = +path ?? null;
         if (index !== null && arrayNode.children.length > index) {
