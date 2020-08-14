@@ -106,7 +106,8 @@ export async function createClass(
   className: string,
   targetDirectory: string,
   object: string,
-  codeGen: boolean
+  codeGen: boolean,
+  equatable: boolean = false
 ) {
   var modelGenerator = new ModelGenerator(className);
   var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
@@ -123,7 +124,7 @@ export async function createClass(
 
       fs.writeFile(
         targetPath,
-        codeGen ? c.toCodeGenString() : c.toString(),
+        codeGen ? c.toCodeGenString(equatable) : c.toString(equatable),
         "utf8",
         (error) => {
           if (error) {
@@ -172,11 +173,13 @@ export async function appendDependencies(
 
 export async function appendPubspecDependencies(targetPath: string) {
   const dependency = "\n  json_annotation:";
+  const dependency2 = "\n equatable:";
   const devDependency1 = "\n  build_runner:";
   const devDependency2 = "\n  json_serializable:";
 
   return Promise.all([
     await appendDependencies(targetPath, dependency, false),
+    await appendDependencies(targetPath, dependency2, false),
     await appendDependencies(targetPath, devDependency1, true),
     await appendDependencies(targetPath, devDependency2, true),
   ]);
