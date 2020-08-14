@@ -2,6 +2,15 @@
 
 ## [Released]
 
+## [2.3.0] - 2020-08-14
+
+### Fixed
+- Fixed JsonSerializable.toJson
+- Also appends --delete-conflicting-outputs to the flutter pub run build_runner build command in the terminal so it can always be built
+  
+### Added
+-  Adds the ability to have better equality checks in the generated Dart models using the Equatable package.
+
 ## [2.2.0] - 2020-05-28
 
 ### Fixed

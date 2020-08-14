@@ -43,23 +43,23 @@ This library is designed to generate `Flutter` friendly model classes following 
 #### Add code generation Libaries to `pubspec.yaml` file
 
 - Add serializing JSON using code generation libraries to `pubspec.yaml`.
-  
+
   structure of the `pubspec.yaml`
 
-    ```yaml
-    dependencies:
-        # Your other regular dependencies here
-        json_annotation: <latest_version>
+  ```yaml
+  dependencies:
+    # Your other regular dependencies here
+    json_annotation: <latest_version>
 
-    dev_dependencies:
-        # Your other dev_dependencies here
-        build_runner: <latest_version>
-        json_serializable: <latest_version>
-    ```
+  dev_dependencies:
+    # Your other dev_dependencies here
+    build_runner: <latest_version>
+    json_serializable: <latest_version>
+  ```
 
 #### Add advanced equality comparability with `Equatable`
 
-- Add the ability to compare your generated models in a better way with `Equatable`. You can check if 2 classes, that are diferent instances, are equals __*without a single line of extra code*__.
+- Add the ability to compare your generated models in a better way with `Equatable`. You can check if 2 classes, that are diferent instances, are equals **_without a single line of extra code_**.
 
 ### Serializing JSON using code generation libraries
 
@@ -84,7 +84,7 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 You just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check in your Dart models
 
-![Equality check menu](./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png "Equality check menu")
+![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
 
 ## Key bindings
 
@@ -109,6 +109,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 `Command failed: xclip -selection clipboard -o`
 
 ---
+
 Solution:
 
 ```bash
@@ -122,6 +123,10 @@ Happens when linux is missing clipboard packages
 - [Repository](https://github.com/hiranthar/Json-to-Dart-Model.git)
 - [Issues](https://github.com/hiranthar/Json-to-Dart-Model.git/issues)
 - [Changelog](https://github.com/hiranthar/Json-to-Dart-Model.git/blob/master/CHANGELOG.md)
+
+### Special thanks
+
+Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding equatable support. :heart:
 
 ### Contact me
 
