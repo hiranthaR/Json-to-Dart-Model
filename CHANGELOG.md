@@ -2,9 +2,16 @@
 
 ## [Released]
 
+## [2.4.1] - 2020-09-13
+
+### Fixed
+
+- Fixed temporary windows folder selection issue
+
 ## [2.4.0] - 2020-08-14
 
 ### Fixed
+
 - Files stop generating when some dart file is duplicated
 - Field names are bad formatted in the equatable related `props` override
 - Cannot read type of undefined
@@ -12,11 +19,13 @@
 ## [2.3.0] - 2020-08-14
 
 ### Fixed
+
 - Fixed JsonSerializable.toJson
 - Also appends --delete-conflicting-outputs to the flutter pub run build_runner build command in the terminal so it can always be built
-  
+
 ### Added
--  Adds the ability to have better equality checks in the generated Dart models using the Equatable package.
+
+- Adds the ability to have better equality checks in the generated Dart models using the Equatable package.
 
 ## [2.2.0] - 2020-05-28
 
