@@ -59,7 +59,7 @@ export function parseJson(json: string): { [key: string]: any } {
 
   try {
     return JSON.parse(json);
-  } catch (ignored) {}
+  } catch (ignored) { }
 
   try {
     return tryEval(json);
@@ -114,13 +114,13 @@ export async function createClass(
     object
   );
 
-  return new Promise(async (resolve, reject) => {
+  return new Promise<void>(async (resolve, reject) => {
     classes.map((c) => {
       const snakeClassName = changeCase.snakeCase(c.getName());
       const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
       if (fs.existsSync(targetPath)) {
         handleError(Error(`${snakeClassName}.dart already exists`));
-		return;
+        return;
       }
 
       fs.writeFile(
@@ -167,7 +167,7 @@ export async function appendDependencies(
         reject(error);
         return;
       }
-      resolve();
+      resolve;
     });
   });
 }
