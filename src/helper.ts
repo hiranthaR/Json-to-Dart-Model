@@ -11,7 +11,7 @@ import {
 } from "json-to-ast";
 import { WithWarning, Warning, newAmbiguousType } from "./syntax";
 
-export enum ListType { Object, String, Double, Int, Null }
+export enum ListType { Object, String, Double, Int, dynamic, Null }
 
 class MergeableListType {
     listType: ListType;
@@ -24,7 +24,7 @@ class MergeableListType {
 }
 
 function mergeableListType(list: Array<any>): MergeableListType {
-    var t = ListType.Null;
+    var t = ListType.dynamic;
     var isAmbigous = false;
     list.forEach((e) => {
         var inferredType: ListType;
@@ -49,12 +49,14 @@ const PRIMITIVE_TYPES: { [name: string]: boolean } = {
     'double': true,
     'String': true,
     'bool': true,
+    'dynamic': true,
     'DateTime': false,
     'List<DateTime>': false,
     'List<int>': true,
     'List<double>': true,
     'List<String>': true,
     'List<bool>': true,
+    'List<dynamic>': true,
     'Null': true,
 };
 
