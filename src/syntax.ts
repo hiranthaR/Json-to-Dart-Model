@@ -91,13 +91,14 @@ export function jsonParseValue(
 
 export function toJsonExpression(
   key: string,
+  obj: string,
   typeDef: TypeDefinition,
   privateField: boolean
 ): string {
   var fieldKey = fixFieldName(key, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
-    return `'${key}': ${thisKey},`;
+    return `'${key}': ${obj},`;
   } else if (typeDef.name === "List") {
     // class list
     // return `if (${thisKey}!= null) {
@@ -160,10 +161,7 @@ export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
         }
       }
     } else {
-      // when array is empty insert Null just to warn the user
-      //elemType = "Null";
-
-      // In the Dart is possible return List<dynamic>, not need put Null. dynamic return any object.
+      // Returns any value if not defined.
       elemType = "dynamic";
     }
     return new TypeDefinition(type, elemType, isAmbiguous, astNode);
@@ -449,7 +447,7 @@ export class ClassDefinition {
     sb += `\tfactory ${this._name}`;
     sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this._name}(\n`;
     sb += Array.from(this.fields).map(([key, value]) => {
-      return `\t\t\t${joinAsClass(fixFieldName(this._objectName(key), this._privateFields), jsonParseValue(this._objectName(key), value))}`;
+      return `\t\t\t${joinAsClass(fixFieldName(this._objectName(key), this._privateFields), jsonParseValue(key, value))}`;
     }).join('\n');
     sb += "\n\t\t);\n\t}";
     return sb;
@@ -459,7 +457,7 @@ export class ClassDefinition {
     var sb = "";
     sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
     Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t\t${toJsonExpression(this._objectName(key), value, this._privateFields)}\n`;
+      sb += `\t\t\t${toJsonExpression(key, this._objectName(key), value, this._privateFields)}\n`;
     });
     sb += "\t\t};\n";
     sb += "\t}";
