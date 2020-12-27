@@ -57,6 +57,7 @@ async function transformFromSelection(uri: Uri) {
   }
 
   const equatable = await promptForEquatableCompatibility();
+  const copyWith = await promptForCopyWithMethod();
 
   let targetDirectory: String | undefined;
   if (
@@ -75,7 +76,7 @@ async function transformFromSelection(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, equatable)
+      generateClass(className, <string>targetDirectory, json, false, equatable, copyWith)
     )
     .catch(handleError);
 }
@@ -88,6 +89,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   }
 
   const equatable = await promptForEquatableCompatibility();
+  const copyWith = await promptForCopyWithMethod();
 
   let targetDirectory: String | undefined;
   if (
@@ -106,7 +108,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, equatable)
+      generateClass(className, <string>targetDirectory, json, true, equatable, copyWith)
     )
     .then((_) => {
       let terminal = window.createTerminal("pub get");
@@ -126,6 +128,7 @@ async function transformFromClipboard(uri: Uri) {
   }
 
   const equatable = await promptForEquatableCompatibility();
+  const copyWith = await promptForCopyWithMethod();
 
   let targetDirectory: String | undefined;
   if (
@@ -144,7 +147,7 @@ async function transformFromClipboard(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, equatable)
+      generateClass(className, <string>targetDirectory, json, false, equatable, copyWith)
     )
     .catch(handleError);
 }
@@ -157,6 +160,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   }
 
   const equatable = await promptForEquatableCompatibility();
+  const copyWith = await promptForCopyWithMethod();
 
   let targetDirectory: String | undefined;
   if (
@@ -175,7 +179,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, equatable)
+      generateClass(className, <string>targetDirectory, json, true, equatable, copyWith)
     )
     .then((_) => {
       let terminal = window.createTerminal("pub get");
@@ -213,6 +217,24 @@ async function promptForEquatableCompatibility(): Promise<boolean> {
   }
 }
 
+async function promptForCopyWithMethod(): Promise<boolean> {
+  const selection = await window.showQuickPick(
+    [
+      {
+        label: "No",
+        picked: true,
+      },
+      { label: "Yes" },
+    ],
+    { placeHolder: "Generate CopyWith method? (Recommended with immutable classes)" }
+  );
+  if (selection?.label === "Yes") {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 async function promptForTargetDirectory(): Promise<string | undefined> {
   const options: OpenDialogOptions = {
     canSelectMany: false,
@@ -234,13 +256,14 @@ async function generateClass(
   targetDirectory: string,
   object: string,
   codeGen: boolean,
-  equatable: boolean = false
+  equatable: boolean = false,
+  copyWith: boolean = false,
 ) {
   const classDirectoryPath = `${targetDirectory}/models`;
   if (!fs.existsSync(classDirectoryPath)) {
     await createDirectory(classDirectoryPath);
   }
-  await createClass(className, targetDirectory, object, codeGen, equatable);
+  await createClass(className, targetDirectory, object, codeGen, equatable, copyWith);
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {

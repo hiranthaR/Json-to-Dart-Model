@@ -107,7 +107,8 @@ export async function createClass(
   targetDirectory: string,
   object: string,
   codeGen: boolean,
-  equatable: boolean = false
+  equatable: boolean = false,
+  copyWith: boolean = false,
 ) {
   var modelGenerator = new ModelGenerator(className);
   var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
@@ -125,7 +126,7 @@ export async function createClass(
 
       fs.writeFile(
         targetPath,
-        codeGen ? c.toCodeGenString(equatable) : c.toString(equatable),
+        codeGen ? c.toCodeGenString(equatable, copyWith) : c.toString(equatable, copyWith),
         "utf8",
         (error) => {
           if (error) {

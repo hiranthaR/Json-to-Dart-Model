@@ -478,23 +478,51 @@ export class ClassDefinition {
     return expressionBody.length > 78 ? blockBody : expressionBody;
   }
 
-  toCodeGenString(equatable: boolean = false): string {
+  /**
+   * Generate copyWith(); mehtod for easier work with immutable classes.
+   * @param copyWith method should be generated or not.
+   */
+  _copyWithMethod(copyWith: boolean = false): string {
+    if (!copyWith) return '';
+
+    var sb = "";
+    sb += `\n\n\t${this._name} copyWith({`;
+    var i = 0;
+
+    Array.from(this.fields).map(([key, value]) => {
+      var fieldName = fixFieldName(key, this._privateFields);
+      sb += `\n\t\t${this._addTypeDef(value)} ${this._objectName(fieldName)},`;
+      i++;
+    });
+    sb += "\n\t}) {";
+    sb += `\n\t\treturn ${this._name}(`
+    Array.from(this.fields).map(([key, _]) => {
+      var fieldName = fixFieldName(key, this._privateFields);
+      sb += `\n\t\t\t${this._objectName(fieldName)}: ${this._objectName(fieldName)} ?? this.${this._objectName(fieldName)},`;
+      i++;
+    });
+    sb += "\n\t\t);";
+    sb += "\n\t\}";
+    return sb;
+  }
+
+  toCodeGenString(equatable: boolean = false, copyWith: boolean = false): string {
     if (this._privateFields) {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}${this._copyWithMethod(copyWith)}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
     } else {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}${this._copyWithMethod(copyWith)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 
-  toString(equatable: boolean = false): string {
+  toString(equatable: boolean = false, copyWith: boolean = false): string {
     if (this._privateFields) {
       return `${this._importList(equatable)}class ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     } else {
       return `${this._importList(equatable)}class ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 }
