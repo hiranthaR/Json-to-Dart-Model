@@ -2,6 +2,14 @@
 
 ## [Released]
 
+## [2.4.2] - 2020-12-29
+
+### Fixed
+
+- Fixed List<Null>  to List<dynamic>
+- improved with [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style)
+- removed unwanted `new` keywords
+
 ## [2.4.1] - 2020-09-13
 
 ### Fixed

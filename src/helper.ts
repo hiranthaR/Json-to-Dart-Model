@@ -1,15 +1,14 @@
 import * as changeCase from "change-case";
 import {
-    isArray, isMap,
-} from "./lib";
-import {
-    ASTNode,
-    ObjectNode,
-    ArrayNode,
-    LiteralNode
+    ArrayNode, ASTNode,
 
+
+    LiteralNode, ObjectNode
 } from "json-to-ast";
-import { WithWarning, Warning, newAmbiguousType } from "./syntax";
+import {
+    isArray, isMap
+} from "./lib";
+import { newAmbiguousType, Warning, WithWarning } from "./syntax";
 
 export enum ListType { Object, String, Double, Int, Null }
 
@@ -82,8 +81,11 @@ export function isPrimitiveType(typeName: string) {
     return isPrimitive;
 }
 
-export function fixFieldName(name: string, isPrivate = false): string {
+export function fixFieldName(name: string, clz: string ,isPrivate = false): string {
     var filedName = camelCase(name);
+    if(filedName == 'get'){
+        filedName = camelCase(`get${clz}`);
+    }
     if (isPrivate) {
         return `_${filedName}`;
     }

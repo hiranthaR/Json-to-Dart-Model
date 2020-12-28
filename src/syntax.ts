@@ -1,14 +1,11 @@
-import {
-  fixFieldName,
-  isPrimitiveType,
-  isASTLiteralDouble,
-  getTypeName,
-  camelCase,
-  pascalCase,
-  snakeCase,
-  isList,
-} from "./helper";
 import { ASTNode } from "json-to-ast";
+import {
+  camelCase, fixFieldName,
+  getTypeName, isASTLiteralDouble,
+  isList, isPrimitiveType,
+  pascalCase,
+  snakeCase
+} from "./helper";
 
 export const emptyListWarn = "list is empty";
 export const ambiguousListWarn = "list is ambiguous";
@@ -81,7 +78,7 @@ export function jsonParseValue(
     formatedValue = `DateTime.tryParse(${jsonValue});`;
   } else if (typeDef.name === "List") {
     // list of class
-    formatedValue = `${jsonValue} != null ? ${jsonValue}.map((v) => new ${typeDef.subtype}.fromJson(v)).toList() : null`;
+    formatedValue = `${jsonValue} != null ? ${jsonValue}.map((v) => ${typeDef.subtype === 'Null' ? 'v' : `${typeDef.subtype}.fromJson(v)` }).toList() : null`;
   } else {
     // class
     formatedValue = `${jsonValue} != null ? ${_buildParseClass(jsonValue, typeDef)} : null`;
@@ -92,10 +89,11 @@ export function jsonParseValue(
 export function toJsonExpression(
   key: string,
   typeDef: TypeDefinition,
-  privateField: boolean
+  privateField: boolean,
+  clz:string
 ): string {
-  var fieldKey = fixFieldName(key, privateField);
-  var thisKey = `this.${fieldKey}`;
+  var fieldKey = fixFieldName(key,clz ,privateField);
+  var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
     return `data['${key}'] = ${thisKey};`;
   } else if (typeDef.name === "List") {
@@ -171,7 +169,7 @@ function _buildToJsonClass(expression: string): string {
 
 function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
   var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
-  return `new ${pascalCase(properType)}.fromJson(${expression})`;
+  return `${pascalCase(properType)}.fromJson(${expression})`;
 }
 
 class Dependency {
@@ -259,7 +257,11 @@ export class ClassDefinition {
       ? `${typeDef.name}`
       : `${pascalCase(typeDef.name)}`;
     if (typeDef.subtype !== null) {
-      sb += `<${typeDef.subtype}>`;
+      if(typeDef.subtype === "Null"){
+        sb += `<dynamic>`;
+      } else{
+        sb += `<${typeDef.subtype}>`;
+      }
     }
     return sb;
   }
@@ -267,7 +269,7 @@ export class ClassDefinition {
   private _fieldList(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        const fieldName = fixFieldName(key, this._privateFields);
+        const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t"; 
         if (equatable) {
           sb += this._finalFieldKeyword();
@@ -281,7 +283,7 @@ export class ClassDefinition {
   private _fieldListCodeGen(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        const fieldName = fixFieldName(key, this._privateFields);
+        const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t" + `@JsonKey(name: '${key}')\n`;
         sb += "\t";
         if (equatable) {
@@ -305,7 +307,7 @@ export class ClassDefinition {
     if (!print) {
       return '';
     }
-    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `this.${fixFieldName(field, this._privateFields)}`).join(',\n\t\t')}\n\t];`;
+    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(',\n\t\t')},\n\t];`;
   }
 
   private _finalFieldKeyword(): string {
@@ -369,8 +371,8 @@ export class ClassDefinition {
   _gettersSetters(): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        var publicFieldName = fixFieldName(key, false);
-        var privateFieldName = fixFieldName(key, true);
+        var publicFieldName = fixFieldName(key, this._name, false);
+        var privateFieldName = fixFieldName(key, this._name, true);
         var sb = "";
         sb += "\t";
         sb += this._addTypeDef(value);
@@ -384,22 +386,22 @@ export class ClassDefinition {
 
   _defaultPrivateConstructor(): string {
     var sb = "";
-    sb += `\t${this._name}({`;
+    sb += `\tconst ${this._name}({`;
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     Array.from(this.fields).map(([key, value]) => {
-      var publicFieldName = fixFieldName(key, false);
+      var publicFieldName = fixFieldName(key, this._name, false);
       sb += this._addTypeDef(value);
       sb += ` ${publicFieldName}`;
       if (i !== len) {
-        sb += ", ";
+        sb += ",\n\t\t";
       }
       i++;
     });
-    sb += "}) {\n";
+    sb += ",\n\t}) {\n";
     Array.from(this.fields).map(([key, value]) => {
-      var publicFieldName = fixFieldName(key, false);
-      var privateFieldName = fixFieldName(key, true);
+      var publicFieldName = fixFieldName(key, this._name, false);
+      var privateFieldName = fixFieldName(key,  this._name,true);
       sb += `this.${privateFieldName} = ${publicFieldName};\n`;
     });
     sb += "}";
@@ -407,18 +409,22 @@ export class ClassDefinition {
   }
   _defaultConstructor(): string {
     var sb = "";
-    sb += `\t${this._name}({`;
+    sb += `\tconst ${this._name}({`;
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     Array.from(this.fields).map(([key, value]) => {
-      var fieldName = fixFieldName(key, this._privateFields);
+      var fieldName = fixFieldName(key, this._name, this._privateFields);
       sb += `this.${fieldName}`;
       if (i !== len) {
-        sb += ", ";
+        sb += ",\n\t\t";
       }
       i++;
     });
-    sb += "});";
+    if(i == 0){
+      sb += "});";
+    }else{
+      sb += ",\n\t});";
+    }
     return sb;
   }
 
@@ -427,7 +433,7 @@ export class ClassDefinition {
     sb += `\tfactory ${this._name}`;
     sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this._name}(\n`;
     sb += Array.from(this.fields).map(([key, value]) => {
-      return `\t\t\t${joinAsClass(fixFieldName(key, this._privateFields), jsonParseValue(key, value))}`;
+      return `\t\t\t${joinAsClass(fixFieldName(key, this._name, this._privateFields), jsonParseValue(key, value))}`;
     }).join('\n');
     sb += "\n\t\t);\n\t}";
     return sb;
@@ -436,9 +442,9 @@ export class ClassDefinition {
   _jsonGenFunc(): string {
     var sb = "";
     sb +=
-      "\tMap<String, dynamic> toJson() {\n\t\tfinal Map<String, dynamic> data = new Map<String, dynamic>();\n";
+      "\tMap<String, dynamic> toJson() {\n\t\tfinal Map<String, dynamic> data = Map<String, dynamic>();\n";
     Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t${toJsonExpression(key, value, this._privateFields)}\n`;
+      sb += `\t\t${toJsonExpression(key, value, this._privateFields,this._name)}\n`;
     });
     sb += "\t\treturn data;\n";
     sb += "\t}";

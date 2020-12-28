@@ -7,9 +7,8 @@
 
 ### Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
 
-This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert).Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
+This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
 
-- When an empty array is given, it will create a `List<Null>`. Such weird behaviour should warn the user that there is no data to extract.
 - Equal structures are not detected yet (Equal classes are going to be created over and over).
 - Properties named with funky names (like "!breaks", "|breaks", etc) or keyword (like "`this`", "`break`", "`class`", etc) will produce syntax errors.
 - Array of arrays are not supported:
@@ -72,11 +71,11 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 ### How to use
 
-1. Select a valid json. Press `Ctrl + shift + P` and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
+1. Select a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
 
-2. Copy a valid json. Press `Ctrl +shift + P` and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
+2. Copy a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
 
-3. Press `Ctrl + P` and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
+3. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
 
 4. Using short cuts.
 
@@ -126,11 +125,13 @@ Happens when linux is missing clipboard packages
 
 ### Special thanks
 
-Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding equatable support. :heart:
+:heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding equatable support.</br>
+:heart: Special thanks to [Arnas](https://github.com/iamarnas) for suggesting to add [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style)
 
 ### Contact me
 
 Feel free to contact me anytime :blush:
 
 - [https://hirantha.xyz](https://hirantha.xyz)
-- [Github](https://github.com/hiranthar)
+- [github:нιяαитнα](https://github.com/hiranthar)
+- [mail@hirantha.xyz](mailto:mail@hirantha.xyz)
