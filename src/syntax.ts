@@ -485,24 +485,27 @@ export class ClassDefinition {
   _copyWithMethod(copyWith: boolean = false): string {
     if (!copyWith) return '';
 
-    var sb = "";
-    sb += `\n\n\t${this._name} copyWith({`;
-    var i = 0;
+    const className = this._name;
 
-    Array.from(this.fields).map(([key, value]) => {
+    var sb = "";
+    sb += `\n\n\t${className} copyWith({`;
+    // Constructor objects.
+    for (let [key, value] of this.fields) {
       var fieldName = fixFieldName(key, this._privateFields);
       sb += `\n\t\t${this._addTypeDef(value)} ${this._objectName(fieldName)},`;
-      i++;
-    });
+    }
+
     sb += "\n\t}) {";
-    sb += `\n\t\treturn ${this._name}(`
-    Array.from(this.fields).map(([key, _]) => {
+    sb += `\n\t\treturn ${className}(`
+    // Return constructor.
+    for (let [key, _] of this.fields) {
       var fieldName = fixFieldName(key, this._privateFields);
       sb += `\n\t\t\t${this._objectName(fieldName)}: ${this._objectName(fieldName)} ?? this.${this._objectName(fieldName)},`;
-      i++;
-    });
+    }
+
     sb += "\n\t\t);";
     sb += "\n\t\}";
+
     return sb;
   }
 
