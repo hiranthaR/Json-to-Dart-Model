@@ -84,8 +84,17 @@ export function isPrimitiveType(typeName: string) {
     return isPrimitive;
 }
 
-export function fixFieldName(name: string, isPrivate = false): string {
+/**
+ * Returns value name. If it reserved by the system will be mixed with class name.
+ * @param name value name.
+ * @param prefix class name used to recreate reserved names.
+ * @param isPrivate means is a private value or not.
+ */
+export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     var filedName = camelCase(name);
+    if (prefix == 'get') {
+        filedName = snakeCase(`${prefix}Get`);
+    }
     if (isPrivate) {
         return `_${filedName}`;
     }

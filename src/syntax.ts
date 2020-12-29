@@ -95,22 +95,12 @@ export function toJsonExpression(
   typeDef: TypeDefinition,
   privateField: boolean
 ): string {
-  var fieldKey = fixFieldName(key, privateField);
+  var fieldKey = fixFieldName(key, obj, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
     return `'${key}': ${obj},`;
   } else if (typeDef.name === "List") {
-    // class list
-    // return `if (${thisKey}!= null) {
-    //   data['${key}'] = ${thisKey}.map((v) => ${_buildToJsonClass(
-    //   "v"
-    // )}).toList();
-    // }`;
-
-    //return `${key} : ${thisKey},`;
-
     return `'${key}': ${thisKey}?.map((e) => ${_buildToJsonClass("e")})?.toList(),`;
-
   } else {
     // class
     return `'${key}': ${_buildToJsonClass(thisKey)},`;
@@ -259,15 +249,6 @@ export class ClassDefinition {
     this.fields.set(name, typeDef);
   }
 
-  /**
-   * Returns new value name if it reserved by the system.
-   * @param value will be same if it not reserved by system.
-   */
-  _objectName(value: string): string {
-    var isReserved = value == 'get';
-    return isReserved ? `${value}${this._name}` : value;
-  }
-
   _addTypeDef(typeDef: TypeDefinition) {
     var sb = "";
     sb += isPrimitiveType(typeDef.name)
@@ -282,12 +263,12 @@ export class ClassDefinition {
   private _fieldList(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        const fieldName = fixFieldName(key, this._privateFields);
+        const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t";
         if (equatable) {
           sb += this._finalFieldKeyword();
         }
-        sb += this._addTypeDef(value) + ` ${this._objectName(fieldName)};`;
+        sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
       })
       .join("\n");
@@ -296,13 +277,13 @@ export class ClassDefinition {
   private _fieldListCodeGen(equatable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        const fieldName = fixFieldName(key, this._privateFields);
+        const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t" + `@JsonKey(name: '${key}')\n`;
         sb += "\t";
         if (equatable) {
           sb += this._finalFieldKeyword();
         }
-        sb += this._addTypeDef(value) + ` ${this._objectName(fieldName)};`;
+        sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
       })
       .join("\n");
@@ -317,8 +298,8 @@ export class ClassDefinition {
    * @param print Whether the props should be printed or not
    */
   private equatablePropList(print: boolean = false): string {
-    const expressionBody = `\n\n\t@override\n\tList<Object> get props => [${Array.from(this.fields.keys()).map((field) => `${fixFieldName(this._objectName(field), this._privateFields)}`).join(', ')}];`.replace(' ]', ']');
-    const blockBody = `\n\n\t@override\n\tList<Object> get props {\n\t\treturn [\n\t\t\t${Array.from(this.fields.keys()).map((field) => `${fixFieldName(this._objectName(field), this._privateFields)}`).join(',\n\t\t\t')},\n\t\t];\n\t}`;
+    const expressionBody = `\n\n\t@override\n\tList<Object> get props => [${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(', ')}];`.replace(' ]', ']');
+    const blockBody = `\n\n\t@override\n\tList<Object> get props {\n\t\treturn [\n\t\t\t${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(',\n\t\t\t')},\n\t\t];\n\t}`;
     var isShort = expressionBody.length < 87;
 
     if (!print) {
@@ -330,6 +311,10 @@ export class ClassDefinition {
 
   private _finalFieldKeyword(): string {
     return 'final ';
+  }
+
+  private _constFieldKeyword(): string {
+    return 'const ';
   }
 
   private _importList(equatable: boolean = false): string {
@@ -389,8 +374,8 @@ export class ClassDefinition {
   _gettersSetters(): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
-        var publicFieldName = fixFieldName(key, false);
-        var privateFieldName = fixFieldName(key, true);
+        var publicFieldName = fixFieldName(key, this._name, false);
+        var privateFieldName = fixFieldName(key, this._name, true);
         var sb = "";
         sb += "\t";
         sb += this._addTypeDef(value);
@@ -408,9 +393,9 @@ export class ClassDefinition {
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     Array.from(this.fields).map(([key, value]) => {
-      var publicFieldName = fixFieldName(key, false);
+      var publicFieldName = fixFieldName(key, this._name, false);
       sb += this._addTypeDef(value);
-      sb += ` ${this._objectName(publicFieldName)}`;
+      sb += ` ${publicFieldName}`;
       if (i !== len) {
         sb += ", ";
       }
@@ -418,9 +403,9 @@ export class ClassDefinition {
     });
     sb += "}) {\n";
     Array.from(this.fields).map(([key, value]) => {
-      var publicFieldName = fixFieldName(key, false);
-      var privateFieldName = fixFieldName(key, true);
-      sb += `this.${this._objectName(privateFieldName)} = ${this._objectName(publicFieldName)};\n`;
+      var publicFieldName = fixFieldName(key, this._name, false);
+      var privateFieldName = fixFieldName(key, this._name, true);
+      sb += `this.${privateFieldName} = ${publicFieldName};\n`;
     });
     sb += "}";
     return sb;
@@ -433,8 +418,8 @@ export class ClassDefinition {
     var len = Array.from(this.fields.keys()).length - 1;
     var isShort = len !== i && len < 3;
     Array.from(this.fields).map(([key, value]) => {
-      var fieldName = fixFieldName(key, this._privateFields);
-      sb += isShort ? `this.${this._objectName(fieldName)}` : `\n\t\tthis.${this._objectName(fieldName)},`;
+      var fieldName = fixFieldName(key, this._name, this._privateFields);
+      sb += isShort ? `this.${fieldName}` : `\n\t\tthis.${fieldName},`;
       if (isShort) sb += ", ";
       i++;
     });
@@ -447,7 +432,7 @@ export class ClassDefinition {
     sb += `\tfactory ${this._name}`;
     sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this._name}(\n`;
     sb += Array.from(this.fields).map(([key, value]) => {
-      return `\t\t\t${joinAsClass(fixFieldName(this._objectName(key), this._privateFields), jsonParseValue(key, value))}`;
+      return `\t\t\t${joinAsClass(fixFieldName(key, this._name, this._privateFields), jsonParseValue(key, value))}`;
     }).join('\n');
     sb += "\n\t\t);\n\t}";
     return sb;
@@ -457,7 +442,7 @@ export class ClassDefinition {
     var sb = "";
     sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
     Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t\t${toJsonExpression(key, this._objectName(key), value, this._privateFields)}\n`;
+      sb += `\t\t\t${toJsonExpression(key, this._name, value, this._privateFields)}\n`;
     });
     sb += "\t\t};\n";
     sb += "\t}";
@@ -491,16 +476,16 @@ export class ClassDefinition {
     sb += `\n\n\t${className} copyWith({`;
     // Constructor objects.
     for (let [key, value] of this.fields) {
-      var fieldName = fixFieldName(key, this._privateFields);
-      sb += `\n\t\t${this._addTypeDef(value)} ${this._objectName(fieldName)},`;
+      var fieldName = fixFieldName(key, className, this._privateFields);
+      sb += `\n\t\t${this._addTypeDef(value)} ${fieldName},`;
     }
 
     sb += "\n\t}) {";
     sb += `\n\t\treturn ${className}(`
     // Return constructor.
     for (let [key, _] of this.fields) {
-      var fieldName = fixFieldName(key, this._privateFields);
-      sb += `\n\t\t\t${this._objectName(fieldName)}: ${this._objectName(fieldName)} ?? this.${this._objectName(fieldName)},`;
+      var fieldName = fixFieldName(key, className, this._privateFields);
+      sb += `\n\t\t\t${fieldName}: ${fieldName} ?? this.${fieldName},`;
     }
 
     sb += "\n\t\t);";
