@@ -92,8 +92,8 @@ export function isPrimitiveType(typeName: string) {
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     var filedName = camelCase(name);
-    if (prefix == 'get') {
-        filedName = snakeCase(`${prefix}Get`);
+    if (filedName == 'get') {
+        return filedName = camelCase(`${prefix}Get`);
     }
     if (isPrivate) {
         return `_${filedName}`;

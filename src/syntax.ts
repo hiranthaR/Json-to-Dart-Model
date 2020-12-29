@@ -98,7 +98,7 @@ export function toJsonExpression(
   var fieldKey = fixFieldName(key, obj, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
-    return `'${key}': ${obj},`;
+    return `'${key}': ${thisKey},`;
   } else if (typeDef.name === "List") {
     return `'${key}': ${thisKey}?.map((e) => ${_buildToJsonClass("e")})?.toList(),`;
   } else {
@@ -497,10 +497,10 @@ export class ClassDefinition {
   toCodeGenString(equatable: boolean = false, copyWith: boolean = false): string {
     if (this._privateFields) {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}${this._copyWithMethod(copyWith)}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     } else {
       return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}${this._copyWithMethod(copyWith)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this.equatablePropList(equatable)}\n}\n`;
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}kkhoi8y9a9a 09ieu30e00900b0åjdoi00tdfi vggrf${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 

@@ -4,6 +4,10 @@
 [![install](https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg)](https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart)
 [![download](https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg)](https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://www.hirantha.xyz)
+[![](https://img.shields.io/github/stars/hiranthaR/Json-to-Dart-Model?color=orange&logo=github)](https://github.com/hiranthaR/Json-to-Dart-Model)
+[![](https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github)](https://github.com/hiranthaR/Json-to-Dart-Model/issues)
+[![](https://img.shields.io/badge/style-Effective%20Dart-blue?logo=dart)](https://dart.dev/guides/language/effective-dart/style)
+[![](https://img.shields.io/badge/style-dartfmt-blue?logo=dart)](https://dart.dev/tools/dartfmt)
 
 ### Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
 
