@@ -21,6 +21,7 @@ import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
 import cp = require("child_process");
+import { getUserInput, Input } from "./input";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -56,8 +57,7 @@ async function transformFromSelection(uri: Uri) {
     return;
   }
 
-  const equatable = await promptForEquatableCompatibility();
-  const copyWith = await promptForCopyWithMethod();
+  const input = await getUserInput();
 
   let targetDirectory: String | undefined;
   if (
@@ -76,7 +76,7 @@ async function transformFromSelection(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, equatable, copyWith)
+      generateClass(className, <string>targetDirectory, json, false, input)
     )
     .catch(handleError);
 }
@@ -88,8 +88,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
     return;
   }
 
-  const equatable = await promptForEquatableCompatibility();
-  const copyWith = await promptForCopyWithMethod();
+  const input = await getUserInput();
 
   let targetDirectory: String | undefined;
   if (
@@ -108,7 +107,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, equatable, copyWith)
+      generateClass(className, <string>targetDirectory, json, true, input)
     )
     .then((_) => {
       let terminal = window.createTerminal("pub get");
@@ -127,8 +126,7 @@ async function transformFromClipboard(uri: Uri) {
     return;
   }
 
-  const equatable = await promptForEquatableCompatibility();
-  const copyWith = await promptForCopyWithMethod();
+  const input = await getUserInput();
 
   let targetDirectory: String | undefined;
   if (
@@ -147,7 +145,7 @@ async function transformFromClipboard(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, equatable, copyWith)
+      generateClass(className, <string>targetDirectory, json, false, input)
     )
     .catch(handleError);
 }
@@ -159,8 +157,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
     return;
   }
 
-  const equatable = await promptForEquatableCompatibility();
-  const copyWith = await promptForCopyWithMethod();
+  const input = await getUserInput();
 
   let targetDirectory: String | undefined;
   if (
@@ -179,7 +176,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, equatable, copyWith)
+      generateClass(className, <string>targetDirectory, json, true, input)
     )
     .then((_) => {
       let terminal = window.createTerminal("pub get");
@@ -197,42 +194,6 @@ function promptForBaseClassName(): Thenable<string | undefined> {
     placeHolder: "User",
   };
   return window.showInputBox(classNamePromptOptions);
-}
-
-async function promptForEquatableCompatibility(): Promise<boolean> {
-  const selection = await window.showQuickPick(
-    [
-      {
-        label: "No",
-        picked: true,
-      },
-      { label: "Yes" },
-    ],
-    { placeHolder: "Enable support for advanced equality check? (Equatable)" }
-  );
-  if (selection?.label === "Yes") {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-async function promptForCopyWithMethod(): Promise<boolean> {
-  const selection = await window.showQuickPick(
-    [
-      {
-        label: "No",
-        picked: true,
-      },
-      { label: "Yes" },
-    ],
-    { placeHolder: "Generate CopyWith method? (Recommended with immutable classes)" }
-  );
-  if (selection?.label === "Yes") {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 async function promptForTargetDirectory(): Promise<string | undefined> {
@@ -256,14 +217,16 @@ async function generateClass(
   targetDirectory: string,
   object: string,
   codeGen: boolean,
-  equatable: boolean = false,
-  copyWith: boolean = false,
+  // equatable: boolean = false,
+  // copyWith: boolean = false,
+  // immutable: boolean = false,
+  input: Input,
 ) {
   const classDirectoryPath = `${targetDirectory}/models`;
   if (!fs.existsSync(classDirectoryPath)) {
     await createDirectory(classDirectoryPath);
   }
-  await createClass(className, targetDirectory, object, codeGen, equatable, copyWith);
+  await createClass(className, targetDirectory, object, codeGen, input);
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {

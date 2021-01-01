@@ -9,6 +9,7 @@ import {
   isList,
 } from "./helper";
 import { ASTNode } from "json-to-ast";
+import { Input } from "./input";
 
 export const emptyListWarn = "list is empty";
 export const ambiguousListWarn = "list is ambiguous";
@@ -260,13 +261,13 @@ export class ClassDefinition {
     return sb;
   }
 
-  private _fieldList(equatable: boolean = false): string {
+  private _fieldList(equatable: boolean = false, immutable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t";
-        if (equatable) {
-          sb += this._finalFieldKeyword();
+        if (equatable || immutable) {
+          sb += this._finalFieldKeyword(true);
         }
         sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
@@ -274,14 +275,14 @@ export class ClassDefinition {
       .join("\n");
   }
 
-  private _fieldListCodeGen(equatable: boolean = false): string {
+  private _fieldListCodeGen(equatable: boolean = false, immutable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t" + `@JsonKey(name: '${key}')\n`;
         sb += "\t";
-        if (equatable) {
-          sb += this._finalFieldKeyword();
+        if (equatable || immutable) {
+          sb += this._finalFieldKeyword(true);
         }
         sb += this._addTypeDef(value) + ` ${fieldName};`;
         return sb;
@@ -309,12 +310,20 @@ export class ClassDefinition {
     }
   }
 
-  private _finalFieldKeyword(): string {
-    return 'final ';
+  /**
+   * Keyword "final" to mark that object are immutable.
+   * @param immutable should print the keyword or not
+   */
+  private _finalFieldKeyword(immutable: boolean = false): string {
+    return immutable ? 'final ' : '';
   }
 
-  private _constFieldKeyword(): string {
-    return 'const ';
+  /**
+   * Keyword "const" to mark that class or object are immutable
+   * @param immutable should print the keyword or not
+   */
+  private _constFieldKeyword(immutable: boolean = false): string {
+    return immutable ? 'const ' : '';
   }
 
   private _importList(equatable: boolean = false): string {
@@ -411,9 +420,13 @@ export class ClassDefinition {
     return sb;
   }
 
-  _defaultConstructor(equatable: boolean = false): string {
+  _defaultConstructor(equatable: boolean = false, immutable: boolean = false): string {
     var sb = "";
-    sb += equatable ? `\tconst ${this._name}({` : `\t${this._name}({`;
+    if (equatable || immutable) {
+      sb += `\t${this._constFieldKeyword(true)}${this._name}({`;
+    } else {
+      sb += `\t${this._constFieldKeyword(false)}${this._name}({`;
+    }
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     var isShort = len !== i && len < 3;
@@ -494,23 +507,23 @@ export class ClassDefinition {
     return sb;
   }
 
-  toCodeGenString(equatable: boolean = false, copyWith: boolean = false): string {
+  toCodeGenString(input: Input): string {
     if (this._privateFields) {
-      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._codeGenImportList(input.equatable)}@JsonSerializable()\nclass ${this._name
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.immutable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     } else {
-      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._codeGenImportList(input.equatable)}@JsonSerializable()\nclass ${this._name
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.immutable)}\n\n${this._defaultConstructor(input.immutable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     }
   }
 
-  toString(equatable: boolean = false, copyWith: boolean = false): string {
+  toString(input: Input): string {
     if (this._privateFields) {
-      return `${this._importList(equatable)}class ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._importList(input.equatable)}class ${this._name
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     } else {
-      return `${this._importList(equatable)}class ${this._name
-        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._importList(input.equatable)}class ${this._name
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultConstructor(input.isImutable())}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     }
   }
 }
