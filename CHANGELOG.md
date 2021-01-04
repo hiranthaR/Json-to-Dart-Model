@@ -2,6 +2,12 @@
 
 ## [Released]
 
+## [2.5.0] - 2020-12-29
+
+### Merged
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/9) from [Arnas](https://github.com/iamarnas)
+
 ## [2.4.2] - 2020-12-29
 
 ### Fixed

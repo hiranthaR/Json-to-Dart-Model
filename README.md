@@ -101,7 +101,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 ## Converter
 
-- Array type merging (**Huge deal**)
+- Array type merging
 - Duplicate type prevention
 - Union types
 - Optional types
