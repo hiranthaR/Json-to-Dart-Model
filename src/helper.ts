@@ -10,7 +10,7 @@ import {
 } from "./lib";
 import { newAmbiguousType, Warning, WithWarning } from "./syntax";
 
-export enum ListType { Object, String, Double, Int, Null }
+export enum ListType { Object, String, Double, Int, dynamic, Null }
 
 class MergeableListType {
     listType: ListType;
@@ -23,7 +23,7 @@ class MergeableListType {
 }
 
 function mergeableListType(list: Array<any>): MergeableListType {
-    var t = ListType.Null;
+    var t = ListType.dynamic;
     var isAmbigous = false;
     list.forEach((e) => {
         var inferredType: ListType;
@@ -48,12 +48,14 @@ const PRIMITIVE_TYPES: { [name: string]: boolean } = {
     'double': true,
     'String': true,
     'bool': true,
+    'dynamic': true,
     'DateTime': false,
     'List<DateTime>': false,
     'List<int>': true,
     'List<double>': true,
     'List<String>': true,
     'List<bool>': true,
+    'List<dynamic>': true,
     'Null': true,
 };
 
@@ -81,10 +83,16 @@ export function isPrimitiveType(typeName: string) {
     return isPrimitive;
 }
 
-export function fixFieldName(name: string, clz: string ,isPrivate = false): string {
+/**
+ * Returns value name. If it reserved by the system will be mixed with class name.
+ * @param name value name.
+ * @param prefix class name used to recreate reserved names.
+ * @param isPrivate means is a private value or not.
+ */
+export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     var filedName = camelCase(name);
-    if(filedName == 'get'){
-        filedName = camelCase(`get${clz}`);
+    if (filedName == 'get') {
+        return filedName = camelCase(`${prefix}Get`);
     }
     if (isPrivate) {
         return `_${filedName}`;

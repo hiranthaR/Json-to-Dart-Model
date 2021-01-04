@@ -1,11 +1,14 @@
-import { ASTNode } from "json-to-ast";
 import {
-  camelCase, fixFieldName,
-  getTypeName, isASTLiteralDouble,
-  isList, isPrimitiveType,
+  fixFieldName,
+  isPrimitiveType,
+  isASTLiteralDouble,
+  getTypeName,
+  camelCase,
   pascalCase,
-  snakeCase
+  snakeCase,
+  isList,
 } from "./helper";
+import { ASTNode } from "json-to-ast";
 
 export const emptyListWarn = "list is empty";
 export const ambiguousListWarn = "list is ambiguous";
@@ -68,9 +71,9 @@ export function jsonParseValue(
   let formatedValue = '';
   if (typeDef.isPrimitive) {
     if (typeDef.name === "List") {
-      formatedValue = `${jsonValue}.cast<${typeDef.subtype}>()`;
+      formatedValue = `${jsonValue} as List<${typeDef.subtype}>`;
     } else {
-      formatedValue = jsonValue;
+      formatedValue = `${jsonValue} as ${typeDef.name}`;
     }
   } else if (typeDef.name === "List" && typeDef.subtype === "DateTime") {
     formatedValue = `${jsonValue}.map((v) => DateTime.tryParse(v));`;
@@ -78,36 +81,29 @@ export function jsonParseValue(
     formatedValue = `DateTime.tryParse(${jsonValue});`;
   } else if (typeDef.name === "List") {
     // list of class
-    formatedValue = `${jsonValue} != null ? ${jsonValue}.map((v) => ${typeDef.subtype === 'Null' ? 'v' : `${typeDef.subtype}.fromJson(v)` }).toList() : null`;
+    formatedValue = `(${jsonValue} as List<${typeDef.subtype}>)?.map((e) {\n\t\t\t\treturn e == null ? null : ${typeDef.subtype}.fromJson(e as Map<String, dynamic>);\n\t\t\t})?.toList()`;
   } else {
     // class
-    formatedValue = `${jsonValue} != null ? ${_buildParseClass(jsonValue, typeDef)} : null`;
+    formatedValue = `${jsonValue} == null\n\t\t\t\t\t? null\n\t\t\t\t\t: ${_buildParseClass(jsonValue, typeDef)}`;
   }
   return formatedValue;
 }
 
 export function toJsonExpression(
   key: string,
+  obj: string,
   typeDef: TypeDefinition,
-  privateField: boolean,
-  clz:string
+  privateField: boolean
 ): string {
-  var fieldKey = fixFieldName(key,clz ,privateField);
+  var fieldKey = fixFieldName(key, obj, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
-    return `data['${key}'] = ${thisKey};`;
+    return `'${key}': ${thisKey},`;
   } else if (typeDef.name === "List") {
-    // class list
-    return `if (${thisKey}!= null) {
-      data['${key}'] = ${thisKey}.map((v) => ${_buildToJsonClass(
-      "v"
-    )}).toList();
-    }`;
+    return `'${key}': ${thisKey}?.map((e) => ${_buildToJsonClass("e")})?.toList(),`;
   } else {
     // class
-    return `if (${thisKey} != null) {
-      data['${key}'] = ${_buildToJsonClass(thisKey)};
-    }`;
+    return `'${key}': ${_buildToJsonClass(thisKey)},`;
   }
 }
 
@@ -155,8 +151,8 @@ export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
         }
       }
     } else {
-      // when array is empty insert Null just to warn the user
-      elemType = "Null";
+      // Returns any value if not defined.
+      elemType = "dynamic";
     }
     return new TypeDefinition(type, elemType, isAmbiguous, astNode);
   }
@@ -164,12 +160,12 @@ export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
 }
 
 function _buildToJsonClass(expression: string): string {
-  return `${expression}.toJson()`;
+  return `${expression}?.toJson()`;
 }
 
 function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
   var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
-  return `${pascalCase(properType)}.fromJson(${expression})`;
+  return `${pascalCase(properType)}.fromJson(${expression} as Map<String, dynamic>)`;
 }
 
 class Dependency {
@@ -239,6 +235,8 @@ export class ClassDefinition {
   //     return true;
   // }
 
+
+
   hasField(otherField: TypeDefinition) {
     return (
       Array.from(this.fields.keys()).filter(
@@ -257,11 +255,7 @@ export class ClassDefinition {
       ? `${typeDef.name}`
       : `${pascalCase(typeDef.name)}`;
     if (typeDef.subtype !== null) {
-      if(typeDef.subtype === "Null"){
-        sb += `<dynamic>`;
-      } else{
-        sb += `<${typeDef.subtype}>`;
-      }
+      sb += `<${typeDef.subtype}>`;
     }
     return sb;
   }
@@ -270,7 +264,7 @@ export class ClassDefinition {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._name, this._privateFields);
-        var sb = "\t"; 
+        var sb = "\t";
         if (equatable) {
           sb += this._finalFieldKeyword();
         }
@@ -294,7 +288,7 @@ export class ClassDefinition {
       })
       .join("\n");
   }
-  
+
   private _equatableImport(): string {
     return "import 'package:equatable/equatable.dart';\n";
   }
@@ -304,19 +298,28 @@ export class ClassDefinition {
    * @param print Whether the props should be printed or not
    */
   private equatablePropList(print: boolean = false): string {
+    const expressionBody = `\n\n\t@override\n\tList<Object> get props => [${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(', ')}];`.replace(' ]', ']');
+    const blockBody = `\n\n\t@override\n\tList<Object> get props {\n\t\treturn [\n\t\t\t${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(',\n\t\t\t')},\n\t\t];\n\t}`;
+    var isShort = expressionBody.length < 87;
+
     if (!print) {
       return '';
+    } else {
+      return isShort ? expressionBody : blockBody;
     }
-    return `\t@override\n\tList<Object> get props => [\n\t\t${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(',\n\t\t')},\n\t];`;
   }
 
   private _finalFieldKeyword(): string {
     return 'final ';
   }
 
+  private _constFieldKeyword(): string {
+    return 'const ';
+  }
+
   private _importList(equatable: boolean = false): string {
     var imports = equatable ? this._equatableImport() : '';
-    
+
     imports += Array.from(this.fields)
       .map(([key, value]) => {
         var sb = "";
@@ -332,7 +335,7 @@ export class ClassDefinition {
         }
         return sb;
       })
-      .join("");
+      .sort().join("");
 
     if (imports.length === 0) {
       return imports;
@@ -362,7 +365,7 @@ export class ClassDefinition {
         }
         return sb;
       })
-      .join("");
+      .sort().join("");
 
     imports += "\npart '" + snakeCase(this._name) + ".g.dart';\n\n";
     return imports;
@@ -386,7 +389,7 @@ export class ClassDefinition {
 
   _defaultPrivateConstructor(): string {
     var sb = "";
-    sb += `\tconst ${this._name}({`;
+    sb += `\t${this._name}({`;
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     Array.from(this.fields).map(([key, value]) => {
@@ -394,38 +397,34 @@ export class ClassDefinition {
       sb += this._addTypeDef(value);
       sb += ` ${publicFieldName}`;
       if (i !== len) {
-        sb += ",\n\t\t";
+        sb += ", ";
       }
       i++;
     });
-    sb += ",\n\t}) {\n";
+    sb += "}) {\n";
     Array.from(this.fields).map(([key, value]) => {
       var publicFieldName = fixFieldName(key, this._name, false);
-      var privateFieldName = fixFieldName(key,  this._name,true);
+      var privateFieldName = fixFieldName(key, this._name, true);
       sb += `this.${privateFieldName} = ${publicFieldName};\n`;
     });
     sb += "}";
     return sb;
   }
-  _defaultConstructor(): string {
+
+  _defaultConstructor(equatable: boolean = false): string {
     var sb = "";
-    sb += `\tconst ${this._name}({`;
+    sb += equatable ? `\tconst ${this._name}({` : `\t${this._name}({`;
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
+    var isShort = len !== i && len < 3;
     Array.from(this.fields).map(([key, value]) => {
       var fieldName = fixFieldName(key, this._name, this._privateFields);
-      sb += `this.${fieldName}`;
-      if (i !== len) {
-        sb += ",\n\t\t";
-      }
+      sb += isShort ? `this.${fieldName}` : `\n\t\tthis.${fieldName},`;
+      if (isShort) sb += ", ";
       i++;
     });
-    if(i == 0){
-      sb += "});";
-    }else{
-      sb += ",\n\t});";
-    }
-    return sb;
+    sb += isShort ? "});" : "\n\t});";
+    return isShort ? sb.replace(", });", "});") : sb;
   }
 
   _jsonParseFunc(): string {
@@ -441,45 +440,77 @@ export class ClassDefinition {
 
   _jsonGenFunc(): string {
     var sb = "";
-    sb +=
-      "\tMap<String, dynamic> toJson() {\n\t\tfinal Map<String, dynamic> data = Map<String, dynamic>();\n";
+    sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
     Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t${toJsonExpression(key, value, this._privateFields,this._name)}\n`;
+      sb += `\t\t\t${toJsonExpression(key, this._name, value, this._privateFields)}\n`;
     });
-    sb += "\t\treturn data;\n";
+    sb += "\t\t};\n";
     sb += "\t}";
     return sb;
   }
 
   _codeGenJsonParseFunc(): string {
-    return `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
+    const expressionBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
+    const blockBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) {\n\t\treturn _$${this._name}FromJson(json);\n\t}`;
+
+    return expressionBody.length > 78 ? blockBody : expressionBody;
   }
 
   _codeGenJsonGenFunc(): string {
-    return `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
+    const expressionBody = `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
+    const blockBody = `\tMap<String, dynamic> toJson() {\n\t\treturn _$${this._name}ToJson(this);\n\t}`;
+
+    return expressionBody.length > 78 ? blockBody : expressionBody;
   }
 
-  toCodeGenString(equatable: boolean = false): string {
+  /**
+   * Generate copyWith(); mehtod for easier work with immutable classes.
+   * @param copyWith method should be generated or not.
+   */
+  _copyWithMethod(copyWith: boolean = false): string {
+    if (!copyWith) return '';
+
+    const className = this._name;
+
+    var sb = "";
+    sb += `\n\n\t${className} copyWith({`;
+    // Constructor objects.
+    for (let [key, value] of this.fields) {
+      var fieldName = fixFieldName(key, className, this._privateFields);
+      sb += `\n\t\t${this._addTypeDef(value)} ${fieldName},`;
+    }
+
+    sb += "\n\t}) {";
+    sb += `\n\t\treturn ${className}(`
+    // Return constructor.
+    for (let [key, _] of this.fields) {
+      var fieldName = fixFieldName(key, className, this._privateFields);
+      sb += `\n\t\t\t${fieldName}: ${fieldName} ?? this.${fieldName},`;
+    }
+
+    sb += "\n\t\t);";
+    sb += "\n\t\}";
+
+    return sb;
+  }
+
+  toCodeGenString(equatable: boolean = false, copyWith: boolean = false): string {
     if (this._privateFields) {
-      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
-        this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     } else {
-      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${
-        this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._codeGenImportList(equatable)}@JsonSerializable()\nclass ${this._name
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 
-  toString(equatable: boolean = false): string {
+  toString(equatable: boolean = false, copyWith: boolean = false): string {
     if (this._privateFields) {
-      return `${this._importList(equatable)}class ${
-        this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._importList(equatable)}class ${this._name
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     } else {
-      return `${this._importList(equatable)}class ${
-        this._name
-      } ${equatable ? 'extends Equatable ' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}\n\n${this.equatablePropList(equatable)}\n}\n`;
+      return `${this._importList(equatable)}class ${this._name
+        }${equatable ? ' extends Equatable' : ''} {\n${this._fieldList(equatable)}\n\n${this._defaultConstructor(equatable)}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(copyWith)}${this.equatablePropList(equatable)}\n}\n`;
     }
   }
 }
