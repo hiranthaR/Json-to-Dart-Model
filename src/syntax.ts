@@ -261,12 +261,12 @@ export class ClassDefinition {
     return sb;
   }
 
-  private _fieldList(equatable: boolean = false, immutable: boolean = false): string {
+  private _fieldList(immutable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t";
-        if (equatable || immutable) {
+        if (immutable) {
           sb += this._finalFieldKeyword(true);
         }
         sb += this._addTypeDef(value) + ` ${fieldName};`;
@@ -275,13 +275,13 @@ export class ClassDefinition {
       .join("\n");
   }
 
-  private _fieldListCodeGen(equatable: boolean = false, immutable: boolean = false): string {
+  private _fieldListCodeGen(immutable: boolean = false): string {
     return Array.from(this.fields)
       .map(([key, value]) => {
         const fieldName = fixFieldName(key, this._name, this._privateFields);
         var sb = "\t" + `@JsonKey(name: '${key}')\n`;
         sb += "\t";
-        if (equatable || immutable) {
+        if (immutable) {
           sb += this._finalFieldKeyword(true);
         }
         sb += this._addTypeDef(value) + ` ${fieldName};`;
@@ -507,23 +507,38 @@ export class ClassDefinition {
     return sb;
   }
 
+  /**
+   * Generate toString(); mehtod to improve the debugging experience..
+   * @param toString method should be generated or not.
+   */
+  _toStringMethod(toString: boolean = false): string {
+    if (!toString) return '';
+
+    var fieldName = (name: string): string => `${fixFieldName(name, this._name, this._privateFields)}: $${fixFieldName(name, this._name, this._privateFields)}`;
+    const expressionBody = `\n\n\t@override\n\tString toString() =>\t'${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';`.replace(' \'', '\'');
+    const blockBody = `\n\n\t@override\n\tString toString() {\n\t\treturn '${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';\n\t}`;
+    var isShort = expressionBody.length < 76;
+
+    return isShort ? expressionBody : blockBody;
+  }
+
   toCodeGenString(input: Input): string {
     if (this._privateFields) {
       return `${this._codeGenImportList(input.equatable)}@JsonSerializable()\nclass ${this._name
-        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.immutable)}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.isImutable())}\n\n${this._defaultPrivateConstructor()}${this._toStringMethod(input.toString)}\n\n${this._gettersSetters()}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     } else {
       return `${this._codeGenImportList(input.equatable)}@JsonSerializable()\nclass ${this._name
-        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.immutable)}\n\n${this._defaultConstructor(input.immutable)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldListCodeGen(input.isImutable())}\n\n${this._defaultConstructor(input.isImutable())}${this._toStringMethod(input.toString)}\n\n${this._codeGenJsonParseFunc()}\n\n${this._codeGenJsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     }
   }
 
   toString(input: Input): string {
     if (this._privateFields) {
       return `${this._importList(input.equatable)}class ${this._name
-        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultPrivateConstructor()}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultPrivateConstructor()}${this._toStringMethod(input.toString)}\n\n${this._gettersSetters()}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     } else {
       return `${this._importList(input.equatable)}class ${this._name
-        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultConstructor(input.isImutable())}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
+        }${input.equatable ? ' extends Equatable' : ''} {\n${this._fieldList(input.isImutable())}\n\n${this._defaultConstructor(input.isImutable())}${this._toStringMethod(input.toString)}\n\n${this._jsonParseFunc()}\n\n${this._jsonGenFunc()}${this._copyWithMethod(input.copyWith)}${this.equatablePropList(input.equatable)}\n}\n`;
     }
   }
 }

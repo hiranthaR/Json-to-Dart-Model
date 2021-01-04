@@ -39,7 +39,7 @@ export async function getUserInput(): Promise<Input> {
             options.immutable = await askForImmutableClass();
         }
         options.copyWith = await askForCopyWithMethod();
-        //options.toString = await askForToStringMethod();
+        options.toString = await askForToStringMethod();
         //options.equality = await askForEqualityOperator();
     }
 
