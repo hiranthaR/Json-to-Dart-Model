@@ -7,7 +7,7 @@ interface InputInterface {
     toString: boolean;
     copyWith: boolean;
     equality: boolean;
-    isImutable(): boolean;
+    isImmutable(): boolean;
 }
 
 /**
@@ -21,7 +21,7 @@ export class Input implements InputInterface {
     copyWith: boolean = false;
     equality: boolean = false;
 
-    isImutable(): boolean {
+    isImmutable(): boolean {
         return this.equatable || this.immutable ? true : false;
     }
 }
@@ -30,20 +30,20 @@ export class Input implements InputInterface {
  * UI elements to show messages, selections, and asking for user input.
  */
 export async function getUserInput(): Promise<Input> {
-    let options = new Input();
+    let input = new Input();
 
     //options.freezed = await askForFreezed();
-    if (!options.freezed) {
-        options.equatable = await askForEquatableCompatibility();
-        if (!options.equatable) {
-            options.immutable = await askForImmutableClass();
+    if (!input.freezed) {
+        input.equatable = await askForEquatableCompatibility();
+        if (!input.equatable) {
+            input.immutable = await askForImmutableClass();
         }
-        options.copyWith = await askForCopyWithMethod();
-        options.toString = await askForToStringMethod();
-        //options.equality = await askForEqualityOperator();
+        input.copyWith = await askForCopyWithMethod();
+        input.toString = await askForToStringMethod();
+        if (!input.equatable) input.equality = await askForEqualityOperator();
     }
 
-    return options;
+    return input;
 }
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.

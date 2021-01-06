@@ -90,14 +90,16 @@ export function isPrimitiveType(typeName: string) {
  * @param isPrivate means is a private value or not.
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
+    // Keywords that cannot be used as values in the Dart language.
+    var reservedKeys: string[] = ['get', 'for', 'default', 'set'];
     var filedName = camelCase(name);
-    if (filedName == 'get') {
-        return filedName = camelCase(`${prefix}Get`);
+
+    if (reservedKeys.includes(filedName)) {
+        var reserved = filedName.charAt(0).toUpperCase() + filedName.slice(1);
+        return filedName = camelCase(`${prefix}${reserved}`);
     }
-    if (isPrivate) {
-        return `_${filedName}`;
-    }
-    return filedName;
+
+    return isPrivate ? `_${filedName}` : filedName;
 }
 
 export function getTypeName(obj: any): string {
