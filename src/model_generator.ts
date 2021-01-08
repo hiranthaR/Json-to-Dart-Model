@@ -7,17 +7,9 @@ import {
     newAmbiguousListWarn,
     WithWarning,
 } from "./syntax";
-import {
-    navigateNode,
-    camelCase,
-    mergeObjectList,
-    pascalCase
-} from "./helper";
+import { navigateNode, camelCase, mergeObjectList, pascalCase } from "./helper";
 import { ASTNode } from "json-to-ast";
-import {
-    isArray,
-    parseJson
-} from "./lib";
+import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
 
 class DartCode extends WithWarning<string> {

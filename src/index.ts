@@ -88,7 +88,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
     return;
   }
 
-  const input = await getUserInput();
+  const input = await getUserInput(true);
 
   let targetDirectory: String | undefined;
   if (
@@ -157,7 +157,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
     return;
   }
 
-  const input = await getUserInput();
+  const input = await getUserInput(true);
 
   let targetDirectory: String | undefined;
   if (
@@ -217,9 +217,6 @@ async function generateClass(
   targetDirectory: string,
   object: string,
   codeGen: boolean,
-  // equatable: boolean = false,
-  // copyWith: boolean = false,
-  // immutable: boolean = false,
   input: Input,
 ) {
   const classDirectoryPath = `${targetDirectory}/models`;

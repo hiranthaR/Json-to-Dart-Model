@@ -1,13 +1,6 @@
 import * as changeCase from "change-case";
-import {
-    ArrayNode, ASTNode,
-
-
-    LiteralNode, ObjectNode
-} from "json-to-ast";
-import {
-    isArray, isMap
-} from "./lib";
+import { ArrayNode, ASTNode, LiteralNode, ObjectNode } from "json-to-ast";
+import { isArray, isMap } from "./lib";
 import { newAmbiguousType, Warning, WithWarning } from "./syntax";
 
 export enum ListType { Object, String, Double, Int, dynamic, Null }

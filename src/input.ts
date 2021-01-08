@@ -7,6 +7,7 @@ interface InputInterface {
     toString: boolean;
     copyWith: boolean;
     equality: boolean;
+    generate: boolean;
     isImmutable(): boolean;
 }
 
@@ -20,6 +21,7 @@ export class Input implements InputInterface {
     toString: boolean = false;
     copyWith: boolean = false;
     equality: boolean = false;
+    generate: boolean = false;
 
     isImmutable(): boolean {
         return this.equatable || this.immutable ? true : false;
@@ -28,18 +30,22 @@ export class Input implements InputInterface {
 
 /**
  * UI elements to show messages, selections, and asking for user input.
+ * @generate indicates whether selected code generator.
  */
-export async function getUserInput(): Promise<Input> {
+export async function getUserInput(generate: boolean = false): Promise<Input> {
     let input = new Input();
 
-    //options.freezed = await askForFreezed();
+    input.generate = generate;
+
+    if (generate) input.freezed = await askForFreezed();
+    // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
         input.equatable = await askForEquatableCompatibility();
         if (!input.equatable) {
             input.immutable = await askForImmutableClass();
         }
-        input.copyWith = await askForCopyWithMethod();
         input.toString = await askForToStringMethod();
+        input.copyWith = await askForCopyWithMethod();
         if (!input.equatable) input.equality = await askForEqualityOperator();
     }
 
