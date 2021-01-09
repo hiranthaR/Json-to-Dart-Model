@@ -1,42 +1,54 @@
-[![version](https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg)](https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart)
-[![install](https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg)](https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart)
-[![download](https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg)](https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart)
-[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://www.hirantha.xyz)
-[![](https://img.shields.io/github/stars/hiranthaR/Json-to-Dart-Model?color=orange&logo=github)](https://github.com/hiranthaR/Json-to-Dart-Model)
-[![](https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github)](https://github.com/hiranthaR/Json-to-Dart-Model/issues)
-[![](https://img.shields.io/badge/style-Effective%20Dart-blue)](https://dart.dev/guides/language/effective-dart/style)
-[![](https://img.shields.io/badge/format-dartfmt-blue)](https://dart.dev/tools/dartfmt)
+<p align="center">
+<img src="readme_assets/banner.png" style="background-color: transparent;" alt="JSON to Dart Model"/>
+</p>
 
-# JSON to DART
+---
 
-<img src="icon.png" width="240">
-
-#### Easy to customise just `Yes` or `No`
-
-![](readme_assets/usage.gif)
+<p align="center">
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg" alt="Version"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg" alt="Install"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg" alt="Download"></a>
+<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg" alt="Ask Me Anything"></a>
+<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github" alt="Issues"></a>
+<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue" alt="Effective Dart Style"></a>
+</p>
 
 > From JSON to Dart advanced with a few clicks
 
 - **[Features](#features)**
-- **[The syntax](#core-concepts)**
+- **The syntax**
   - [To String method](#to-string-method)
   - [CopyWith method](#copyWith-method)
   - [Equality Operator](#equality-operator)
   - [Equatable](#equatable)
-- **[Code generators]()**
+- **Code generators**
   - [Freezed](#freezed)
   - [JSON Serializable](#JSON-Serializable)
 - **[How to use](#how-to-use)** 
+  - [Customise](#customise)
   - [Key bindings](#key-bindings)
   - [Freezed documentation](https://pub.dev/packages/freezed)
+  - [Converter](#converter)
   - [Links](#links)
 
-### Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
+---
+
+## Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
 
 This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
 
 - Equal structures are not detected yet (Equal classes are going to be created over and over).
 - Properties named with funky names (like "!breaks", "|breaks", etc) or keyword (like "`this`", "`break`", "`class`", etc) will produce syntax errors.
+
+
+## Customise
+
+To customise your classes is very easy. If you want fast create a simple class then just click enter to continue skip all methods. Otherwise build your own. For generate Freezed class and Json Serializable choose Code Generation.
+
+<p align="center">
+<img src="readme_assets/usage.gif" width="720" alt="How To Customise"/>
+</p>
+
 
 ## Features
 
@@ -75,7 +87,7 @@ This library is designed to generate `Flutter` friendly model classes following 
 
 ## Freezed
 
-`Freezed` requires three packages to generate json files to `Freezed` classes with a few clicks.
+Freezed requires three packages to generate json files to Freezed classes with a few clicks.
   
   - structure of the `pubspec.yaml`
 
@@ -89,9 +101,10 @@ This library is designed to generate `Flutter` friendly model classes following 
        build_runner: <latest_version>
        freezed: <latest_version>
      ```
+
      Read more about how to install [freezed](https://pub.dev/packages/freezed#install). 
 
-  All generated classes with `Freezed` will be `@immutable` and support all methods like [copyWith();](#copyWith-method), [toString();](#to-string-method), equality operator`==`... See example:
+  All generated classes with Freezed will be `@immutable` and support all methods like [copyWith](#copyWith-method), [toString](#to-string-method), [equality operator](#equality-operator)`==`... See example:
 
    ```dart
   @freezed
@@ -105,11 +118,13 @@ This library is designed to generate `Flutter` friendly model classes following 
 	  factory Todos.fromJson(Map<String, dynamic> json) => _$TodosFromJson(json);
   } 
   ```
-  `Freezed` generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will take care of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do with Freezed read [freezed documentation](https://pub.dev/packages/freezed). If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
+Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
+
+**TIP:** If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
 
 ## Equatable
 
-`Equatable` are immutable class with ability to compare your generated models in a better way. You can check if 2 classes, that are diferent instances, are equals **_without a single line of extra code_**. Ofcourse you can add [toString();](#to-string-method) method and [copyWith();](#copyWith-method) for better experience.
+`Equatable` are immutable class with ability to compare your generated models in a better way. You can check if 2 classes, that are diferent instances, are equals **_without a single line of extra code_**. Ofcourse you can add [toString](#to-string-method) method and [copyWith](#copyWith-method) for better experience.
 
  ```dart
 class Todos extends Equatable {
@@ -155,7 +170,7 @@ To add`Equatable` support you just have to select `Yes` when the process of pars
 
 ![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
 
-#### Equality Operator
+## Equality Operator
 
 If you don't want install `Equatable` package and work with `@immutable` classes and values then you can add equality operator `==` with less boilerplate syntax. And customize your class as mutable.
 
@@ -201,7 +216,7 @@ Todos copyWith({
 }
 ```
 
-### Serializing JSON using code generation libraries
+## Serializing JSON using code generation libraries
 
 If you'd like to use Code Generation Libraries from **Flutter**, first of all I suggest you to add dependencies to the `pubspec.yaml` file. It also can be done with this extension. You don't need to worry about it :wink:.
 After that you can convert your `JSON` to model classes.
@@ -210,7 +225,7 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 - Read more about [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) about **JSON and serialization**
 
-### How to use
+## How to use
 
 1. Select a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
 
