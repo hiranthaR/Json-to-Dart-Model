@@ -2,8 +2,6 @@
 <img src="readme_assets/banner.png" style="background-color: transparent;" alt="JSON to Dart Model"/>
 </p>
 
----
-
 <p align="center">
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg" alt="Version"></a>
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg" alt="Install"></a>
@@ -13,7 +11,7 @@
 <a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue" alt="Effective Dart Style"></a>
 </p>
 
-> From JSON to Dart advanced with a few clicks
+> From JSON to Dart advanced
 
 - **[Features](#features)**
 - **The syntax**
@@ -31,8 +29,6 @@
   - [Converter](#converter)
   - [Links](#links)
 
----
-
 ## Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
 
 This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
@@ -46,7 +42,7 @@ This library is designed to generate `Flutter` friendly model classes following 
 To customise your classes is very easy. If you want fast create a simple class then just click enter to continue skip all methods. Otherwise build your own. For generate Freezed class and Json Serializable choose Code Generation.
 
 <p align="center">
-<img src="readme_assets/usage.gif" width="720" alt="How To Customise"/>
+<img src="readme_assets/usage.gif" alt="How To Customise"/>
 </p>
 
 
@@ -70,7 +66,7 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 ## JSON Serializable
 
-- Add serializing JSON using code generation libraries to `pubspec.yaml`.
+Add serializing JSON using code generation libraries to `pubspec.yaml`.
 
   structure of the `pubspec.yaml`
 
@@ -89,35 +85,35 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 Freezed requires three packages to generate json files to Freezed classes with a few clicks.
   
-  - structure of the `pubspec.yaml`
+  structure of the `pubspec.yaml`
 
-    ```yaml
-     dependencies:
-       # Your other regular dependencies here
-       freezed_annotation: <latest_version>
-   
-     dev_dependencies:
-       # Your other dev_dependencies here
-       build_runner: <latest_version>
-       freezed: <latest_version>
-     ```
-
-     Read more about how to install [freezed](https://pub.dev/packages/freezed#install). 
+  ```yaml
+   dependencies:
+     # Your other regular dependencies here
+     freezed_annotation: <latest_version>
+ 
+   dev_dependencies:
+     # Your other dev_dependencies here
+     build_runner: <latest_version>
+     freezed: <latest_version>
+   ```
+   Read more about how to install [freezed](https://pub.dev/packages/freezed#install). 
 
   All generated classes with Freezed will be `@immutable` and support all methods like [copyWith](#copyWith-method), [toString](#to-string-method), [equality operator](#equality-operator)`==`... See example:
 
-   ```dart
-  @freezed
-  abstract class Todos with _$Todos {
-	  const factory Todos({
-	   int userId,
-	   int id,
-	   String title,
-	   bool completed,
-	  }) = _Todos;
-	  factory Todos.fromJson(Map<String, dynamic> json) => _$TodosFromJson(json);
-  } 
-  ```
+```dart
+@freezed
+abstract class Todos with _$Todos {
+	const factory Todos({
+	  int userId,
+	  int id,
+	  String title,
+	  bool completed,
+	}) = _Todos;
+
+	factory Todos.fromJson(Map<String, dynamic> json) => _$TodosFromJson(json);
+} 
+```
 Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
 
 **TIP:** If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
@@ -126,7 +122,7 @@ Freezed generator are useful for who work daily with coding. All you have to do 
 
 `Equatable` are immutable class with ability to compare your generated models in a better way. You can check if 2 classes, that are diferent instances, are equals **_without a single line of extra code_**. Ofcourse you can add [toString](#to-string-method) method and [copyWith](#copyWith-method) for better experience.
 
- ```dart
+```dart
 class Todos extends Equatable {
   final int userId;
   final int id;
@@ -134,29 +130,29 @@ class Todos extends Equatable {
   final bool completed;
 
   const Todos({
-  	this.userId,
-  	this.id,
-  	this.title,
-  	this.completed,
-	});
+    this.userId,
+    this.id,
+    this.title,
+    this.completed,
+  });
 
   factory Todos.fromJson(Map<String, dynamic> json) {
-	  return Todos(
-			userId: json['userId'] as int,
-			id: json['id'] as int,
-			title: json['title'] as String,
-			completed: json['completed'] as bool,
-		);
-	}
+	 return Todos(
+		userId: json['userId'] as int,
+		id: json['id'] as int,
+		title: json['title'] as String,
+		completed: json['completed'] as bool,
+	 );
+  }
 
-	Map<String, dynamic> toJson() {
-		return {
-			'userId': userId,
-			'id': id,
-			'title': title,
-			'completed': completed,
-		};
-	}
+  Map<String, dynamic> toJson() {
+	 return {
+		 'userId': userId,
+		 'id': id,
+		 'title': title,
+		 'completed': completed,
+	 };
+  }
 
   // Here will be more methods after your customization.
   // toString();
@@ -181,24 +177,25 @@ bool operator ==(Object o) =>
     identical(o.userId, userId) &&
     identical(o.id, id) &&
     identical(o.title, title) &&
-    identical(o.completed, completed)
+    identical(o.completed, completed);
+
 @override
 int get hashCode => hashValues(userId, id, title, completed);
 ```
 ## To String method
 
-You can add `toString();` method in your classes to improve the debugging experience.
+You can add `toString()` method in your classes to improve the debugging experience.
 
 ```dart
 @override
 String toString() {
-    return 'Todos(userId: $userId, id: $id, title: $title, completed: $completed)';
+  return 'Todos(userId: $userId, id: $id, title: $title, completed: $completed)';
 }
 ```
 
 ## CopyWith method
 
-`copyWith();` method will make your life easier with `@immutable` classes. Highly recommended with imuttable classes.
+`copyWith()` method will make your life easier with `@immutable` classes. Highly recommended with imuttable classes.
 
 ```dart
 Todos copyWith({
