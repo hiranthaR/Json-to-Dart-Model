@@ -2,7 +2,17 @@
 
 ## [Released]
 
-## [2.5.0] - 2020-12-29
+## [2.5.0] - 2021-01-11
+
+### Merged
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/10) from [Arnas](https://github.com/iamarnas)
+  - `copyWith()` method
+  - Equality Operator
+  - support array of arrays
+  - Freezed support
+
+## [2.5.0] - 2021-01-04
 
 ### Merged
 
