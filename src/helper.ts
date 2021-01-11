@@ -1,13 +1,6 @@
 import * as changeCase from "change-case";
-import {
-    ArrayNode, ASTNode,
-
-
-    LiteralNode, ObjectNode
-} from "json-to-ast";
-import {
-    isArray, isMap
-} from "./lib";
+import { ArrayNode, ASTNode, LiteralNode, ObjectNode } from "json-to-ast";
+import { isArray, isMap } from "./lib";
 import { newAmbiguousType, Warning, WithWarning } from "./syntax";
 
 export enum ListType { Object, String, Double, Int, dynamic, Null }
@@ -90,14 +83,16 @@ export function isPrimitiveType(typeName: string) {
  * @param isPrivate means is a private value or not.
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
+    // Keywords that cannot be used as values in the Dart language.
+    var reservedKeys: string[] = ['get', 'for', 'default', 'set'];
     var filedName = camelCase(name);
-    if (filedName == 'get') {
-        return filedName = camelCase(`${prefix}Get`);
+
+    if (reservedKeys.includes(filedName)) {
+        var reserved = filedName.charAt(0).toUpperCase() + filedName.slice(1);
+        return filedName = camelCase(`${prefix}${reserved}`);
     }
-    if (isPrivate) {
-        return `_${filedName}`;
-    }
-    return filedName;
+
+    return isPrivate ? `_${filedName}` : filedName;
 }
 
 export function getTypeName(obj: any): string {
@@ -187,11 +182,11 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
                             var ambiguosTypePath = `${path}[${realIndex}]/${k}`;
                             warnings.push(newAmbiguousType(ambiguosTypePath));
                         }
-                    } else if (t === 'List') {
+                    } else if (v instanceof Object && Array) {
                         var l = Array.from(obj.get(k));
                         var beginIndex = l.length;
                         l.push(v);
-                        // bug is here
+                        //TODO: bug: awaiting response from the author of the report.
                         var mergeableType = mergeableListType(l);
                         if (ListType.Object === mergeableType.listType) {
                             var mergedList =

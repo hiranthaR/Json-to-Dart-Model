@@ -4,6 +4,7 @@ import * as changeCase from "change-case";
 import * as fs from "fs";
 import { ModelGenerator } from "./model_generator";
 import { ClassDefinition } from "./syntax";
+import { Input } from "./input";
 
 export function getClipboardText() {
   try {
@@ -107,8 +108,7 @@ export async function createClass(
   targetDirectory: string,
   object: string,
   codeGen: boolean,
-  equatable: boolean = false,
-  copyWith: boolean = false,
+  input: Input,
 ) {
   var modelGenerator = new ModelGenerator(className);
   var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
@@ -126,7 +126,7 @@ export async function createClass(
 
       fs.writeFile(
         targetPath,
-        codeGen ? c.toCodeGenString(equatable, copyWith) : c.toString(equatable, copyWith),
+        codeGen ? c.toCodeGenString(input) : c.toString(input),
         "utf8",
         (error) => {
           if (error) {
