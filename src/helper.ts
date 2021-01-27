@@ -182,11 +182,10 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
                             var ambiguosTypePath = `${path}[${realIndex}]/${k}`;
                             warnings.push(newAmbiguousType(ambiguosTypePath));
                         }
-                    } else if (v instanceof Object && Array) {
+                    } else if (t === 'List' || t === 'Class') {
                         var l = Array.from(obj.get(k));
                         var beginIndex = l.length;
                         l.push(v);
-                        //TODO: bug: awaiting response from the author of the report.
                         var mergeableType = mergeableListType(l);
                         if (ListType.Object === mergeableType.listType) {
                             var mergedList =
