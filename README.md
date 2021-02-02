@@ -272,11 +272,12 @@ Happens when linux is missing clipboard packages
 
 ### Special thanks
 
-:heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding equatable support.</br>
-:heart: Special thanks to [Arnas](https://github.com/iamarnas) for suggesting to add [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style)
+:heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
+:heart: Special thanks to [Arnas](https://github.com/iamarnas) for suggesting to add [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style). </br>
+:heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
 
 ### Contact me
-
+88
 Feel free to contact me anytime :blush:
 
 - [https://hirantha.xyz](https://hirantha.xyz)

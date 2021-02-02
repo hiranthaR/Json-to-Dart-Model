@@ -2,7 +2,15 @@
 
 ## [Released]
 
-## [2.5.0] - 2021-01-11
+
+## [2.6.1] - 2021-02-03
+
+### Fixed888
+
+- nested array not generating properly - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/14) from [Ayush P Gupta](https://github.com/apgapg)
+- Use original case of json fields - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/13) from [Ayush P Gupta](https://github.com/apgapg)
+
+## [2.6.0] - 2021-01-11
 
 ### Merged
 
