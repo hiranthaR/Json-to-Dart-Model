@@ -298,7 +298,8 @@ export class ClassDefinition {
     sb += `\tconst factory ${this._name}({\n`;
     for (var [key, value] of this.fields) {
       const fieldName = fixFieldName(key, this._name, this._privateFields);
-      sb += "\t\t" + this._addTypeDef(value) + ` ${fieldName},\n`;
+      sb += "\t\t" + `@JsonKey(name: "${key}")`;
+      sb += " " + this._addTypeDef(value) + ` ${fieldName},\n`;
     };
     sb += `\t}) = _${this._name};\n\n`;
     sb += `${this._codeGenJsonParseFunc(true)}`;
