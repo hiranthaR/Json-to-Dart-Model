@@ -185,7 +185,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
                     } else if (v instanceof Object && Array) {
                         var l = Array.from(obj.get(k));
                         var beginIndex = l.length;
-                        l.push(v);
+                        //l.push(v);
                         //TODO: bug: awaiting response from the author of the report.
                         var mergeableType = mergeableListType(l);
                         if (ListType.Object === mergeableType.listType) {
