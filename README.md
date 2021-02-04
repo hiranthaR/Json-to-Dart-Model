@@ -103,16 +103,17 @@ Freezed requires three packages to generate json files to Freezed classes with a
 
 ```dart
 @freezed
-abstract class Todos with _$Todos {
-	const factory Todos({
-	  int userId,
-	  int id,
-	  String title,
-	  bool completed,
-	}) = _Todos;
+abstract class Address with _$Address {
+  const factory Address({
+    @JsonKey(name: "street") String street,
+    @JsonKey(name: "suite") String suite,
+    @JsonKey(name: "city") String city,
+    @JsonKey(name: "zipcode") String zipcode,
+    @JsonKey(name: "geo") Geo geo,
+  }) = _Address;
 
-	factory Todos.fromJson(Map<String, dynamic> json) => _$TodosFromJson(json);
-} 
+  factory Address.fromJson(Map<String, dynamic> json) => _$AddressFromJson(json);
+}
 ```
 Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
 
