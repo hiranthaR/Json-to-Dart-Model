@@ -2,6 +2,30 @@
 
 ## [Released]
 
+
+## [2.6.1] - 2021-02-03
+
+### Fixed888
+
+- nested array not generating properly - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/14) from [Ayush P Gupta](https://github.com/apgapg)
+- Use original case of json fields - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/13) from [Ayush P Gupta](https://github.com/apgapg)
+
+## [2.6.0] - 2021-01-11
+
+### Merged
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/10) from [Arnas](https://github.com/iamarnas)
+  - `copyWith()` method
+  - Equality Operator
+  - support array of arrays
+  - Freezed support
+
+## [2.5.0] - 2021-01-04
+
+### Merged
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/9) from [Arnas](https://github.com/iamarnas)
+
 ## [2.4.2] - 2020-12-29
 
 ### Fixed
