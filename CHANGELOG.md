@@ -2,10 +2,17 @@
 
 ## [Released]
 
+## [2.6.2] - 2021-02-03
+
+### Fixed
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/17) from [Arnas](https://github.com/iamarnas)
+   - Added better support for deeply nested json objects.
+   - Added support for list of lists. (Hot fix)
 
 ## [2.6.1] - 2021-02-03
 
-### Fixed888
+### Fixed
 
 - nested array not generating properly - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/14) from [Ayush P Gupta](https://github.com/apgapg)
 - Use original case of json fields - [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/13) from [Ayush P Gupta](https://github.com/apgapg)

@@ -278,7 +278,7 @@ Happens when linux is missing clipboard packages
 :heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
 
 ### Contact me
-88
+
 Feel free to contact me anytime :blush:
 
 - [https://hirantha.xyz](https://hirantha.xyz)
