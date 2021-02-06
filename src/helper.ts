@@ -3,7 +3,7 @@ import { ArrayNode, ASTNode, LiteralNode, ObjectNode } from "json-to-ast";
 import { isArray, isMap } from "./lib";
 import { newAmbiguousType, Warning, WithWarning } from "./syntax";
 
-export enum ListType { Object, String, Double, Int, dynamic, Null }
+export enum ListType { Object, String, Double, Int, Dynamic, Null }
 
 class MergeableListType {
     listType: ListType;
@@ -16,7 +16,7 @@ class MergeableListType {
 }
 
 function mergeableListType(list: Array<any>): MergeableListType {
-    var t = ListType.dynamic;
+    var t = ListType.Dynamic;
     var isAmbigous = false;
     list.forEach((e) => {
         var inferredType: ListType;
@@ -35,21 +35,57 @@ function mergeableListType(list: Array<any>): MergeableListType {
     return new MergeableListType(t, isAmbigous);
 }
 
+/**
+ * The list with primitive types.
+ * If some type not included in this list @isPrimitiveType function will return false.
+ */
+const keywords = ["String", "int", "bool", "num", "double", "dynamic", "List", "DateTime"];
 
-const PRIMITIVE_TYPES: { [name: string]: boolean } = {
-    'int': true,
-    'double': true,
-    'String': true,
-    'bool': true,
-    'dynamic': true,
-    'DateTime': false,
-    'List<DateTime>': false,
-    'List<int>': true,
-    'List<double>': true,
-    'List<String>': true,
-    'List<bool>': true,
-    'List<dynamic>': true,
-    'Null': true,
+/**
+ * Calculates the length of the list type.
+ * Example: List<List<...>> will return list ["List", "List"].
+ * @param typeName a string that will be calculated.
+ */
+export function filterListTypes(typeName: string): string[] {
+    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
+    const _onlyList = (value: string) => value === "List";
+    const result = split.filter(_onlyList);
+    return result;
+};
+
+/**
+ * Returns true if the typeName contains types in @keywords list.
+ * Acceptable syntax as List or just Type.
+ * List type can be infinity as List<List<List<.... As long as the syntax matches Dart style.
+ * @param typeName a string for validation:
+ */
+export function isPrimitiveType(typeName: string): boolean {
+    const identical = typeName === typeName.trim() ? true : false;
+    const arrowToLeft = typeName.split("").filter((e) => e === "<");
+    const leftArrows = arrowToLeft.map(
+        (_, __, arr) => typeName.split("")[arr.length * 5 - 1]
+    );
+    const arrowToRight = typeName.split("").filter((e) => e === ">");
+    const rightArrows = typeName.split("").splice(-arrowToRight.length);
+    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
+    const _ignoreEmpty = (value: string) => value !== "";
+    const values = split.filter(_ignoreEmpty);
+    const lists = values.filter((e) => e === "List");
+    const validListSyntax =
+        leftArrows.every((e) => e === "<") &&
+        rightArrows.every((e) => e === ">") &&
+        arrowToRight.length === arrowToLeft.length &&
+        lists.length === arrowToRight.length &&
+        lists.length === arrowToLeft.length;
+    const validValue = values.every((e) => keywords.includes(e));
+    const validSyntax = lists.length
+        ? validListSyntax && validValue
+            ? true
+            : false
+        : validValue
+            ? true
+            : false;
+    return identical && validSyntax ? true : false;
 };
 
 export function isList(text: string) {
@@ -66,14 +102,6 @@ export function pascalCase(text: string): string {
 
 export function snakeCase(text: string): string {
     return changeCase.snakeCase(text);
-}
-
-export function isPrimitiveType(typeName: string) {
-    var isPrimitive = PRIMITIVE_TYPES[typeName];
-    if (isPrimitive === null || isPrimitive === undefined) {
-        return false;
-    }
-    return isPrimitive;
 }
 
 /**
@@ -110,6 +138,38 @@ export function getTypeName(obj: any): string {
     } else {
         // assumed class
         return 'Class';
+    }
+}
+
+/**
+ * Accurate list type that scans each list item and determines the type of list.
+ * @param arr a list that will be scanned for each item in the list.
+
+ * If the list is empty or contains only primitive types returns as 'dynamic' type.
+ */
+export function getListTypeName(arr: Array<any>): string {
+    if (Array.isArray(arr) && !arr.length) {
+        return "dynamic";
+    } else {
+        if (arr.every(i => getTypeName(i) === "String")) {
+            return "String";
+        } else if (arr.every(i => getTypeName(i) === "bool")) {
+            return "bool";
+        } else if (arr.every(i => typeof i === "number")) {
+            if (arr.every(i => getTypeName(i) === "int")) {
+                return "int";
+            } else if (arr.every(i => getTypeName(i) === "double")) {
+                return "double";
+            } else {
+                return "num"
+            }
+        } else if (arr.every(i => typeof i === "string" || typeof i === "number" || typeof i === "boolean" || i instanceof Array)) {
+            return "dynamic";
+        } else if (arr.every(i => getTypeName(i) === "List")) {
+            return "List";
+        } else {
+            return "Class";
+        }
     }
 }
 
@@ -182,11 +242,10 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
                             var ambiguosTypePath = `${path}[${realIndex}]/${k}`;
                             warnings.push(newAmbiguousType(ambiguosTypePath));
                         }
-                    } else if (v instanceof Object && Array) {
+                    } else if (t === 'List' || t === 'Class') {
                         var l = Array.from(obj.get(k));
                         var beginIndex = l.length;
                         //l.push(v);
-                        //TODO: bug: awaiting response from the author of the report.
                         var mergeableType = mergeableListType(l);
                         if (ListType.Object === mergeableType.listType) {
                             var mergedList =
