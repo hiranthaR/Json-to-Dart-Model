@@ -37,16 +37,18 @@ function mergeableListType(list: Array<any>): MergeableListType {
 
 /**
  * The list with primitive types.
- * If some type not included in this list @isPrimitiveType function will return false.
+ * @isPrimitiveType return false if some type not included in this list.
  */
-const keywords = ["String", "int", "bool", "num", "double", "dynamic", "List", "DateTime"];
+const keywords = ["String", "int", "bool", "num", "double", "dynamic", "DateTime"];
 
 /**
  * Calculates the length of the list type.
- * Example: List<List<...>> will return list ["List", "List"].
  * @param typeName a string that will be calculated.
+ * @returns {string[]} A string list.
+ * @example
+ * List<List<User>> users; // Return list ["List", "List"].
  */
-export function filterListTypes(typeName: string): string[] {
+export function filterListType(typeName: string): string[] {
     const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
     const _onlyList = (value: string) => value === "List";
     const result = split.filter(_onlyList);
@@ -55,11 +57,11 @@ export function filterListTypes(typeName: string): string[] {
 
 /**
  * Returns true if the typeName contains types in @keywords list.
- * Acceptable syntax as List or just Type.
- * List type can be infinity as List<List<List<.... As long as the syntax matches Dart style.
- * @param typeName a string for validation:
+ *  * List type can be infinity as List<List<List<.... As long as the syntax matches Dart style.
+ * @param {string} typeName a string for validation.
+ * @returns {boolean} a boolean.
  */
-export function isPrimitiveType(typeName: string): boolean {
+export const isPrimitiveType = (typeName: string): boolean => {
     const identical = typeName === typeName.trim() ? true : false;
     const arrowToLeft = typeName.split("").filter((e) => e === "<");
     const leftArrows = arrowToLeft.map(
@@ -77,7 +79,7 @@ export function isPrimitiveType(typeName: string): boolean {
         arrowToRight.length === arrowToLeft.length &&
         lists.length === arrowToRight.length &&
         lists.length === arrowToLeft.length;
-    const validValue = values.every((e) => keywords.includes(e));
+    const validValue = values.every((e) => ["List", ...keywords].includes(e));
     const validSyntax = lists.length
         ? validListSyntax && validValue
             ? true
@@ -123,6 +125,28 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
     return isPrivate ? `_${filedName}` : filedName;
 }
 
+/**
+ * Returns list subtype.
+ * @param {any[]} arr a list that will be checked.
+ * @returns {string} a string.
+ * @example
+ * var arr = [1, 2, 3]; // return string "List<int>"  
+ */
+export function getListSubtype(arr: any[]): string {
+    let sb = "";
+    const typeSet = new Set();
+    const typeName = Array.from(typeSet).toString();
+    for (let element of arr) {
+        if (arr.every((e) => e instanceof Array)) {
+            sb += getListSubtype(element);
+        } else {
+            typeSet.add(getListTypeName(arr));
+        }
+    }
+    sb += !sb.length ? getListTypeName(arr) : typeName;
+    return "List<" + sb + ">";
+}
+
 export function getTypeName(obj: any): string {
     var type = typeof obj + "";
     if (type === 'string') {
@@ -132,7 +156,7 @@ export function getTypeName(obj: any): string {
     } else if (type === "boolean") {
         return 'bool';
     } else if (obj === "undefined") {
-        return 'Null';
+        return 'dynamic';
     } else if (isArray(obj)) {
         return 'List';
     } else {
@@ -143,11 +167,11 @@ export function getTypeName(obj: any): string {
 
 /**
  * Accurate list type that scans each list item and determines the type of list.
- * @param arr a list that will be scanned for each item in the list.
-
- * If the list is empty or contains only primitive types returns as 'dynamic' type.
+ *  * If the list is empty or contains only primitive types returns as 'dynamic' type.
+ * @param {Array<any>} arr list that will be scanned for each item in the list.
+ * @returns {string} Return a string.
  */
-export function getListTypeName(arr: Array<any>): string {
+export const getListTypeName = (arr: Array<any>): string => {
     if (Array.isArray(arr) && !arr.length) {
         return "dynamic";
     } else {
@@ -161,7 +185,7 @@ export function getListTypeName(arr: Array<any>): string {
             } else if (arr.every(i => getTypeName(i) === "double")) {
                 return "double";
             } else {
-                return "num"
+                return "num";
             }
         } else if (arr.every(i => typeof i === "string" || typeof i === "number" || typeof i === "boolean" || i instanceof Array)) {
             return "dynamic";
@@ -171,7 +195,7 @@ export function getListTypeName(arr: Array<any>): string {
             return "Class";
         }
     }
-}
+};
 
 export function navigateNode(astNode: ASTNode, path: string): ASTNode {
     let node: ASTNode;
@@ -217,11 +241,26 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
     return false;
 }
 
+/**  
+ * Merge indexed objects  
+ * @param {any} obj - A object param.
+ * @return {any} Return a any object.
+ */
+const getObject = (obj: any): any => {
+    if (obj instanceof Array) {
+        for (let i = 0; i < obj.length; i++) {
+            return getObject(obj[i]);
+        }
+    } else {
+        return obj;
+    }
+};
+
 export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithWarning<Map<any, any>> {
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(list[i]));
+        var toMerge = new Map(Object.entries(getObject(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));

@@ -82,7 +82,7 @@ export class ModelGenerator {
                     warnings.push(newAmbiguousListWarn(`${path}/${key}`));
                 }
                 if (typeDef.subtype !== null && isList(typeDef.subtype) && !typeDef.isPrimitive) {
-                    typeDef.subtype = `${typeDef.name}<${pascalCase(key)}>`;
+                    typeDef.subtype = typeDef.subtype.replace('Class', pascalCase(key));
                 }
                 classDefinition.addField(key, typeDef);
             });
@@ -118,11 +118,14 @@ export class ModelGenerator {
                                 obj[key] = value;
                                 for (let i = 0; i < value.length; i++) {
                                     const object = value[i];
+                                    console.log('inside array: ' + 'key: ' + key + ', value: ' + value);
                                     if (object instanceof Map) {
                                         object.forEach((element: any) => {
                                             if (isArray(value)) {
+                                                console.log('inside map array -> element: ' + element);
                                                 obj[key] = [element];
                                             } else {
+                                                console.log('inside map object -> element: ' + element);
                                                 obj[key] = element;
                                             }
                                         });
@@ -130,12 +133,6 @@ export class ModelGenerator {
                                 }
                             } else {
                                 obj[key] = value;
-                                if (key === 0 && value instanceof Object) {
-                                    // Rename indexed items.
-                                    obj[dependency.name] = value;
-                                    // Delete old item.
-                                    delete obj[key];
-                                }
                             }
                             return obj;
                         };

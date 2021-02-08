@@ -37,7 +37,7 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
 
     input.generate = generate;
 
-    if (generate) input.freezed = await askForFreezed();
+    if (generate) { input.freezed = await askForFreezed(); }
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
         input.equatable = await askForEquatableCompatibility();
@@ -46,7 +46,7 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
         }
         input.toString = await askForToStringMethod();
         input.copyWith = await askForCopyWithMethod();
-        if (!input.equatable) input.equality = await askForEqualityOperator();
+        if (!input.equatable) { input.equality = await askForEqualityOperator(); }
     }
 
     return input;
