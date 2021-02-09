@@ -7,8 +7,8 @@ import {
   pascalCase,
   snakeCase,
   isList,
-  getListTypeName,
-  filterListTypes,
+  filterListType,
+  getListSubtype,
 } from "./helper";
 import { ASTNode } from "json-to-ast";
 import { Input } from "./input";
@@ -55,7 +55,7 @@ export class WithWarning<T> {
  * @param newLine force to the next line.
  * @param tabs how many tabs will be added.
  */
-function printLine(print: string, newLine = false, tabs = 0): string {
+const printLine = (print: string, newLine = false, tabs = 0): string => {
   var sb = '';
   sb += newLine ? '\n' : '';
   for (let i = 0; i < tabs; i++) {
@@ -63,7 +63,7 @@ function printLine(print: string, newLine = false, tabs = 0): string {
   }
   sb += print;
   return sb;
-}
+};
 
 /**
  * Returns a string representation of a value obtained from a JSON
@@ -81,52 +81,74 @@ export function valueFromJson(valueKey: string): string {
 export function joinAsClass(key: string, value: string): string {
   return `${key}: ${value},`;
 }
+// as list -> key: date, value: 2020-02-06T14:00:00+00:00, name: List, subtype: List<List<DateTime>>, primitive: true
+// as single -> key: date, value: 2020-02-06T14:00:00+00:00, name: DateTime, subtype: null, primitive: true
 
-export function jsonParseValue(
-  key: string,
-  typeDef: TypeDefinition
-) {
+//date: (json['date'] as List)
+//?.map((e) => e == null ? null : DateTime.parse(e as String))
+//?.toList(),
+
+//date: (json['date'] as List)
+//        ?.map((e) => (e as List)
+//            ?.map((e) => e == null ? null : DateTime.parse(e as String))
+//            ?.toList())
+//        ?.toList(),
+
+export function jsonParseValue(key: string, typeDef: TypeDefinition) {
   const jsonValue = valueFromJson(key);
   let formatedValue = '';
   if (typeDef.isPrimitive) {
     if (typeDef.name === 'List') {
-      formatedValue = `${jsonValue} as List<${typeDef.subtype}>`;
+      formatedValue = `${jsonValue} as ${typeDef.subtype}`;
+    } else if (typeDef.name === 'DateTime') {
+      if (typeDef.subtype !== null && isList(typeDef.subtype)) {
+        const result = filterListType(typeDef.subtype);
+        formatedValue += printLine(`(${jsonValue} as List)`);
+        for (let i = 0; i < result.length - 1; i++) {
+          var index = i * 2;
+          formatedValue += printLine(`?.map((e) => (e as List)`, true, 5 + index);
+        }
+        formatedValue += printLine(`?.map((e) => e == null ? null : DateTime.parse(e as String))`, true, 3 + 2 * result.length);
+        for (let i = 0; i < result.length - 1; i++) {
+          var index = i * 2;
+          formatedValue += printLine(`?.toList())`, true, 3 + 2 * result.length - index);
+        }
+        formatedValue += printLine(`?.toList()`, true, 5);
+      } else {
+        formatedValue = `${jsonValue} == null ? null : DateTime.parse(${jsonValue} as String)`;
+      }
     } else {
       formatedValue = `${jsonValue} as ${typeDef.name}`;
     }
   } else if (typeDef.name === "List" && typeDef.subtype === "DateTime") {
-    formatedValue = `${jsonValue}.map((v) => DateTime.tryParse(v));`;
+    formatedValue += printLine(`(${jsonValue} as List)`);
+    formatedValue += printLine(`?.map((e) => e == null ? null : DateTime.parse(e as String))`, true, 5);
+    formatedValue += printLine(`?.toList()`, true, 5);
   } else if (typeDef.name === "DateTime") {
     formatedValue = `DateTime.tryParse(${jsonValue});`;
-  } else if (isList(typeDef.name)) {
-    if (typeDef.subtype !== null && isList(typeDef.subtype)) {
-      // List of List Classes (List<List<Class>> name;)
-      // This will generate deeply nested endless lists depending on how many lists are in the lists.
-      var value = `${typeDef.name}<${typeDef.subtype}>`;
-      const result = filterListTypes(value);
-
-      formatedValue = printLine(`(${jsonValue} as ${typeDef.name})`);
-      for (let i = 0; i < result.length - 1; i++) {
-        var index = i * 2;
-        formatedValue += printLine(`?.map((e) => (e as ${typeDef.name})`, true, 5 + index);
-      }
-      formatedValue += printLine(`?.map((e) => e == null`, true, 3 + 2 * result.length);
-      formatedValue += printLine(`? null`, true, 5 + 2 * result.length);
-      formatedValue += printLine(`: ${pascalCase(key)}.fromJson(e as Map<String, dynamic>))`, true, 5 + 2 * result.length);
-      for (let i = 0; i < result.length - 1; i++) {
-        var index = i * 2;
-        formatedValue += printLine(`?.toList())`, true, 3 + 2 * result.length - index);
-      }
-      formatedValue += printLine(`?.toList()`, true, 5);
-    } else {
-      // List of Class
-      formatedValue = `(${jsonValue} as List<${typeDef.subtype}>)?.map((e) {`
-        + printLine(`return e == null ? null : ${typeDef.subtype}.fromJson(e as Map<String, dynamic>);`, true, 4)
-        + printLine(`})?.toList()`, true, 3);
+  } else if (typeDef.subtype !== null && !typeDef.isPrimitive) {
+    // Responsive farmatting.
+    // List of List Classes (List<List.......<Class>>)
+    // This will generate deeply nested infinity list depending on how many lists are in the lists.
+    const result = filterListType(typeDef.subtype);
+    formatedValue = printLine(`(${jsonValue} as ${typeDef.name})`);
+    for (let i = 0; i < result.length - 1; i++) {
+      var index = i * 2;
+      formatedValue += printLine(`?.map((e) => (e as ${typeDef.name})`, true, 5 + index);
     }
+    formatedValue += printLine(`?.map((e) => e == null`, true, 3 + 2 * result.length);
+    formatedValue += printLine(`? null`, true, 5 + 2 * result.length);
+    formatedValue += printLine(`: ${_buildParseClass(key, jsonValue)})`, true, 5 + 2 * result.length);
+    for (let i = 0; i < result.length - 1; i++) {
+      var index = i * 2;
+      formatedValue += printLine(`?.toList())`, true, 3 + 2 * result.length - index);
+    }
+    formatedValue += printLine(`?.toList()`, true, 5);
   } else {
     // Class
-    formatedValue = `${jsonValue} == null\n\t\t\t\t\t? null\n\t\t\t\t\t: ${_buildParseClass(jsonValue, typeDef)}`;
+    formatedValue += printLine(`${jsonValue} == null`);
+    formatedValue += printLine(`? null`, true, 5);
+    formatedValue += printLine(`: ${_buildParseClass(key, jsonValue)}`, true, 5);
   }
   return formatedValue;
 }
@@ -140,16 +162,32 @@ export function toJsonExpression(
   var fieldKey = fixFieldName(key, obj, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
-    return `'${key}': ${thisKey},`;
-  } else if (typeDef.name === "List") {
+    if (typeDef.name === "DateTime") {
+      if (typeDef.subtype !== null) {
+        const result = filterListType(typeDef.subtype);
+        // Responsive formatting.
+        var sb = '';
+        sb += printLine(`'${key}': ${thisKey}`);
+        sb += Array.from(result).map(_ => printLine('?.map((l) => l')).slice(0, -1).join('');
+        sb += printLine(`?.map((e) => e?.toIso8601String())`);
+        sb += Array.from(result).map(_ => printLine('?.toList())')).slice(0, -1).join('');
+        sb += printLine('?.toList(),');
+        return sb;
+      } else {
+        return `'${key}': ${thisKey}?.toIso8601String(),`;
+      }
+    } else {
+      return `'${key}': ${thisKey},`;
+    }
+  } else if (typeDef.subtype !== null) {
     // List of List Classes 
-    if (typeDef.subtype !== null && isList(typeDef.subtype)) {
-      var value = `${typeDef.name}<${typeDef.subtype}>`;
-      const result = filterListTypes(value);
+    if (isList(typeDef.subtype)) {
+      const result = filterListType(typeDef.subtype);
 
       var sb = '';
       sb += printLine(`'${key}': ${thisKey}`);
-      // This will generate endless lists depending on how many lists are in the lists.
+      // Responsive formatting.
+      // This will generate infiniti maps depending on how many lists are in the lists.
       // By default this line starts with keyword List, slice will remove it.
       sb += Array.from(result).map(_ => printLine('?.map((l) => l')).slice(0, -1).join('');
       sb += printLine(`?.map((e) => ${_buildToJsonClass("e")})`);
@@ -186,7 +224,7 @@ export class TypeDefinition {
         this.name = "double";
       }
     } else {
-      this.isPrimitive = isPrimitiveType(`${name}<${subtype}>`);
+      this.isPrimitive = isPrimitiveType(subtype);
     }
     if (isAmbiguous === null) {
       isAmbiguous = false;
@@ -196,26 +234,13 @@ export class TypeDefinition {
 
 export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
   var isAmbiguous = false;
-  var type = getTypeName(obj);
+  var type: string = getTypeName(obj);
 
   if (type === "List") {
     var list = obj;
-    var elemType: string;
-    if (list.length > 0) {
-      elemType = getListTypeName(list);
-      for (let listVal of list) {
-        // Search for the list in the list
-        if (listVal instanceof Array) {
-          elemType = `${type}<${getListTypeName(listVal)}>`;
-        }
-        if (elemType !== getTypeName(listVal)) {
-          isAmbiguous = true;
-          break;
-        }
-      }
-    } else {
-      // Returns any value if not defined.
-      elemType = "dynamic";
+    var elemType: string = getListSubtype(list);
+    if (elemType !== getListSubtype(list)) {
+      isAmbiguous = true;
     }
     return new TypeDefinition(type, elemType, isAmbiguous, astNode);
   }
@@ -226,9 +251,8 @@ function _buildToJsonClass(expression: string): string {
   return `${expression}?.toJson()`;
 }
 
-function _buildParseClass(expression: string, typeDef: TypeDefinition): string {
-  var properType = typeDef.subtype !== null ? typeDef.subtype : typeDef.name;
-  return `${pascalCase(properType)}.fromJson(${expression} as Map<String, dynamic>)`;
+function _buildParseClass(className: string, expression: string) {
+  return `${pascalCase(className)}.fromJson(${expression} as Map<String, dynamic>)`;
 }
 
 class Dependency {
@@ -313,9 +337,10 @@ export class ClassDefinition {
 
   _addTypeDef(typeDef: TypeDefinition) {
     var sb = "";
-    sb += isPrimitiveType(typeDef.name) ? `${typeDef.name}` : `${pascalCase(typeDef.name)}`;
-    if (typeDef.subtype !== null) {
-      sb += `<${typeDef.subtype}>`;
+    if (isList(typeDef.name) || typeDef.name === 'DateTime' && typeDef.subtype !== null) {
+      sb += typeDef.subtype;
+    } else {
+      sb += isPrimitiveType(typeDef.name) ? typeDef.name : pascalCase(typeDef.name);
     }
     return sb;
   }
@@ -351,7 +376,6 @@ export class ClassDefinition {
    */
   private _freezedField(): string {
     var sb = "";
-
     sb += "@freezed\n";
     sb += `abstract class ${this._name} with ` + `_$${this._name} {\n`;
     sb += `\tconst factory ${this._name}({\n`;
@@ -363,7 +387,6 @@ export class ClassDefinition {
     sb += `\t}) = _${this._name};\n\n`;
     sb += `${this._codeGenJsonParseFunc(true)}`;
     sb += "\n}";
-
     return sb;
   }
 
@@ -375,10 +398,8 @@ export class ClassDefinition {
   private equatablePropList(print: boolean = false): string {
     var expressionBody = `\n\n\t@override\n\tList<Object> get props => [`
       + `${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(', ')}];`.replace(' ]', ']');
-
     var blockBody = `\n\n\t@override\n\tList<Object> get props {\n\t\treturn [\n\t\t\t`
       + `${Array.from(this.fields.keys()).map((field) => `${fixFieldName(field, this._name, this._privateFields)}`).join(',\n\t\t\t')},\n\t\t];\n\t}`;
-
     var isShort = expressionBody.length < 87;
 
     if (!print) {
@@ -459,14 +480,10 @@ export class ClassDefinition {
 
     imports += Array.from(this.fields).map(([key, value]) => {
       var sb = "";
-      if (!isPrimitiveType(value.name) && !isList(value.name)) {
+      if (!value.isPrimitive && !isList(value.name)) {
         sb = 'import "' + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
       }
-      if (
-        value.subtype !== null &&
-        isList(value.name) &&
-        !isPrimitiveType(value.subtype)
-      ) {
+      if (value.subtype !== null && !value.isPrimitive) {
         if (isList(value.subtype)) {
           sb = 'import "' + snakeCase(key) + `.dart";\n`;
         } else {
@@ -533,7 +550,7 @@ export class ClassDefinition {
     for (var [key, _] of this.fields) {
       var fieldName = fixFieldName(key, this._name, this._privateFields);
       sb += isShort ? `this.${fieldName}` : `\n\t\tthis.${fieldName},`;
-      if (isShort) sb += ", ";
+      if (isShort) { sb += ", "; }
     };
     sb += isShort ? "});" : "\n\t});";
     return isShort ? sb.replace(", });", "});") : sb;
@@ -568,14 +585,12 @@ export class ClassDefinition {
   _codeGenJsonParseFunc(freezed: boolean = false): string {
     var expressionBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
     var blockBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) {\n\t\treturn _$${this._name}FromJson(json);\n\t}`;
-
     return expressionBody.length > 78 && !freezed ? blockBody : expressionBody;
   }
 
   _codeGenJsonGenFunc(): string {
     var expressionBody = `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
     var blockBody = `\tMap<String, dynamic> toJson() {\n\t\treturn _$${this._name}ToJson(this);\n\t}`;
-
     return expressionBody.length > 78 ? blockBody : expressionBody;
   }
 
@@ -584,10 +599,8 @@ export class ClassDefinition {
    * @param copyWith method should be generated or not.
    */
   _copyWithMethod(copyWith: boolean = false): string {
-    if (!copyWith) return '';
-
+    if (!copyWith) { return ''; }
     const className = this._name;
-
     var sb = "";
     sb += `\n\n\t${className} copyWith({`;
     // Constructor objects.
@@ -595,18 +608,15 @@ export class ClassDefinition {
       var fieldName = fixFieldName(key, className, this._privateFields);
       sb += `\n\t\t${this._addTypeDef(value)} ${fieldName},`;
     }
-
     sb += "\n\t}) {";
-    sb += `\n\t\treturn ${className}(`
+    sb += `\n\t\treturn ${className}(`;
     // Return constructor.
     for (let [key, _] of this.fields) {
       var fieldName = fixFieldName(key, className, this._privateFields);
       sb += `\n\t\t\t${fieldName}: ${fieldName} ?? this.${fieldName},`;
     }
-
     sb += "\n\t\t);";
     sb += "\n\t\}";
-
     return sb;
   }
 
@@ -615,17 +625,13 @@ export class ClassDefinition {
    * @param toString method should be generated or not.
    */
   _toStringMethod(toString: boolean = false): string {
-    if (!toString) return '';
-
+    if (!toString) { return ''; }
     var fieldName = (name: string): string => `${fixFieldName(name, this._name, this._privateFields)}: $${fixFieldName(name, this._name, this._privateFields)}`;
     var expressionBody = `\n\n\t@override\n\tString toString() => `
       + `'${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';`.replace(' \'', '\'');
-
     var blockBody = `\n\n\t@override\n\tString toString() {\n\t\treturn '`
       + `${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';\n\t}`;
-
     var isShort = expressionBody.length < 76;
-
     return isShort ? expressionBody : blockBody;
   }
 
@@ -634,40 +640,31 @@ export class ClassDefinition {
    * @param equality method should be generated or not.
    */
   _equalityOperator(equality: boolean = false): string {
-    if (!equality) return '';
-
+    if (!equality) { return ''; }
     var fieldName = (name: string): string => `identical(o.${fixFieldName(name, this._name, this._privateFields)}, ${fixFieldName(name, this._name, this._privateFields)})`;
     var expressionBody = `\n\n\t@override\n\tbool operator ==(Object o) => o is `
       + `${this._name} && `
       + `${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(' &&')};`.replace(' &&;', ';');
-
     var blockBody = `\n\n\t@override\n\tbool operator ==(Object o) =>\n\t\t\to is `
       + `${this._name} &&\n\t\t\t`
       + `${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(' &&\n\t\t\t')};`.replace(' &&;', ';');
-
     var isShort = expressionBody.length < 89;
-
     return isShort ? expressionBody : blockBody;
   }
 
   _hashCode(equality: boolean = false): string {
-    if (!equality) return '';
+    if (!equality) { return ''; }
     var keys = Array.from(this.fields.keys());
     var len = keys.length;
-
     var oneValueBody = `\n\n\t@override\n\tint get hashCode => `
       + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)}`)}`
       + `.hashCode;`;
-
     var expressionBody = `\n\n\t@override\n\tint get hashCode => hashValues(`
       + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)}`).join(', ')});`.replace(' ,);', ');');
-
     var blockBody = `\n\n\t@override\n\tint get hashCode {\n\t\treturn hashValues(\n\t\t\t`
       + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)},`).join('\n\t\t\t')}\n\t\t);\n\t}`;
-
     var isShort = expressionBody.length < 87;
     var expression = len === 1 ? oneValueBody : expressionBody;
-
     return isShort ? expression : blockBody;
   }
 
@@ -729,7 +726,7 @@ export class ClassDefinition {
       field += `${this._importList()}`;
       field += `${this._partImportsList(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
-      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`
+      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this._fieldList(input.isImmutable())}\n\n`;
       field += `${this._defaultPrivateConstructor()}`;
       field += `${this._toStringMethod(input.toString)}\n\n`;
@@ -747,7 +744,7 @@ export class ClassDefinition {
       field += `${this._importList()}`;
       field += `${this._partImportsList(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
-      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`
+      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this._fieldList(input.isImmutable())}\n\n`;
       field += `${this._defaultConstructor(input.isImmutable())}`;
       field += `${this._toStringMethod(input.toString)}\n\n`;
