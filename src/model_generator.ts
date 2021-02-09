@@ -7,10 +7,11 @@ import {
     newAmbiguousListWarn,
     WithWarning,
 } from "./syntax";
-import { navigateNode, camelCase, mergeObjectList, pascalCase, isList } from "./helper";
+import { navigateNode, camelCase, mergeObjectList, pascalCase, isList, isDate, getTypeName, getListTypeName } from "./helper";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
+import { type } from "os";
 
 class DartCode extends WithWarning<string> {
     constructor(result: string, warnings: Array<Warning>) {
@@ -83,6 +84,9 @@ export class ModelGenerator {
                 }
                 if (typeDef.subtype !== null && isList(typeDef.subtype) && !typeDef.isPrimitive) {
                     typeDef.subtype = typeDef.subtype.replace('Class', pascalCase(key));
+                }
+                if (typeDef.subtype !== null && isList(typeDef.subtype) && isDate(value)) {
+                    typeDef.name = 'DateTime';
                 }
                 classDefinition.addField(key, typeDef);
             });

@@ -46,7 +46,9 @@ const keywords = ["String", "int", "bool", "num", "double", "dynamic", "DateTime
  * @param typeName a string that will be calculated.
  * @returns {string[]} A string list.
  * @example
+ * ```dart
  * List<List<User>> users; // Return list ["List", "List"].
+ * ```
  */
 export function filterListType(typeName: string): string[] {
     const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
@@ -106,6 +108,11 @@ export function snakeCase(text: string): string {
     return changeCase.snakeCase(text);
 }
 
+export function isDate(date: string): boolean {
+    const datePattern = /^(?:[1-9]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)/g;
+    return datePattern.exec(date) !== null ? true : false;
+}
+
 /**
  * Returns value name. If it reserved by the system will be mixed with class name.
  * @param name value name.
@@ -125,31 +132,11 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
     return isPrivate ? `_${filedName}` : filedName;
 }
 
-/**
- * Returns list subtype.
- * @param {any[]} arr a list that will be checked.
- * @returns {string} a string.
- * @example
- * var arr = [1, 2, 3]; // return string "List<int>"  
- */
-export function getListSubtype(arr: any[]): string {
-    let sb = "";
-    const typeSet = new Set();
-    const typeName = Array.from(typeSet).toString();
-    for (let element of arr) {
-        if (arr.every((e) => e instanceof Array)) {
-            sb += getListSubtype(element);
-        } else {
-            typeSet.add(getListTypeName(arr));
-        }
-    }
-    sb += !sb.length ? getListTypeName(arr) : typeName;
-    return "List<" + sb + ">";
-}
-
 export function getTypeName(obj: any): string {
     var type = typeof obj + "";
-    if (type === 'string') {
+    if (isDate(obj) && type === "string") {
+        return 'DateTime';
+    } else if (type === 'string') {
         return 'String';
     } else if (type === 'number') {
         return obj % 1 === 0 ? "int" : "double";
@@ -175,27 +162,54 @@ export const getListTypeName = (arr: Array<any>): string => {
     if (Array.isArray(arr) && !arr.length) {
         return "dynamic";
     } else {
-        if (arr.every(i => getTypeName(i) === "String")) {
+        if (arr.every((i) => getTypeName(i) === "DateTime")) {
+            return "DateTime";
+        } else if (arr.every((i) => getTypeName(i) === "String")) {
             return "String";
-        } else if (arr.every(i => getTypeName(i) === "bool")) {
+        } else if (arr.every((i) => getTypeName(i) === "bool")) {
             return "bool";
-        } else if (arr.every(i => typeof i === "number")) {
-            if (arr.every(i => getTypeName(i) === "int")) {
+        } else if (arr.every((i) => typeof i === "number")) {
+            if (arr.every((i) => getTypeName(i) === "int")) {
                 return "int";
-            } else if (arr.every(i => getTypeName(i) === "double")) {
+            } else if (arr.every((i) => getTypeName(i) === "double")) {
                 return "double";
             } else {
                 return "num";
             }
-        } else if (arr.every(i => typeof i === "string" || typeof i === "number" || typeof i === "boolean" || i instanceof Array)) {
+        } else if (arr.every((i) =>
+            typeof i === "string" ||
+            typeof i === "number" ||
+            typeof i === "boolean" ||
+            i instanceof Array
+        )) {
             return "dynamic";
-        } else if (arr.every(i => getTypeName(i) === "List")) {
-            return "List";
         } else {
             return "Class";
         }
     }
 };
+
+/**
+ * Returns list subtype.
+ * @param {any[]} arr a list that will be checked.
+ * @returns {string} a string.
+ * @example
+ * var arr = [1, 2, 3]; // return string "List<int>"  
+ */
+export function getListSubtype(arr: any[]): string {
+    let sb = "";
+    const typeSet = new Set();
+    const typeName = Array.from(typeSet).toString();
+    for (let element of arr) {
+        if (arr.every((e) => e instanceof Array)) {
+            sb += getListSubtype(element);
+        } else {
+            typeSet.add(getListTypeName(arr));
+        }
+    }
+    sb += !sb.length ? getListTypeName(arr) : typeName;
+    return "List<" + sb + ">";
+}
 
 export function navigateNode(astNode: ASTNode, path: string): ASTNode {
     let node: ASTNode;

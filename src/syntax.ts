@@ -81,6 +81,18 @@ export function valueFromJson(valueKey: string): string {
 export function joinAsClass(key: string, value: string): string {
   return `${key}: ${value},`;
 }
+// as list -> key: date, value: 2020-02-06T14:00:00+00:00, name: List, subtype: List<List<DateTime>>, primitive: true
+// as single -> key: date, value: 2020-02-06T14:00:00+00:00, name: DateTime, subtype: null, primitive: true
+
+//date: (json['date'] as List)
+//?.map((e) => e == null ? null : DateTime.parse(e as String))
+//?.toList(),
+
+//date: (json['date'] as List)
+//        ?.map((e) => (e as List)
+//            ?.map((e) => e == null ? null : DateTime.parse(e as String))
+//            ?.toList())
+//        ?.toList(),
 
 export function jsonParseValue(key: string, typeDef: TypeDefinition) {
   const jsonValue = valueFromJson(key);
@@ -88,11 +100,30 @@ export function jsonParseValue(key: string, typeDef: TypeDefinition) {
   if (typeDef.isPrimitive) {
     if (typeDef.name === 'List') {
       formatedValue = `${jsonValue} as ${typeDef.subtype}`;
+    } else if (typeDef.name === 'DateTime') {
+      if (typeDef.subtype !== null && isList(typeDef.subtype)) {
+        const result = filterListType(typeDef.subtype);
+        formatedValue += printLine(`(${jsonValue} as List)`);
+        for (let i = 0; i < result.length - 1; i++) {
+          var index = i * 2;
+          formatedValue += printLine(`?.map((e) => (e as List)`, true, 5 + index);
+        }
+        formatedValue += printLine(`?.map((e) => e == null ? null : DateTime.parse(e as String))`, true, 3 + 2 * result.length);
+        for (let i = 0; i < result.length - 1; i++) {
+          var index = i * 2;
+          formatedValue += printLine(`?.toList())`, true, 3 + 2 * result.length - index);
+        }
+        formatedValue += printLine(`?.toList()`, true, 5);
+      } else {
+        formatedValue = `${jsonValue} == null ? null : DateTime.parse(${jsonValue} as String)`;
+      }
     } else {
       formatedValue = `${jsonValue} as ${typeDef.name}`;
     }
   } else if (typeDef.name === "List" && typeDef.subtype === "DateTime") {
-    formatedValue = `${jsonValue}.map((v) => DateTime.tryParse(v));`;
+    formatedValue += printLine(`(${jsonValue} as List)`);
+    formatedValue += printLine(`?.map((e) => e == null ? null : DateTime.parse(e as String))`, true, 5);
+    formatedValue += printLine(`?.toList()`, true, 5);
   } else if (typeDef.name === "DateTime") {
     formatedValue = `DateTime.tryParse(${jsonValue});`;
   } else if (typeDef.subtype !== null && !typeDef.isPrimitive) {
@@ -131,10 +162,26 @@ export function toJsonExpression(
   var fieldKey = fixFieldName(key, obj, privateField);
   var thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
-    return `'${key}': ${thisKey},`;
-  } else if (typeDef.name === "List") {
+    if (typeDef.name === "DateTime") {
+      if (typeDef.subtype !== null) {
+        const result = filterListType(typeDef.subtype);
+        // Responsive formatting.
+        var sb = '';
+        sb += printLine(`'${key}': ${thisKey}`);
+        sb += Array.from(result).map(_ => printLine('?.map((l) => l')).slice(0, -1).join('');
+        sb += printLine(`?.map((e) => e?.toIso8601String())`);
+        sb += Array.from(result).map(_ => printLine('?.toList())')).slice(0, -1).join('');
+        sb += printLine('?.toList(),');
+        return sb;
+      } else {
+        return `'${key}': ${thisKey}?.toIso8601String(),`;
+      }
+    } else {
+      return `'${key}': ${thisKey},`;
+    }
+  } else if (typeDef.subtype !== null) {
     // List of List Classes 
-    if (typeDef.subtype !== null && isList(typeDef.subtype)) {
+    if (isList(typeDef.subtype)) {
       const result = filterListType(typeDef.subtype);
 
       var sb = '';
@@ -290,7 +337,7 @@ export class ClassDefinition {
 
   _addTypeDef(typeDef: TypeDefinition) {
     var sb = "";
-    if (isList(typeDef.name)) {
+    if (isList(typeDef.name) || typeDef.name === 'DateTime' && typeDef.subtype !== null) {
       sb += typeDef.subtype;
     } else {
       sb += isPrimitiveType(typeDef.name) ? typeDef.name : pascalCase(typeDef.name);
