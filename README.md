@@ -247,7 +247,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 ## Converter
 
-- Array type merging (**Huge deal**)
+- Array type merging
 - Duplicate type prevention
 - Union types
 - Optional types
@@ -275,8 +275,9 @@ Happens when linux is missing clipboard packages
 
 ### Special thanks
 
-:heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding equatable support.</br>
-:heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style)
+:heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
+:heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
+:heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
 
 ### Contact me
 
