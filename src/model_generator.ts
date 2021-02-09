@@ -7,11 +7,10 @@ import {
     newAmbiguousListWarn,
     WithWarning,
 } from "./syntax";
-import { navigateNode, camelCase, mergeObjectList, pascalCase, isList, isDate, getTypeName, getListTypeName } from "./helper";
+import { navigateNode, camelCase, mergeObjectList, pascalCase, isList, isDate } from "./helper";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
-import { type } from "os";
 
 class DartCode extends WithWarning<string> {
     constructor(result: string, warnings: Array<Warning>) {
@@ -122,14 +121,11 @@ export class ModelGenerator {
                                 obj[key] = value;
                                 for (let i = 0; i < value.length; i++) {
                                     const object = value[i];
-                                    console.log('inside array: ' + 'key: ' + key + ', value: ' + value);
                                     if (object instanceof Map) {
                                         object.forEach((element: any) => {
                                             if (isArray(value)) {
-                                                console.log('inside map array -> element: ' + element);
                                                 obj[key] = [element];
                                             } else {
-                                                console.log('inside map object -> element: ' + element);
                                                 obj[key] = element;
                                             }
                                         });

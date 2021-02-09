@@ -106,7 +106,7 @@ async function askForCopyWithMethod(): Promise<boolean> {
             },
             { label: "Yes" },
         ],
-        { placeHolder: "Implement `copyWith()` method? (Recommended with immutable classes" }
+        { placeHolder: "Implement `copyWith()` method? (Recommended with immutable classes)" }
     );
 
     switch (selection?.label) {

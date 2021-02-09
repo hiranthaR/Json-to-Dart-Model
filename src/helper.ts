@@ -121,7 +121,7 @@ export function isDate(date: string): boolean {
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     // Keywords that cannot be used as values in the Dart language.
-    var reservedKeys: string[] = ['get', 'for', 'default', 'set'];
+    var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class'];
     var filedName = camelCase(name);
 
     if (reservedKeys.includes(filedName)) {
@@ -260,10 +260,10 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
  * @param {any} obj - A object param.
  * @return {any} Return a any object.
  */
-const getObject = (obj: any): any => {
+const merge = (obj: any): any => {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
-            return getObject(obj[i]);
+            return merge(obj[i]);
         }
     } else {
         return obj;
@@ -274,7 +274,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(getObject(list[i])));
+        var toMerge = new Map(Object.entries(merge(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));
