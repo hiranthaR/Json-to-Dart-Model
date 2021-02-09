@@ -134,7 +134,9 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
 
 export function getTypeName(obj: any): string {
     var type = typeof obj + "";
-    if (isDate(obj) && type === "string") {
+    if (obj === "" || obj === "undefined") {
+        return 'dynamic';
+    } else if (isDate(obj) && type === "string") {
         return 'DateTime';
     } else if (type === 'string') {
         return 'String';
@@ -142,8 +144,6 @@ export function getTypeName(obj: any): string {
         return obj % 1 === 0 ? "int" : "double";
     } else if (type === "boolean") {
         return 'bool';
-    } else if (obj === "undefined") {
-        return 'dynamic';
     } else if (isArray(obj)) {
         return 'List';
     } else {
