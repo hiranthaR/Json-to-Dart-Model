@@ -122,14 +122,14 @@ export function isDate(date: string): boolean {
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     // Keywords that cannot be used as values in the Dart language.
     var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class'];
-    var filedName = camelCase(name);
+    var fieldName = camelCase(name);
 
-    if (reservedKeys.includes(filedName)) {
-        var reserved = filedName.charAt(0).toUpperCase() + filedName.slice(1);
-        return filedName = camelCase(`${prefix}${reserved}`);
+    if (reservedKeys.includes(fieldName)) {
+        var reserved = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+        return fieldName = camelCase(`${prefix}${reserved}`);
     }
 
-    return isPrivate ? `_${filedName}` : filedName;
+    return isPrivate ? `_${fieldName}` : fieldName;
 }
 
 export function getTypeName(obj: any): string {

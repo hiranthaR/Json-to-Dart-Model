@@ -81,18 +81,6 @@ export function valueFromJson(valueKey: string): string {
 export function joinAsClass(key: string, value: string): string {
   return `${key}: ${value},`;
 }
-// as list -> key: date, value: 2020-02-06T14:00:00+00:00, name: List, subtype: List<List<DateTime>>, primitive: true
-// as single -> key: date, value: 2020-02-06T14:00:00+00:00, name: DateTime, subtype: null, primitive: true
-
-//date: (json['date'] as List)
-//?.map((e) => e == null ? null : DateTime.parse(e as String))
-//?.toList(),
-
-//date: (json['date'] as List)
-//        ?.map((e) => (e as List)
-//            ?.map((e) => e == null ? null : DateTime.parse(e as String))
-//            ?.toList())
-//        ?.toList(),
 
 export function jsonParseValue(key: string, typeDef: TypeDefinition) {
   const jsonValue = valueFromJson(key);
@@ -252,7 +240,8 @@ function _buildToJsonClass(expression: string): string {
 }
 
 function _buildParseClass(className: string, expression: string) {
-  return `${pascalCase(className)}.fromJson(${expression} as Map<String, dynamic>)`;
+  const _className = className.replace(/_/g, "");
+  return `${pascalCase(_className)}.fromJson(${expression} as Map<String, dynamic>)`;
 }
 
 class Dependency {
@@ -289,6 +278,20 @@ export class ClassDefinition {
       }
     }
     return dependenciesList;
+  }
+
+  /**
+   * The class for syntax printing.
+   * This feature removes all dashes from names to avoid lint warning.
+   * @param {string} className a class name to force override default name.
+   * @returns {string} by default return name from the ClassDefinition.
+   */
+  getClassName(className: string = ""): string {
+    if (className.length > 0) {
+      return pascalCase(className)?.replace(/_/g, "");
+    } else {
+      return pascalCase(this._name)?.replace(/_/g, "");
+    }
   }
 
   constructor(name: string, privateFields = false) {
@@ -340,7 +343,7 @@ export class ClassDefinition {
     if (isList(typeDef.name) || typeDef.name === 'DateTime' && typeDef.subtype !== null) {
       sb += typeDef.subtype;
     } else {
-      sb += isPrimitiveType(typeDef.name) ? typeDef.name : pascalCase(typeDef.name);
+      sb += isPrimitiveType(typeDef.name) ? typeDef.name : this.getClassName(typeDef.name);
     }
     return sb;
   }
@@ -376,17 +379,18 @@ export class ClassDefinition {
    */
   private _freezedField(): string {
     var sb = "";
-    sb += "@freezed\n";
-    sb += `abstract class ${this._name} with ` + `_$${this._name} {\n`;
-    sb += `\tconst factory ${this._name}({\n`;
+    sb += printLine("@freezed");
+    sb += printLine(`abstract class ${this.getClassName()} with `, true);
+    sb += printLine(`_$${this.getClassName()} {`);
+    sb += printLine(`const factory ${this.getClassName()}({`, true, 1);
     for (var [key, value] of this.fields) {
       const fieldName = fixFieldName(key, this._name, this._privateFields);
-      sb += "\t\t" + `@JsonKey(name: "${key}")`;
-      sb += " " + this._addTypeDef(value) + ` ${fieldName},\n`;
+      sb += printLine(`@JsonKey(name: "${key}")`, true, 2);
+      sb += printLine(` ${this._addTypeDef(value)} ${fieldName},`);
     };
-    sb += `\t}) = _${this._name};\n\n`;
-    sb += `${this._codeGenJsonParseFunc(true)}`;
-    sb += "\n}";
+    sb += printLine(`}) = _${this.getClassName()};\n\n`, true, 1);
+    sb += printLine(`${this._codeGenJsonParseFunc(true)}`);
+    sb += printLine("}", true);
     return sb;
   }
 
@@ -453,7 +457,7 @@ export class ClassDefinition {
     var imports = "";
     // Sorted alphabetically for effective dart style.
     imports += input.equatable ? "import 'package:equatable/equatable.dart';\n" : "";
-    imports += input.immutable ? "import 'package:flutter/foundation.dart';\n" : "";
+    imports += input.immutable && !input.generate ? "import 'package:flutter/foundation.dart';\n" : "";
     imports += input.generate && !input.freezed ? `import 'package:json_annotation/json_annotation.dart';\n` : "";
     imports += input.freezed ? "import 'package:freezed_annotation/freezed_annotation.dart';\n" : "";
 
@@ -481,7 +485,7 @@ export class ClassDefinition {
     imports += Array.from(this.fields).map(([key, value]) => {
       var sb = "";
       if (!value.isPrimitive && !isList(value.name)) {
-        sb = 'import "' + snakeCase(this._addTypeDef(value)) + `.dart";\n`;
+        sb = 'import "' + snakeCase(key) + `.dart";\n`;
       }
       if (value.subtype !== null && !value.isPrimitive) {
         if (isList(value.subtype)) {
@@ -541,9 +545,9 @@ export class ClassDefinition {
   _defaultConstructor(equatable: boolean = false, immutable: boolean = false): string {
     var sb = "";
     if (equatable || immutable) {
-      sb += `\t${this._constFieldKeyword(true)}${this._name}({`;
+      sb += `\t${this._constFieldKeyword(true)}${this.getClassName()}({`;
     } else {
-      sb += `\t${this._constFieldKeyword(false)}${this._name}({`;
+      sb += `\t${this._constFieldKeyword(false)}${this.getClassName()}({`;
     }
     var len = Array.from(this.fields).length;
     var isShort = len < 3;
@@ -558,10 +562,10 @@ export class ClassDefinition {
 
   _jsonParseFunc(): string {
     var sb = "";
-    sb += `\tfactory ${this._name}`;
-    sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this._name}(\n`;
+    sb += `\tfactory ${this.getClassName()}`;
+    sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this.getClassName()}(\n`;
     sb += Array.from(this.fields).map(([key, value]) => {
-      return `\t\t\t${joinAsClass(fixFieldName(key, this._name, this._privateFields), jsonParseValue(key, value))}`;
+      return `\t\t\t${joinAsClass(fixFieldName(key, this.getClassName(), this._privateFields), jsonParseValue(key, value))}`;
     }).join('\n');
     sb += "\n\t\t);\n\t}";
     return sb;
@@ -571,7 +575,7 @@ export class ClassDefinition {
     var sb = "";
     sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
     Array.from(this.fields).map(([key, value]) => {
-      sb += `\t\t\t${toJsonExpression(key, this._name, value, this._privateFields)}\n`;
+      sb += `\t\t\t${toJsonExpression(key, this.getClassName(), value, this._privateFields)}\n`;
     });
     sb += "\t\t};\n";
     sb += "\t}";
@@ -583,14 +587,14 @@ export class ClassDefinition {
    * @param freezed force to generate expression body (required for freezed generator).
    */
   _codeGenJsonParseFunc(freezed: boolean = false): string {
-    var expressionBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) => _$${this._name}FromJson(json);`;
-    var blockBody = `\tfactory ${this._name}.fromJson(Map<String, dynamic> json) {\n\t\treturn _$${this._name}FromJson(json);\n\t}`;
+    var expressionBody = `\tfactory ${this.getClassName()}.fromJson(Map<String, dynamic> json) => _$${this.getClassName()}FromJson(json);`;
+    var blockBody = `\tfactory ${this.getClassName()}.fromJson(Map<String, dynamic> json) {\n\t\treturn _$${this.getClassName()}FromJson(json);\n\t}`;
     return expressionBody.length > 78 && !freezed ? blockBody : expressionBody;
   }
 
   _codeGenJsonGenFunc(): string {
-    var expressionBody = `\tMap<String, dynamic> toJson() => _$${this._name}ToJson(this);`;
-    var blockBody = `\tMap<String, dynamic> toJson() {\n\t\treturn _$${this._name}ToJson(this);\n\t}`;
+    var expressionBody = `\tMap<String, dynamic> toJson() => _$${this.getClassName()}ToJson(this);`;
+    var blockBody = `\tMap<String, dynamic> toJson() {\n\t\treturn _$${this.getClassName()}ToJson(this);\n\t}`;
     return expressionBody.length > 78 ? blockBody : expressionBody;
   }
 
@@ -600,23 +604,22 @@ export class ClassDefinition {
    */
   _copyWithMethod(copyWith: boolean = false): string {
     if (!copyWith) { return ''; }
-    const className = this._name;
     var sb = "";
-    sb += `\n\n\t${className} copyWith({`;
+    sb += printLine(`\n\n${this.getClassName()} copyWith({`, false, 1);
     // Constructor objects.
     for (let [key, value] of this.fields) {
-      var fieldName = fixFieldName(key, className, this._privateFields);
-      sb += `\n\t\t${this._addTypeDef(value)} ${fieldName},`;
+      var fieldName = fixFieldName(key, this.getClassName(), this._privateFields);
+      sb += printLine(`${this._addTypeDef(value)} ${fieldName},`, true, 2);
     }
-    sb += "\n\t}) {";
-    sb += `\n\t\treturn ${className}(`;
+    sb += printLine("}) {", true, 1);
+    sb += printLine(`return ${this.getClassName()}(`, true, 2);
     // Return constructor.
     for (let [key, _] of this.fields) {
-      var fieldName = fixFieldName(key, className, this._privateFields);
-      sb += `\n\t\t\t${fieldName}: ${fieldName} ?? this.${fieldName},`;
+      var fieldName = fixFieldName(key, this.getClassName(), this._privateFields);
+      sb += printLine(`${fieldName}: ${fieldName} ?? this.${fieldName},`, true, 3);
     }
-    sb += "\n\t\t);";
-    sb += "\n\t\}";
+    sb += printLine(");", true, 2);
+    sb += printLine("}", true, 1);
     return sb;
   }
 
@@ -628,9 +631,9 @@ export class ClassDefinition {
     if (!toString) { return ''; }
     var fieldName = (name: string): string => `${fixFieldName(name, this._name, this._privateFields)}: $${fixFieldName(name, this._name, this._privateFields)}`;
     var expressionBody = `\n\n\t@override\n\tString toString() => `
-      + `'${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';`.replace(' \'', '\'');
+      + `'${this.getClassName()}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';`.replace(' \'', '\'');
     var blockBody = `\n\n\t@override\n\tString toString() {\n\t\treturn '`
-      + `${this._name}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';\n\t}`;
+      + `${this.getClassName()}(${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(', ')})';\n\t}`;
     var isShort = expressionBody.length < 76;
     return isShort ? expressionBody : blockBody;
   }
@@ -643,10 +646,10 @@ export class ClassDefinition {
     if (!equality) { return ''; }
     var fieldName = (name: string): string => `identical(o.${fixFieldName(name, this._name, this._privateFields)}, ${fixFieldName(name, this._name, this._privateFields)})`;
     var expressionBody = `\n\n\t@override\n\tbool operator ==(Object o) => o is `
-      + `${this._name} && `
+      + `${this.getClassName()} && `
       + `${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(' &&')};`.replace(' &&;', ';');
     var blockBody = `\n\n\t@override\n\tbool operator ==(Object o) =>\n\t\t\to is `
-      + `${this._name} &&\n\t\t\t`
+      + `${this.getClassName()} &&\n\t\t\t`
       + `${Array.from(this.fields.keys()).map((name) => fieldName(name)).join(' &&\n\t\t\t')};`.replace(' &&;', ';');
     var isShort = expressionBody.length < 89;
     return isShort ? expressionBody : blockBody;
@@ -685,7 +688,7 @@ export class ClassDefinition {
         field += `${this._importList()}`;
         field += `${this._partImportsList(input)}`;
         field += `@JsonSerializable()\n`;
-        field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''}; {\n`;
+        field += `class ${this.getClassName()}${input.equatable ? ' extends Equatable' : ''}; {\n`;
         field += `${this._fieldListCodeGen(input.isImmutable())}\n\n`;
         field += `${this._defaultPrivateConstructor()}`;
         field += `${this._toStringMethod(input.toString)}\n\n`;
@@ -703,7 +706,7 @@ export class ClassDefinition {
         field += `${this._importList()}`;
         field += `${this._partImportsList(input)}`;
         field += `@JsonSerializable()\n`;
-        field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`;
+        field += `class ${this.getClassName()}${input.equatable ? ' extends Equatable' : ''} {\n`;
         field += `${this._fieldListCodeGen(input.isImmutable())}\n\n`;
         field += `${this._defaultConstructor(input.isImmutable())}`;
         field += `${this._toStringMethod(input.toString)}\n\n`;
@@ -726,7 +729,7 @@ export class ClassDefinition {
       field += `${this._importList()}`;
       field += `${this._partImportsList(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
-      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`;
+      field += `class ${this.getClassName()}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this._fieldList(input.isImmutable())}\n\n`;
       field += `${this._defaultPrivateConstructor()}`;
       field += `${this._toStringMethod(input.toString)}\n\n`;
@@ -744,7 +747,7 @@ export class ClassDefinition {
       field += `${this._importList()}`;
       field += `${this._partImportsList(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
-      field += `class ${this._name}${input.equatable ? ' extends Equatable' : ''} {\n`;
+      field += `class ${this.getClassName()}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this._fieldList(input.isImmutable())}\n\n`;
       field += `${this._defaultConstructor(input.isImmutable())}`;
       field += `${this._toStringMethod(input.toString)}\n\n`;
