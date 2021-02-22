@@ -7,7 +7,7 @@ import {
     newAmbiguousListWarn,
     WithWarning,
 } from "./syntax";
-import { navigateNode, camelCase, mergeObjectList, pascalCase, isList } from "./helper";
+import { navigateNode, camelCase, mergeObjectList, pascalCase, isList, isDate } from "./helper";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
@@ -82,7 +82,10 @@ export class ModelGenerator {
                     warnings.push(newAmbiguousListWarn(`${path}/${key}`));
                 }
                 if (typeDef.subtype !== null && isList(typeDef.subtype) && !typeDef.isPrimitive) {
-                    typeDef.subtype = `${typeDef.name}<${pascalCase(key)}>`;
+                    typeDef.subtype = typeDef.subtype.replace('Class', pascalCase(key));
+                }
+                if (typeDef.subtype !== null && isList(typeDef.subtype) && isDate(value)) {
+                    typeDef.name = 'DateTime';
                 }
                 classDefinition.addField(key, typeDef);
             });
@@ -112,34 +115,7 @@ export class ModelGenerator {
                             toAnalyze = jsonRawData.get(dependency.name)[0];
                         }
                         const obj: any = {};
-                        // Scan deeply nested objects.
-                        const processedObjects = (value: any, key: any) => {
-                            if (value instanceof Array) {
-                                obj[key] = value;
-                                for (let i = 0; i < value.length; i++) {
-                                    const object = value[i];
-                                    if (object instanceof Map) {
-                                        object.forEach((element: any) => {
-                                            if (isArray(value)) {
-                                                obj[key] = [element];
-                                            } else {
-                                                obj[key] = element;
-                                            }
-                                        });
-                                    }
-                                }
-                            } else {
-                                obj[key] = value;
-                                if (key === 0 && value instanceof Object) {
-                                    // Rename indexed items.
-                                    obj[dependency.name] = value;
-                                    // Delete old item.
-                                    delete obj[key];
-                                }
-                            }
-                            return obj;
-                        };
-                        toAnalyze.forEach(processedObjects);
+                        toAnalyze.forEach((value: any, key: any) => obj[key] = value);
                         var node = navigateNode(astNode, dependency.name);
                         warns = this._generateClassDefinition(dependency.getClassName(), obj, `${path}/${dependency.name}`, node);
                     }

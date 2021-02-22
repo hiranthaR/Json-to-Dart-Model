@@ -27,14 +27,16 @@
   - [Key bindings](#key-bindings)
   - [Freezed documentation](https://pub.dev/packages/freezed)
   - [Converter](#converter)
+  - [Known Issues](#known-issues)
   - [Links](#links)
 
-## Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
+> Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
 
-This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON using code generation libraries**
+This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
 
+- Avoid using file base class name as json keys to avoid conflicts.
 - Equal structures are not detected yet (Equal classes are going to be created over and over).
-- Properties named with funky names (like "!breaks", "|breaks", etc) or keyword (like "`this`", "`break`", "`class`", etc) will produce syntax errors.
+- Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
 
 ## Customise
@@ -274,7 +276,7 @@ Happens when linux is missing clipboard packages
 ### Special thanks
 
 :heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
-:heart: Special thanks to [Arnas](https://github.com/iamarnas) for suggesting to add [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style). </br>
+:heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
 :heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
 
 ### Contact me
