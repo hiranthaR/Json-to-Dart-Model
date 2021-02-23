@@ -240,8 +240,8 @@ function _buildToJsonClass(expression: string): string {
 }
 
 function _buildParseClass(className: string, expression: string) {
-  const _className = className.replace(/_/g, "");
-  return `${pascalCase(_className)}.fromJson(${expression} as Map<String, dynamic>)`;
+  const _className = pascalCase(className).replace(/_/g, "");
+  return `${_className}.fromJson(${expression} as Map<String, dynamic>)`;
 }
 
 class Dependency {
