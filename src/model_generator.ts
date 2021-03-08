@@ -1,13 +1,6 @@
-import {
-    ClassDefinition,
-    Warning,
-    TypeDefinition,
-    typeDefinitionFromAny,
-    newEmptyListWarn,
-    newAmbiguousListWarn,
-    WithWarning,
-} from "./syntax";
-import { navigateNode, camelCase, mergeObjectList, pascalCase, isList, isDate } from "./helper";
+import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, } from "./syntax";
+import { navigateNode, mergeObjectList, pascalCase, snakeCase, fixFieldName } from "./helper";
+import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
@@ -19,7 +12,7 @@ class DartCode extends WithWarning<string> {
     getCode() { return this.result; }
 }
 
-class Hint {
+export class Hint {
     path: string;
     type: string;
 
@@ -46,6 +39,15 @@ export class ModelGenerator {
         }
     }
 
+    /**
+     * Returns only class names key for duplicates.
+     */
+    get duplicatesKeys(): string[] {
+        const getKeys = (cd: ClassDefinition): string => snakeCase(cd.getName());
+        const duplicatesOnly = (v: string, i: number, arr: string[]) => arr.indexOf(v) !== i;
+        return this.allClasses.map(getKeys).filter(duplicatesOnly);
+    }
+
     _hintForPath(path: string): Hint {
         return this.hints.filter((h) => h.path === path)[0];
     }
@@ -65,27 +67,35 @@ export class ModelGenerator {
                 var hint = this._hintForPath(`${path}/${key}`);
                 var node = navigateNode(astNode, key);
                 if (hint !== null && hint !== undefined) {
-                    typeDef = new TypeDefinition(hint.type, null, false, node);
+                    typeDef = new TypeDefinition(null, key, null, null, null, hint.type, value, false, node);
                 } else {
                     typeDef = typeDefinitionFromAny(value, node);
                 }
-                if (typeDef.name === 'Class') {
-                    typeDef.name = camelCase(key);
+                typeDef.jsonKey = key;
+                typeDef.value = value;
+                if (typeDef.type !== null) {
+                    if (!typeDef.isPrimitive && !typeDef.isList) {
+                        typeDef.constructorName = pascalCase(className).replace(/_/g, "");
+                        typeDef.type = pascalCase(key).replace(/_/g, "");
+                        typeDef.importName = key;
+                        typeDef.name = fixFieldName(key, typeDef.constructorName);
+                    } else {
+                        typeDef.className = pascalCase(className).replace(/_/g, "");
+                        typeDef.name = fixFieldName(key, typeDef.className);
+                    }
+                    if (typeDef.type === 'Class') {
+                        typeDef.type = pascalCase(key);
+                    }
+                    if (typeDef.isList && !typeDef.isPrimitive) {
+                        typeDef.type = typeDef.type.replace('Class', pascalCase(key));
+                        typeDef.importName = key;
+                    }
                 }
-                if (typeDef.name === 'List' && typeDef.subtype === 'Null') {
+                if (typeDef.type === null) {
                     warnings.push(newEmptyListWarn(`${path}/${key}`));
-                }
-                if (typeDef.subtype !== null && typeDef.subtype === 'Class') {
-                    typeDef.subtype = pascalCase(key);
                 }
                 if (typeDef.isAmbiguous) {
                     warnings.push(newAmbiguousListWarn(`${path}/${key}`));
-                }
-                if (typeDef.subtype !== null && isList(typeDef.subtype) && !typeDef.isPrimitive) {
-                    typeDef.subtype = typeDef.subtype.replace('Class', pascalCase(key));
-                }
-                if (typeDef.subtype !== null && isList(typeDef.subtype) && isDate(value)) {
-                    typeDef.name = 'DateTime';
                 }
                 classDefinition.addField(key, typeDef);
             });
@@ -100,7 +110,7 @@ export class ModelGenerator {
             var dependencies = classDefinition.getDependencies();
             dependencies.forEach((dependency) => {
                 var warns: Array<Warning>;
-                if (dependency.typeDef.name === 'List') {
+                if (dependency.typeDef.type !== null && dependency.typeDef.isList) {
                     // only generate dependency class if the array is not empty
                     if (jsonRawData.get(dependency.name).length > 0) {
                         // when list has ambiguous values, take the first one, otherwise merge all objects
@@ -148,10 +158,10 @@ export class ModelGenerator {
         // after generating all classes, replace the omited similar classes.
         this.allClasses.forEach((c) => {
             var fieldsKeys = c.fields.keys();
-            Array.from(fieldsKeys).forEach((f) => {
-                var typeForField = c.fields.get(f);
-                if (this.sameClassMapping.has(typeForField!!.name)) {
-                    c.fields.get(f)!!.name = this.sameClassMapping.get(typeForField!!.name)!!;
+            Array.from(fieldsKeys).forEach((key) => {
+                var typeDef = c.fields.get(key);
+                if (this.sameClassMapping.has(typeDef!!.name)) {
+                    c.fields.get(key)!!.name = this.sameClassMapping.get(typeDef!!.name)!!;
                 }
             });
         });

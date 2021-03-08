@@ -98,11 +98,6 @@ export function mapTsTypeToDartType(
   return types[type] ?? type;
 }
 
-export function isPremitiveType(type: string, key: String, obj: any): boolean {
-  const types = ["int", "string", "double", "boolean"];
-  return types.includes(type);
-}
-
 export async function createClass(
   className: string,
   targetDirectory: string,

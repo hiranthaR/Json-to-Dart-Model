@@ -93,7 +93,7 @@ export const isPrimitiveType = (typeName: string): boolean => {
 };
 
 export function isList(text: string) {
-    return text.startsWith("List");
+    return text.startsWith("List<");
 }
 
 export function camelCase(text: string): string {
