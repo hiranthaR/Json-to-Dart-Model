@@ -3,7 +3,7 @@ import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveTyp
 
 interface TypeDefinitionInterface {
   /**
-   * A name for imports.
+   * Object patch name. Used for imports.
    *  * If the name is null, it means no need to print.
    */
   importName: string | null;
