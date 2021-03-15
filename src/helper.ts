@@ -121,7 +121,7 @@ export function isDate(date: string): boolean {
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     // Keywords that cannot be used as values in the Dart language.
-    var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class'];
+    var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class', 'return'];
     var fieldName = camelCase(name);
 
     if (reservedKeys.includes(fieldName)) {
