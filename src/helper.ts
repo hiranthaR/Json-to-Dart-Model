@@ -92,21 +92,14 @@ export const isPrimitiveType = (typeName: string): boolean => {
     return identical && validSyntax ? true : false;
 };
 
-export function isList(text: string) {
-    return text.startsWith("List<");
-}
-
-export function camelCase(text: string): string {
-    return changeCase.camelCase(text);
-}
-
-export function pascalCase(text: string): string {
-    return changeCase.pascalCase(text);
-}
-
-export function snakeCase(text: string): string {
-    return changeCase.snakeCase(text);
-}
+export const isList = (text: string): boolean => text.startsWith("List<");
+export const camelCase = (text: string): string => changeCase.camelCase(text);
+export const pascalCase = (text: string): string => changeCase.pascalCase(text);
+export const snakeCase = (text: string): string => changeCase.snakeCase(text);
+export const snakeToCamel = (text: string) => text.replace(
+    /([-_][a-z])/g,
+    (group) => group.toUpperCase().replace('-', '').replace('_', '')
+);
 
 export function isDate(date: string): boolean {
     const datePattern = /^(?:[1-9]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)/g;
@@ -121,12 +114,12 @@ export function isDate(date: string): boolean {
  */
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     // Keywords that cannot be used as values in the Dart language.
-    var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class'];
-    var fieldName = camelCase(name);
+    var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class', 'return', 'in'];
+    var fieldName = camelCase(name)?.replace(/_/g, "");
 
     if (reservedKeys.includes(fieldName)) {
         var reserved = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-        return fieldName = camelCase(`${prefix}${reserved}`);
+        return fieldName = camelCase(`${prefix}${reserved}`)?.replace(/_/g, "");
     }
 
     return isPrivate ? `_${fieldName}` : fieldName;
@@ -192,9 +185,10 @@ export const getListTypeName = (arr: Array<any>): string => {
 /**
  * Returns list subtype.
  * @param {any[]} arr a list that will be checked.
- * @returns {string} a string.
+ * @returns {string} List type as string.
  * @example
- * var arr = [1, 2, 3]; // return string "List<int>"  
+ * var arr = [1, 2, 3]; // return string "List<int>"
+ * var arr = [[""]]; // return string "List<List<String>>"  
  */
 export function getListSubtype(arr: any[]): string {
     let sb = "";
@@ -256,14 +250,14 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
 }
 
 /**  
- * Merge indexed objects  
+ * Get object from the array.
  * @param {any} obj - A object param.
  * @return {any} Return a any object.
  */
-const merge = (obj: any): any => {
+export const getObject = (obj: any): any => {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
-            return merge(obj[i]);
+            return getObject(obj[i]);
         }
     } else {
         return obj;
@@ -274,7 +268,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(merge(list[i])));
+        var toMerge = new Map(Object.entries(getObject(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));
@@ -298,7 +292,6 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
                     } else if (t === 'List' || t === 'Class') {
                         var l = Array.from(obj.get(k));
                         var beginIndex = l.length;
-                        //l.push(v);
                         var mergeableType = mergeableListType(l);
                         if (ListType.Object === mergeableType.listType) {
                             var mergedList =

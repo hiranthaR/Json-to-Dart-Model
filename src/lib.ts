@@ -1,10 +1,10 @@
 import * as copyPaste from "copy-paste";
 import { ViewColumn, window } from "vscode";
-import * as changeCase from "change-case";
 import * as fs from "fs";
 import { ModelGenerator } from "./model_generator";
 import { ClassDefinition } from "./syntax";
 import { Input } from "./input";
+import { pascalCase } from "./helper";
 
 export function getClipboardText() {
   try {
@@ -91,7 +91,7 @@ export function mapTsTypeToDartType(
     integer: "int",
     string: "String",
     boolean: "bool",
-    object: changeCase.pascalCase(key.toLowerCase()),
+    object: pascalCase(key.toLowerCase()),
     map: `Map<String,String>`,
     double: "double",
   };
@@ -112,10 +112,9 @@ export async function createClass(
 
   return new Promise<void>(async (resolve, reject) => {
     classes.map((c) => {
-      const snakeClassName = changeCase.snakeCase(c.getName());
-      const targetPath = `${targetDirectory}/models/${snakeClassName}.dart`;
+      const targetPath = `${targetDirectory}/models/${c.path}.dart`;
       if (fs.existsSync(targetPath)) {
-        handleError(Error(`${snakeClassName}.dart already exists`));
+        handleError(Error(`${c.path}.dart already exists`));
         return;
       }
 
