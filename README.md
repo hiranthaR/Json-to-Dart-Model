@@ -1,5 +1,5 @@
 <p align="center">
-<img src="readme_assets/banner.png" style="background-color: transparent;" height:"auto" max-width:"100%" alt="JSON to Dart Model"/>
+<img src="readme_assets/banner.png" style="background-color: transparent;" height:"100" alt="JSON to Dart Model"/>
 </p>
 
 <p align="center">
@@ -274,7 +274,8 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 ## Known Issues
 
-`Command failed: xclip -selection clipboard -o`
+
+<pre>Command failed: xclip -selection clipboard -o</pre>
 
 ##### Solution:
 
