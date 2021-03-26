@@ -3,39 +3,57 @@
 </p>
 
 <p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg" alt="Version"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg" alt="Install"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg" alt="Download"></a>
-<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg" alt="Ask Me Anything"></a>
-<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github" alt="Issues"></a>
-<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue" alt="Effective Dart Style"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?style=flat-square" alt="Version"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?style=flat-square" alt="Install"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?style=flat-square" alt="Download"></a>
+<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg?style=flat-square" alt="Ask Me Anything"></a>
+<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github&style=flat-square" alt="Issues"></a>
+<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue?style=flat-square" alt="Effective Dart Style"></a>
+<a href="https://github.com/rrousselGit/freezed"><img src="https://img.shields.io/badge/supports-Freezed-blue?style=flat-square" alt="Freezed"></a>
+<a href="https://github.com/google/json_serializable.dart/tree/master/json_serializable"><img src="https://img.shields.io/badge/supports-Json_Serializable-blue?style=flat-square" alt="Json Serializable"></a>
 </p>
 
 > From JSON to Dart advanced
 
-- **[Features](#features)**
-- **The syntax**
-  - [To String method](#to-string-method)
-  - [CopyWith method](#copyWith-method)
-  - [Equality Operator](#equality-operator)
-  - [Equatable](#equatable)
-- **Code generators**
-  - [Freezed](#freezed)
-  - [JSON Serializable](#JSON-Serializable)
-- **[How to use](#how-to-use)** 
-  - [Customise](#customise)
-  - [Key bindings](#key-bindings)
-  - [Freezed documentation](https://pub.dev/packages/freezed)
-  - [Converter](#converter)
-  - [Known Issues](#known-issues)
-  - [Links](#links)
+<!-- TABLE OF CONTENTS -->
+<details closed="closed">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li> <a href="#features">Features</a><li>
+      <a href="#the-syntax">The Syntax</a>
+      <ul>
+        <li><a href="#to-string-method">To String method</a></li>
+        <li><a href="#copyWith-method">CopyWith method</a></li>
+        <li><a href="#equality-operator">Equality Operator</a></li>
+        <li><a href="#equatable">Equatable</a></li>
+      </ul>
+    </li>
+    <li><a href="#supported-generators">Supported Generators</a></li>
+    <ul>
+        <li><a href="#freezed">Freezed</a></li>
+        <li><a href="#JSON-Serializable">JSON Serializable</a></li>
+    </ul>
+    <li><a href="#how-to-use">How to use</a></li>
+    <ul>
+        <li><a href="#customise">Customise</a></li>
+        <li><a href="#key-bindings">Key bindings</a></li>
+        <li><a href="https://pub.dev/packages/freezed">Freezed documentation</a></li>
+        <li><a href="#converter">Converter</a></li>
+        <li><a href="#known-issues">Known Issues</a></li>
+        <li><a href="#links">Links</a></li>
+    </ul>
+  </ol>
+</details>
 
-> Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
+<space><space>
 
-This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
 
-- Avoid using file base class name as json keys to avoid conflicts.
-- Equal structures are not detected yet (Equal classes are going to be created over and over).
+## How it works
+
+`Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep yuor code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
+
+- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
 
@@ -265,7 +283,11 @@ Solution:
     sudo apt-get install xclip
 ```
 
-Happens when linux is missing clipboard packages
+Happens when linux is missing clipboard packages.
+
+## Wrong types
+
+In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. if you write yourself json objects try to give the right value type for better results.
 
 ### Links
 
@@ -278,6 +300,10 @@ Happens when linux is missing clipboard packages
 :heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
 :heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
 :heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
+
+### Support us
+
+If you like this, please give us the :star: and share with your friends. Thank you :blue_heart:
 
 ### Contact me
 
