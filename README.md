@@ -1,5 +1,5 @@
 <p align="center">
-<img src="readme_assets/banner.png" style="background-color: transparent;" alt="JSON to Dart Model"/>
+<img src="readme_assets/banner.png" style="background-color: transparent;" height:"auto" max-width:"100%" alt="JSON to Dart Model"/>
 </p>
 
 <p align="center">
@@ -52,7 +52,7 @@ Given a JSON string, this library will generate all the necessary Dart classes t
 
 ## How it works
 
-`Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep yuor code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
+`Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep your code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
 
 - Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
@@ -276,9 +276,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 `Command failed: xclip -selection clipboard -o`
 
----
-
-Solution:
+##### Solution:
 
 ```bash
     sudo apt-get install xclip
@@ -286,7 +284,7 @@ Solution:
 
 Happens when linux is missing clipboard packages.
 
-## Wrong types
+##### Wrong types:
 
 In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. if you write yourself json objects try to give the right value type for better results.
 
