@@ -2,6 +2,20 @@
 
 ## [Released]
 
+## [2.6.4] - 2021-03-22
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/22) from [Arnas](https://github.com/iamarnas)
+   - Added return as a received keyword 
+
+## [2.6.3] - 2021-02-22
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/18) from [Arnas](https://github.com/iamarnas)
+   - Added responsive formatting and date support.
+
 ## [2.6.2] - 2021-02-03
 
 ### Fixed
