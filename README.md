@@ -8,6 +8,7 @@
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?style=flat-square" alt="Download"></a>
 <a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg?style=flat-square" alt="Ask Me Anything"></a>
 <a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github&style=flat-square" alt="Issues"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square" alt="License: MIT"></a>
 <a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue?style=flat-square" alt="Effective Dart Style"></a>
 <a href="https://github.com/rrousselGit/freezed"><img src="https://img.shields.io/badge/supports-Freezed-blue?style=flat-square" alt="Freezed"></a>
 <a href="https://github.com/google/json_serializable.dart/tree/master/json_serializable"><img src="https://img.shields.io/badge/supports-Json_Serializable-blue?style=flat-square" alt="Json Serializable"></a>
