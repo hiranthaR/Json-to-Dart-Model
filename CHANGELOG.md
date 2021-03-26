@@ -2,6 +2,13 @@
 
 ## [Released]
 
+## [2.7.0] - 2021-03-26
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/23) from [Arnas](https://github.com/iamarnas)
+   - Added support for duplicate structures. 
+
 ## [2.6.4] - 2021-03-22
 
 ### Added
