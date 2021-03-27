@@ -1,5 +1,5 @@
 <p align="center">
-<img src="readme_assets/banner.png" style="background-color: transparent;" height:"100" alt="JSON to Dart Model"/>
+<img src="readme_assets/banner.png" style="background-color: transparent;" height=100 alt="JSON to Dart Model"/>
 </p>
 
 <p align="center">
@@ -184,6 +184,7 @@ class Todos extends Equatable {
   List<Object> get props => [userId, id, title, completed]; 
 }
 ```
+
 To add`Equatable` support you just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check in your Dart models
 
 ![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
@@ -274,26 +275,19 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 ## Known Issues
 
+1. Using key binding on `Linux` can throw error `Command failed: xclip -selection clipboard -o` it happens when Linux lacks clipboard package. To resolve this error run in the terminal this command to install the missing package.
 
-<pre>Command failed: xclip -selection clipboard -o</pre>
+   ```bash
+   sudo apt-get install xclip
+   ```
 
-##### Solution:
-
-```bash
-    sudo apt-get install xclip
-```
-
-Happens when linux is missing clipboard packages.
-
-##### Wrong types:
-
-In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. if you write yourself json objects try to give the right value type for better results.
+2. Matches the wrong type. In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. If you write yourself json objects try to give the right value type for better results. It’s all about json quality  :sunglasses:
 
 ### Links
 
 - [Repository](https://github.com/hiranthar/Json-to-Dart-Model.git)
-- [Issues](https://github.com/hiranthar/Json-to-Dart-Model.git/issues)
-- [Changelog](https://github.com/hiranthar/Json-to-Dart-Model.git/blob/master/CHANGELOG.md)
+- [Issues](https://github.com/hiranthaR/Json-to-Dart-Model/issues)
+- [Changelog](https://github.com/hiranthaR/Json-to-Dart-Model/blob/master/CHANGELOG.md)
 
 ### Special thanks
 
@@ -304,6 +298,11 @@ In my experience some api deliverers write `integer` values instead of `double`,
 ### Support us
 
 If you like this, please give us the :star: and share with your friends. Thank you :blue_heart:
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ### Contact me
 
