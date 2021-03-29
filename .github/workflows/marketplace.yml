@@ -1,0 +1,29 @@
+name: publish to marketplace
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      - name: install dependencies
+        run: npm install
+      - name: install vsce
+        run: npm install -g vsce
+      - name: package the extension
+        run: vsce package
+      - name: publish into marketplace
+        run: vsce publish -p ${{ secrets.TOKEN }}
+      - name: extract version number
+        run: export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}') && echo $BUILD_VERSION
+      - name: upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: json-to-dart-release
+          path: ./json-to-dart-$(BUILD_VERSION).vslx
