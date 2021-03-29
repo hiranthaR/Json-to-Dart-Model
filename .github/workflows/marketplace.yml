@@ -16,8 +16,8 @@ jobs:
         run: npm install
       - name: install vsce
         run: sudo npm install -g vsce
-      # - name: publish into marketplace
-      # run: vsce publish -p ${{ secrets.TOKEN }}
+      - name: publish into marketplace
+        run: vsce publish -p ${{ secrets.TOKEN }}
       - name: extract version number
         run: |
           export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}')
@@ -30,6 +30,6 @@ jobs:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
           automatic_release_tag: ${{ env.BUILD_VERSION }}
           prerelease: false
-          title: 'Json to Dart Extension'
+          title: 'Json to Dart Extension v${{ env.BUILD_VERSION }}'
           files: |
             ./json-to-dart-${{ env.BUILD_VERSION }}.vsix
