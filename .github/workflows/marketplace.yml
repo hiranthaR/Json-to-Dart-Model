@@ -16,20 +16,5 @@ jobs:
         run: npm install
       - name: install vsce
         run: sudo npm install -g vsce
-      # - name: package the extension
-      # run: vsce package
       - name: publish into marketplace
         run: vsce publish -p ${{ secrets.TOKEN }}
-      # - name: extract version number
-      # run: export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}') && echo $BUILD_VERSION
-      # - name: rename build
-      #   run: mv json-to-dart-$VERSION.vsix json-to-dart.vsix
-      # - name: release package to github repo
-      #   uses: marvinpinto/action-automatic-releases@latest
-      #   with:
-      #     repo_token: '${{ secrets.GITHUB_TOKEN }}'
-      #     automatic_release_tag: latest
-      #     prerelease: true
-      #     title: 'Json to Dart Extension'
-      #     files: |
-      #       ./json-to-dart.vsix
