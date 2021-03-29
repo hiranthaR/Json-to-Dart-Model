@@ -22,8 +22,12 @@ jobs:
         run: vsce publish -p ${{ secrets.TOKEN }}
       - name: extract version number
         run: export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}') && echo $BUILD_VERSION
-      - name: upload artifact
-        uses: actions/upload-artifact@v2
+      - name: release package to github repo
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          name: json-to-dart-release
-          path: ./json-to-dart-$(BUILD_VERSION).vslx
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: ${{ env.BUILD_VERSION }}
+          prerelease: true
+          title: 'Json to Dart Extension'
+          files: |
+            ./json-to-dart-${{ env.BUILD_VERSION }}.vslx
