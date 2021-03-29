@@ -1,41 +1,60 @@
 <p align="center">
-<img src="readme_assets/banner.png" style="background-color: transparent;" alt="JSON to Dart Model"/>
+<img src="readme_assets/banner.png" style="background-color: transparent;" height=100 alt="JSON to Dart Model"/>
 </p>
 
 <p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg" alt="Version"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg" alt="Install"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg" alt="Download"></a>
-<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg" alt="Ask Me Anything"></a>
-<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github" alt="Issues"></a>
-<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue" alt="Effective Dart Style"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?style=flat-square" alt="Version"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?style=flat-square" alt="Install"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?style=flat-square" alt="Download"></a>
+<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg?style=flat-square" alt="Ask Me Anything"></a>
+<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github&style=flat-square" alt="Issues"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square" alt="License: MIT"></a>
+<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue?style=flat-square" alt="Effective Dart Style"></a>
+<a href="https://github.com/rrousselGit/freezed"><img src="https://img.shields.io/badge/supports-Freezed-blue?style=flat-square" alt="Freezed"></a>
+<a href="https://github.com/google/json_serializable.dart/tree/master/json_serializable"><img src="https://img.shields.io/badge/supports-Json_Serializable-blue?style=flat-square" alt="Json Serializable"></a>
 </p>
 
 > From JSON to Dart advanced
 
-- **[Features](#features)**
-- **The syntax**
-  - [To String method](#to-string-method)
-  - [CopyWith method](#copyWith-method)
-  - [Equality Operator](#equality-operator)
-  - [Equatable](#equatable)
-- **Code generators**
-  - [Freezed](#freezed)
-  - [JSON Serializable](#JSON-Serializable)
-- **[How to use](#how-to-use)** 
-  - [Customise](#customise)
-  - [Key bindings](#key-bindings)
-  - [Freezed documentation](https://pub.dev/packages/freezed)
-  - [Converter](#converter)
-  - [Known Issues](#known-issues)
-  - [Links](#links)
+<!-- TABLE OF CONTENTS -->
+<details closed="closed">
+  <summary>Table of Contents</summary>
+  <ol>
+    <li> <a href="#features">Features</a><li>
+      <a href="#the-syntax">The Syntax</a>
+      <ul>
+        <li><a href="#to-string-method">To String method</a></li>
+        <li><a href="#copyWith-method">CopyWith method</a></li>
+        <li><a href="#equality-operator">Equality Operator</a></li>
+        <li><a href="#equatable">Equatable</a></li>
+      </ul>
+    </li>
+    <li><a href="#supported-generators">Supported Generators</a></li>
+    <ul>
+        <li><a href="#freezed">Freezed</a></li>
+        <li><a href="#JSON-Serializable">JSON Serializable</a></li>
+    </ul>
+    <li><a href="#how-to-use">How to use</a></li>
+    <ul>
+        <li><a href="#customise">Customise</a></li>
+        <li><a href="#key-bindings">Key bindings</a></li>
+        <li><a href="https://pub.dev/packages/freezed">Freezed documentation</a></li>
+        <li><a href="#converter">Converter</a></li>
+        <li><a href="#known-issues">Known Issues</a></li>
+        <li><a href="#links">Links</a></li>
+    </ul>
+  </ol>
+</details>
 
-> Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON
+<space><space>
 
-This library is designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
 
-- Avoid using file base class name as json keys to avoid conflicts.
-- Equal structures are not detected yet (Equal classes are going to be created over and over).
+## How it works
+
+`Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep your code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
+
+- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
 
@@ -165,6 +184,7 @@ class Todos extends Equatable {
   List<Object> get props => [userId, id, title, completed]; 
 }
 ```
+
 To add`Equatable` support you just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check in your Dart models
 
 ![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
@@ -255,29 +275,34 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 
 ## Known Issues
 
-`Command failed: xclip -selection clipboard -o`
+1. Using key binding on `Linux` can throw error `Command failed: xclip -selection clipboard -o` it happens when Linux lacks clipboard package. To resolve this error run in the terminal this command to install the missing package.
 
----
+   ```bash
+   sudo apt-get install xclip
+   ```
 
-Solution:
-
-```bash
-    sudo apt-get install xclip
-```
-
-Happens when linux is missing clipboard packages
+2. Matches the wrong type. In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. If you write yourself json objects try to give the right value type for better results. It’s all about json quality  :sunglasses:
 
 ### Links
 
 - [Repository](https://github.com/hiranthar/Json-to-Dart-Model.git)
-- [Issues](https://github.com/hiranthar/Json-to-Dart-Model.git/issues)
-- [Changelog](https://github.com/hiranthar/Json-to-Dart-Model.git/blob/master/CHANGELOG.md)
+- [Issues](https://github.com/hiranthaR/Json-to-Dart-Model/issues)
+- [Changelog](https://github.com/hiranthaR/Json-to-Dart-Model/blob/master/CHANGELOG.md)
 
 ### Special thanks
 
 :heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
 :heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
 :heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
+
+### Support us
+
+If you like this, please give us the :star: and share with your friends. Thank you :blue_heart:
+
+<!-- LICENSE -->
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
 
 ### Contact me
 
