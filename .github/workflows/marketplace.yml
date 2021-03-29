@@ -15,7 +15,7 @@ jobs:
       - name: install dependencies
         run: npm install
       - name: install vsce
-        run: npm install -g vsce
+        run: sudo npm install -g vsce
       - name: package the extension
         run: vsce package
       - name: publish into marketplace
