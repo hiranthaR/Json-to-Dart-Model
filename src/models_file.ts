@@ -48,9 +48,9 @@ export class Models {
         sb += printLine('// Add copyWith method (Recommended with immutable classes).', true, 2);
         sb += printLine('"copyWith": false,', true, 2);
         sb += printLine('// Add equality operator', true, 2);
-        sb += printLine('"equality": false', true, 2);
+        sb += printLine('"equality": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
-        sb += printLine('"targetdirectory": "/lib/models"', true, 2);
+        sb += printLine('"targetDirectory": "/lib/models"', true, 2);
         sb += printLine('}', true, 1);
         sb += printLine('// Add your json objects here separated by commas.', true, 1);
         sb += printLine('// Configuration item must be first in the list.', true, 1);

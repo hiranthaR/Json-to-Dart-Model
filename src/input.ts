@@ -11,7 +11,7 @@ interface InputInterface {
     /**
      * Required root path. 
      */
-    targetdirectory: string;
+    targetDirectory: string;
     isImmutable: boolean;
 }
 
@@ -26,7 +26,7 @@ export class Input implements InputInterface {
     copyWith: boolean = false;
     equality: boolean = false;
     generate: boolean = false;
-    targetdirectory: string = '/lib/models';
+    targetDirectory: string = '/lib/models';
 
     constructor(obj: any = {}) {
         this.freezed = obj.freezed;
@@ -36,7 +36,7 @@ export class Input implements InputInterface {
         this.copyWith = obj.copyWith;
         this.equality = obj.equality;
         this.generate = obj.serializable;
-        this.targetdirectory = obj.targetdirectory;
+        this.targetDirectory = obj.targetDirectory;
     }
 
     get isImmutable(): boolean {

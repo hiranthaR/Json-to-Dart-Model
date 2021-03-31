@@ -89,7 +89,7 @@ async function transformFromFile() {
       const objects: any[] = result;
       // User configuration.
       const input = new Input(objects[0]);
-      const targetDirectory = models.directory + input.targetdirectory;
+      const targetDirectory = models.directory + input.targetDirectory;
       const duplicates = await models.duplicatesClass(objects);
 
       if (duplicates.length) {
