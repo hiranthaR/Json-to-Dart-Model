@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { ModelGenerator } from "./model_generator";
 import { ClassDefinition } from "./syntax";
 import { Input } from "./input";
-import { pascalCase } from "./helper";
+import { pascalCase, snakeCase } from "./helper";
 
 export function getClipboardText() {
   try {
@@ -98,21 +98,46 @@ export function mapTsTypeToDartType(
   return types[type] ?? type;
 }
 
-export async function createClass(
-  className: string,
-  targetDirectory: string,
-  object: string,
-  codeGen: boolean,
-  input: Input,
-) {
-  var modelGenerator = new ModelGenerator(className);
+export class InputSettings {
+  className: string;
+  targetDirectory: string;
+  object: string;
+  codeGen: boolean;
+  input: Input;
+  isFromFile: boolean;
+
+  constructor(
+    className: string,
+    targetDirectory: string,
+    object: string,
+    codeGen: boolean,
+    input: Input,
+    isFromFile: boolean = false,
+  ) {
+    this.className = className;
+    this.targetDirectory = targetDirectory;
+    this.object = object;
+    this.codeGen = codeGen;
+    this.input = input;
+    this.isFromFile = isFromFile;
+    if (isFromFile) {
+      this.targetDirectory = `${targetDirectory}/${snakeCase(className)}`;
+    } else {
+      this.targetDirectory = `${targetDirectory}/models`;
+    }
+  }
+}
+
+export async function createClass(settings: InputSettings) {
+  var modelGenerator = new ModelGenerator(settings.className);
   var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
-    object
+    settings.object
   );
 
   return new Promise<void>(async (resolve, reject) => {
     classes.map((c) => {
-      const targetPath = `${targetDirectory}/models/${c.path}.dart`;
+      const targetPath = `${settings.targetDirectory}/${c.path}.dart`
+
       if (fs.existsSync(targetPath)) {
         handleError(Error(`${c.path}.dart already exists`));
         return;
@@ -120,7 +145,9 @@ export async function createClass(
 
       fs.writeFile(
         targetPath,
-        codeGen ? c.toCodeGenString(input) : c.toString(input),
+        settings.codeGen || settings.input.freezed
+          ? c.toCodeGenString(settings.input)
+          : c.toString(settings.input),
         "utf8",
         (error) => {
           if (error) {
