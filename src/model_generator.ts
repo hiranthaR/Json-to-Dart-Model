@@ -73,7 +73,7 @@ export class ModelGenerator {
                 typeDef.jsonKey = key;
                 typeDef.name = fixFieldName(key, className);
                 typeDef.value = value;
-                typeDef.className = _className;
+                typeDef.prefix = _className;
                 if (typeDef.type !== null) {
                     if (!typeDef.isPrimitive) {
                         typeDef.updateImport(key);
@@ -140,7 +140,7 @@ export class ModelGenerator {
                 let c = p in count ? count[p] = count[p] + 1 : count[p] = 1;
                 let idx = c;
                 // A class name for duplicate object.
-                let prefix = snakeCase(d.typeDef.className) + "_";
+                let prefix = snakeCase(d.typeDef.prefix) + "_";
                 let path = prefix + p;
 
                 if (paths.indexOf(path) === -1) {
@@ -178,7 +178,7 @@ export class ModelGenerator {
     }
 
     private mergeSimilarDefinitions() {
-         for (const definition of this.allClasses) {
+        for (const definition of this.allClasses) {
             definition.dependencies.forEach((dependency) => {
                 const classDef = this.definitionByDependence(dependency)!;
                 if (classDef !== undefined) {

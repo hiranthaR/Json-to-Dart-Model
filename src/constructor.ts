@@ -8,13 +8,16 @@ interface TypeDefinitionInterface {
    *  * If the name is null, it means no need to print.
    */
   importName: string | null;
-  /** JSON object key. */
+  /**
+   * JSON object key. 
+   */
   jsonKey: string;
   /**
-   * The name of the object. Represents as class name.
+   * It's the objects constructor name. Represents as class name.
+   *  * Used to rename duplicate structures.
    *  * The names are completely formatted to Dart syntax.
    */
-  className: string;
+  prefix: string;
   /**
   * The object type.
   *  * Type are completely formatted to Dart syntax.
@@ -25,15 +28,25 @@ interface TypeDefinitionInterface {
   *  * The name are completely formatted to Dart syntax.
   */
   name: string;
-  /** The value from the json object. */
+  /** 
+   * The value from the json object.
+   */
   value: any;
-  /** The ambiguous object or not. */
+  /**
+   * The ambiguous object or not.
+   */
   isAmbiguous: boolean;
-  /** If the value is primitive, returns true. */
+  /**
+   * If the value is primitive, returns true. 
+   */
   isPrimitive: boolean;
-  /** If the value type is DateTime, returns true. */
+  /** 
+   * If the value type is DateTime, returns true.
+   */
   isDate: boolean;
-  /** If the value type is List, returns true. */
+  /** 
+   * If the value type is List, returns true.
+   */
   isList: boolean;
   /**
    * Get name of value.
@@ -61,7 +74,7 @@ interface TypeDefinitionInterface {
 export class TypeDefinition implements TypeDefinitionInterface {
   private _importName: string | null;
   jsonKey: string;
-  className: string;
+  prefix: string;
   type: string | null;
   name: string;
   value: any;
@@ -82,7 +95,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
   ) {
     this._importName = importName;
     this.jsonKey = jsonKey;
-    this.className = className;
+    this.prefix = className;
     this.type = type;
     this.name = name;
     this.value = value;

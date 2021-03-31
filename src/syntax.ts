@@ -46,7 +46,7 @@ export class WithWarning<T> {
  * @param newLine force to the next line.
  * @param tabs how many tabs will be added.
  */
-const printLine = (print: string, newLine = false, tabs = 0): string => {
+export const printLine = (print: string, newLine = false, tabs = 0): string => {
   var sb = '';
   sb += newLine ? '\n' : '';
   for (let i = 0; i < tabs; i++) {
@@ -437,12 +437,13 @@ export class ClassDefinition {
    * @param input should print the keyword or not.
    */
   private importsFromDart(input: Input): string {
+    if (!input.equality || input.equatable) { return ""; }
     var imports = "";
 
     var len = Array.from(this.fields).length;
     // If less two hashcode values do not need import dart:ui.
     if (len > 1) {
-      imports += input.equality ? "import 'dart:ui';\n" : "";
+      imports += "import 'dart:ui';\n";
     }
 
     if (imports.length === 0) {
@@ -474,7 +475,7 @@ export class ClassDefinition {
   private importsForParts(input: Input): string {
     var imports = "";
     imports += input.freezed ? "part '" + this._path + ".freezed.dart';\n" : "";
-    imports += input.generate ? "part '" + this._path + ".g.dart';\n" : "";
+    imports += input.generate || input.freezed ? "part '" + this._path + ".g.dart';\n" : "";
     if (imports.length === 0) {
       return imports;
     } else {
@@ -637,8 +638,8 @@ export class ClassDefinition {
    * Equality Operator to compare different instances of `Objects`.
    * @param equality method should be generated or not.
    */
-  private equalityOperator(equality: boolean = false): string {
-    if (!equality) { return ''; }
+  private equalityOperator(input: Input): string {
+    if (!input.equality || input.equatable) { return ''; }
     var fieldName = (name: string): string => `identical(o.${name}, ${name})`;
     var expressionBody = `\n\n\t@override\n\tbool operator ==(Object o) => o is `
       + `${this.name} && `
@@ -650,8 +651,8 @@ export class ClassDefinition {
     return isShort ? expressionBody : blockBody;
   }
 
-  private hashCode(equality: boolean = false): string {
-    if (!equality) { return ''; }
+  private hashCode(input: Input): string {
+    if (!input.equality || input.equatable) { return ''; }
     var keys = Array.from(this.fields.keys());
     var len = keys.length;
     var oneValueBody = `\n\n\t@override\n\tint get hashCode => `
@@ -684,15 +685,15 @@ export class ClassDefinition {
         field += `${this.importsForParts(input)}`;
         field += `@JsonSerializable()\n`;
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''}; {\n`;
-        field += `${this.fieldListCodeGen(input.isImmutable())}\n\n`;
+        field += `${this.fieldListCodeGen(input.isImmutable)}\n\n`;
         field += `${this.defaultPrivateConstructor()}`;
         field += `${this.toStringMethod(input.toString)}\n\n`;
         field += `${this.gettersSetters()}\n\n`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
         field += `${this.codeGenJsonGenFunc()}`;
         field += `${this.copyWithMethod(input.copyWith)}`;
-        field += `${this.equalityOperator(input.equality)}`;
-        field += `${this.hashCode(input.equality)}`;
+        field += `${this.equalityOperator(input)}`;
+        field += `${this.hashCode(input)}`;
         field += `${this.equatablePropList(input.equatable)}\n}\n`;
         return field;
       } else {
@@ -702,14 +703,14 @@ export class ClassDefinition {
         field += `${this.importsForParts(input)}`;
         field += `@JsonSerializable()\n`;
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-        field += `${this.fieldListCodeGen(input.isImmutable())}\n\n`;
-        field += `${this.defaultConstructor(input.isImmutable())}`;
+        field += `${this.fieldListCodeGen(input.isImmutable)}\n\n`;
+        field += `${this.defaultConstructor(input.isImmutable)}`;
         field += `${this.toStringMethod(input.toString)}\n\n`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
         field += `${this.codeGenJsonGenFunc()}`;
         field += `${this.copyWithMethod(input.copyWith)}`;
-        field += `${this.equalityOperator(input.equality)}`;
-        field += `${this.hashCode(input.equality)}`;
+        field += `${this.equalityOperator(input)}`;
+        field += `${this.hashCode(input)}`;
         field += `${this.equatablePropList(input.equatable)}\n}\n`;
         return field;
       }
@@ -725,15 +726,15 @@ export class ClassDefinition {
       field += `${this.importsForParts(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-      field += `${this.fieldList(input.isImmutable())}\n\n`;
+      field += `${this.fieldList(input.isImmutable)}\n\n`;
       field += `${this.defaultPrivateConstructor()}`;
       field += `${this.toStringMethod(input.toString)}\n\n`;
       field += `${this.gettersSetters()}\n\n`;
       field += `${this.jsonParseFunc()}\n\n`;
       field += `${this.jsonGenFunc()}`;
       field += `${this.copyWithMethod(input.copyWith)}`;
-      field += `${this.equalityOperator(input.equality)}`;
-      field += `${this.hashCode(input.equality)}`;
+      field += `${this.equalityOperator(input)}`;
+      field += `${this.hashCode(input)}`;
       field += `${this.equatablePropList(input.equatable)}\n}\n`;
       return field;
     } else {
@@ -743,14 +744,14 @@ export class ClassDefinition {
       field += `${this.importsForParts(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-      field += `${this.fieldList(input.isImmutable())}\n\n`;
-      field += `${this.defaultConstructor(input.isImmutable())}`;
+      field += `${this.fieldList(input.isImmutable)}\n\n`;
+      field += `${this.defaultConstructor(input.isImmutable)}`;
       field += `${this.toStringMethod(input.toString)}\n\n`;
       field += `${this.jsonParseFunc()}\n\n`;
       field += `${this.jsonGenFunc()}`;
       field += `${this.copyWithMethod(input.copyWith)}`;
-      field += `${this.equalityOperator(input.equality)}`;
-      field += `${this.hashCode(input.equality)}`;
+      field += `${this.equalityOperator(input)}`;
+      field += `${this.hashCode(input)}`;
       field += `${this.equatablePropList(input.equatable)}\n}\n`;
       return field;
     }
