@@ -97,7 +97,7 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 - Convert your all json objects from the file.
 
-`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.json` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
+`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
 
 Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration objects.
 
