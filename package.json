@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "2.7.5",
+  "version": "3.0.0",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -21,6 +21,7 @@
     "Other"
   ],
   "activationEvents": [
+    "onCommand:jsonToDart.fromFile",
     "onCommand:jsonToDart.fromSelection",
     "onCommand:jsonToDart.fromClipboard",
     "onCommand:jsonToDart.fromSelectionToCodeGen",
@@ -36,8 +37,13 @@
   "contributes": {
     "commands": [
       {
+        "command": "jsonToDart.fromFile",
+        "title": "Build Models",
+        "category": "Json to Dart"
+      },
+      {
         "command": "jsonToDart.fromSelection",
-        "title": "Convert from Selection",
+        "title": "Convert From Selection",
         "category": "Json to Dart"
       },
       {
@@ -47,21 +53,25 @@
       },
       {
         "command": "jsonToDart.addCodeGenerationLibraries",
-        "title": "Add Code Generation Libraries to pubspec.yaml",
+        "title": "Add Code Generation Libraries To pubspec.yaml",
         "category": "Json to Dart"
       },
       {
         "command": "jsonToDart.fromClipboardToCodeGen",
-        "title": "Convert from Clipboard to Code Generation supported classes",
+        "title": "Convert From Clipboard To Code Generation Supported Classes",
         "category": "Json to Dart"
       },
       {
         "command": "jsonToDart.fromSelectionToCodeGen",
-        "title": "Convert from Selection to Code Generation supported classes",
+        "title": "Convert From Selection To Code Generation Supported Classes",
         "category": "Json to Dart"
       }
     ],
     "keybindings": [
+      {
+        "command": "jsonToDart.fromFile",
+        "key": "shift+ctrl+alt+B"
+      },
       {
         "command": "jsonToDart.fromClipboard",
         "key": "shift+ctrl+alt+V"
@@ -109,6 +119,7 @@
     "change-case": "^4.1.1",
     "copy-paste": "^1.3.0",
     "json-to-ast": "^2.1.0",
+    "jsonc": "^2.0.0",
     "lodash": "^4.17.19",
     "mkdirp": "^1.0.3"
   }

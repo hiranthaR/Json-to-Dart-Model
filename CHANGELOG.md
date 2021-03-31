@@ -2,7 +2,14 @@
 
 ## [Released]
 
-## [2.7.0] - 2021-03-26
+## [3.0.0] - 2021-03-31
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/24) from [Arnas](https://github.com/iamarnas)
+   - Added support to build from file.
+
+## [2.7.5] - 2021-03-26
 
 ### Added
 
