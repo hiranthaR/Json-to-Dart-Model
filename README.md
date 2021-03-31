@@ -111,7 +111,7 @@ Create file manually. Add new file to your app directory `my_app/models.jsonc` a
 	"toString": true,
 	"copyWith": true,
 	"equality": true,
-	"targetdirectory": "/lib/models"
+	"targetDirectory": "/lib/models"
   }
 ]
 ```
