@@ -103,7 +103,7 @@ Create file manually. Add new file to your app directory `my_app/models.jsonc` a
 
 ```jsonc
 [
-  {
+  	{
 		// Generates Freezed classes.
 		// If it's true, everything below will be ignored because Freezed supports them all.
 		"freezed": false,
@@ -134,7 +134,7 @@ Put your all json objects to this list below configuration object separated by c
 	"id": 1,
 	"title": "Json To Dart Model",
 	"body": "Json to Dart advanced..."
-},
+}
 ```
 After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
 
