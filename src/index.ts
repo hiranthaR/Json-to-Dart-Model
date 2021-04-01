@@ -95,10 +95,10 @@ async function transformFromFile() {
       if (duplicates.length) {
         for (const name of duplicates) {
           if (name === undefined) {
-            window.showErrorMessage(`Some json objects do not have a class name.`);
+            window.showErrorMessage(`Some json objects do not have a class name`);
             return;
           }
-          window.showErrorMessage(`Rename any of the duplicate class ${name} to continue.`);
+          window.showErrorMessage(`Rename any of the duplicate class ${name} to continue`);
           return;
         }
       }
@@ -120,10 +120,13 @@ async function transformFromFile() {
             input,
             runFromFile
           );
-          generateClass(settings).then((_) => window.showInformationMessage('Completed.'));
+
+          generateClass(settings).then((_) => {
+            window.showInformationMessage('Models successfully added')
+          });
         }
       } else {
-        window.showInformationMessage('models.jsonc file is empty.')
+        window.showInformationMessage('models.jsonc file is empty')
       }
     }
   } else {
