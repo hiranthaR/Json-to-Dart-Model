@@ -8,7 +8,11 @@ interface InputInterface {
     copyWith: boolean;
     equality: boolean;
     generate: boolean;
-    isImmutable(): boolean;
+    /**
+     * Required root path. 
+     */
+    targetDirectory: string;
+    isImmutable: boolean;
 }
 
 /**
@@ -22,8 +26,20 @@ export class Input implements InputInterface {
     copyWith: boolean = false;
     equality: boolean = false;
     generate: boolean = false;
+    targetDirectory: string = '/lib/models';
 
-    isImmutable(): boolean {
+    constructor(obj: any = {}) {
+        this.freezed = obj.freezed;
+        this.equatable = obj.equatable;
+        this.immutable = obj.immutable;
+        this.toString = obj.toString;
+        this.copyWith = obj.copyWith;
+        this.equality = obj.equality;
+        this.generate = obj.serializable;
+        this.targetDirectory = obj.targetDirectory;
+    }
+
+    get isImmutable(): boolean {
         return this.equatable || this.immutable ? true : false;
     }
 }
@@ -43,10 +59,10 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
         input.equatable = await askForEquatableCompatibility();
         if (!input.equatable) {
             input.immutable = await askForImmutableClass();
+            input.equality = await askForEqualityOperator();
         }
         input.toString = await askForToStringMethod();
         input.copyWith = await askForCopyWithMethod();
-        if (!input.equatable) { input.equality = await askForEqualityOperator(); }
     }
 
     return input;

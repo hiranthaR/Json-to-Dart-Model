@@ -20,7 +20,15 @@
 <details closed="closed">
   <summary>Table of Contents</summary>
   <ol>
-    <li> <a href="#features">Features</a><li>
+    <li> <a href="#features">Features</a>
+      <ul>
+        <li><a href="#convert-from-clipboard-o-manual-model-classes">Convert from clipboard</a></li>
+        <li><a href="#convert-from-selection-to-manual-model-classes">Convert from selection</a></li>
+        <li><a href="#convert-from-clipboard-to-code-generation-libraries-supported-model-classes">Convert from clipboard to code generation</a></li>
+        <li><a href="#convert-from-selection-to-code-generation-libraries-supported-model-classes">Convert from selection to code generation</a></li>
+        <li><a href="#convert-from-file">Convert from file</a></li>
+      </ul>
+    <li>
       <a href="#the-syntax">The Syntax</a>
       <ul>
         <li><a href="#to-string-method">To String method</a></li>
@@ -84,6 +92,66 @@ To customise your classes is very easy. If you want fast create a simple class t
 #### Convert from selection to code generation libraries supported model classes
 
 - Convert json you selected in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
+
+#### Convert from file
+
+- Convert your all json objects from the file.
+
+`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
+
+Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration objects.
+
+```json
+[
+  {
+	"freezed": false,
+	"serializable": false,
+	"equatable": true,
+	"immutable": false,
+	"toString": true,
+	"copyWith": true,
+	"equality": true,
+	"targetDirectory": "/lib/models"
+  }
+]
+```
+Put your all json objects to this list below configuration object separated by commas. Configuration item must be first in the list. Note that you add base class names to each object with key `"__className": "MyClass",`
+Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
+
+```json
+{
+	"__className": "UserPost",
+	"userId": 1,
+	"id": 1,
+	"title": "Json To Dart Model",
+	"body": "Json to Dart advanced..."
+},
+```
+After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete it from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
+
+Your final result should look like this:
+
+```json
+[
+	{
+		"freezed": false,
+		"serializable": false,
+		"equatable": true,
+		"immutable": false,
+		"toString": true,
+		"copyWith": true,
+		"equality": true,
+		"targetdirectory": "/lib/models"
+	},
+	{
+		"__className": "UserPost",
+		"userId": 1,
+		"id": 1,
+		"title": "Json To Dart Model",
+		"body": "Json to Dart advanced..."
+	}
+]
+```
 
 ## JSON Serializable
 
@@ -247,19 +315,23 @@ Fortunately the extension automatically opens a new terminal session and runs th
 
 ## How to use
 
-1. Select a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert from Selection` or `Convert from Selection to Code Generation supported classes`. Provide a Base class name and location to save.
+1. Select a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert From Selection` or `Convert From Selection To Code Generation Supported Classes`. Provide a Base class name and location to save.
 
-2. Copy a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert from Clipboard` or `Convert from Clipboard to Code Generation supported classes`. Provide a Base class name and location to save.
+2. Copy a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert From Clipboard` or `Convert From Clipboard To Code Generation Supported Classes`. Provide a Base class name and location to save.
 
-3. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Add Code Generation Libraries to pubspec.yaml` and hit enter.
+3. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Add Code Generation Libraries To pubspec.yaml` and hit enter.
 
-4. Using short cuts.
+4. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Build Models` and hit enter.
+
+5. Using short cuts.
 
 ## Key bindings
 
 Convert from Clipboard (`Shift + Ctrl + Alt + V`)
 
 Convert from Selection (`Shift + Ctrl + Alt + S`)
+
+Convert from file (`Shift + Ctrl + Alt + B`)
 
 Convert from Clipboard to Code Generation supported classes (`Shift + Ctrl + Alt + G`)
 

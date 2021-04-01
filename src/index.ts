@@ -14,6 +14,7 @@ import {
   validateLength,
   createClass,
   appendPubspecDependencies,
+  InputSettings,
 } from "./lib";
 
 import * as fs from "fs";
@@ -22,13 +23,23 @@ import * as mkdirp from "mkdirp";
 
 import cp = require("child_process");
 import { getUserInput, Input } from "./input";
+import { Models } from "./models_file";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
-    commands.registerCommand("jsonToDart.fromSelection", transformFromSelection)
+    commands.registerCommand(
+      "jsonToDart.fromFile",
+      transformFromFile)
   );
   context.subscriptions.push(
-    commands.registerCommand("jsonToDart.fromClipboard", transformFromClipboard)
+    commands.registerCommand(
+      "jsonToDart.fromSelection",
+      transformFromSelection)
+  );
+  context.subscriptions.push(
+    commands.registerCommand(
+      "jsonToDart.fromClipboard",
+      transformFromClipboard)
   );
   context.subscriptions.push(
     commands.registerCommand(
@@ -48,6 +59,76 @@ export function activate(context: ExtensionContext) {
       transformFromSelectionToCodeGen
     )
   );
+}
+
+/**
+ * Run "build_runner build".
+ */
+function runGenerator() {
+  let terminal = window.createTerminal("pub get");
+  terminal.show();
+  terminal.sendText(
+    "flutter pub run build_runner build --delete-conflicting-outputs"
+  );
+}
+
+
+
+async function transformFromFile() {
+  const jsonc = require('jsonc').safe;
+  const runFromFile = true;
+  const models = new Models();
+
+  if (models.exist) {
+    const data = models.data;
+    const [err, result] = jsonc.parse(data);
+    if (err) {
+      handleError(new Error(`Failed to parse JSON: ${err.message}`));
+    } else {
+      // All json objects from the models.jsonc.
+      const objects: any[] = result;
+      // User configuration.
+      const input = new Input(objects[0]);
+      const targetDirectory = models.directory + input.targetDirectory;
+      const duplicates = await models.duplicatesClass(objects);
+
+      if (duplicates.length) {
+        for (const name of duplicates) {
+          if (name === undefined) {
+            window.showErrorMessage(`Some json objects do not have a class name.`);
+            return;
+          }
+          window.showErrorMessage(`Rename any of the duplicate class ${name} to continue.`);
+          return;
+        }
+      }
+
+      if (objects.length > 1) {
+        for await (const object of objects.slice(1)) {
+          // Class name key.
+          const key = '__className';
+          // Separate class names from objects.
+          const { [key]: className, ...jsonObject } = object;
+          // Conver back to json.
+          const json = JSON.stringify(jsonObject);
+
+          const settings = new InputSettings(
+            className,
+            <string>targetDirectory,
+            json,
+            input.generate,
+            input,
+            runFromFile
+          );
+          generateClass(settings).then((_) => window.showInformationMessage('Completed.'));
+        }
+      } else {
+        window.showInformationMessage('models.jsonc file is empty.')
+      }
+    }
+  } else {
+    models.create();
+  }
 }
 
 async function transformFromSelection(uri: Uri) {
@@ -76,8 +157,7 @@ async function transformFromSelection(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, input)
-    )
+      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
     .catch(handleError);
 }
 
@@ -107,16 +187,8 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, input)
-    )
-    .then((_) => {
-      let terminal = window.createTerminal("pub get");
-      terminal.show();
-      terminal.sendText(
-        "flutter pub run build_runner build --delete-conflicting-outputs"
-      );
-    })
-    .catch(handleError);
+      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+    .then((_) => runGenerator()).catch(handleError);
 }
 
 async function transformFromClipboard(uri: Uri) {
@@ -145,8 +217,7 @@ async function transformFromClipboard(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, false, input)
-    )
+      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
     .catch(handleError);
 }
 
@@ -176,16 +247,8 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(className, <string>targetDirectory, json, true, input)
-    )
-    .then((_) => {
-      let terminal = window.createTerminal("pub get");
-      terminal.show();
-      terminal.sendText(
-        "flutter pub run build_runner build --delete-conflicting-outputs"
-      );
-    })
-    .catch(handleError);
+      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+    .then((_) => runGenerator()).catch(handleError);
 }
 
 function promptForBaseClassName(): Thenable<string | undefined> {
@@ -212,18 +275,16 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
   });
 }
 
-async function generateClass(
-  className: string,
-  targetDirectory: string,
-  object: string,
-  codeGen: boolean,
-  input: Input,
-) {
-  const classDirectoryPath = `${targetDirectory}/models`;
+async function generateClass(settings: InputSettings) {
+  const classDirectoryPath = `${settings.targetDirectory}`;
   if (!fs.existsSync(classDirectoryPath)) {
     await createDirectory(classDirectoryPath);
   }
-  await createClass(className, targetDirectory, object, codeGen, input);
+  await createClass(settings).then((_) => {
+    if (settings.isFromFile && settings.codeGen || settings.input.freezed) {
+      runGenerator();
+    }
+  });
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {
