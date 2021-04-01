@@ -97,37 +97,46 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 - Convert your all json objects from the file.
 
-`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.json` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
+`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `mendels.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
 
-Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration objects.
+Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration object. 
 
-```json
+```jsonc
 [
   {
-	"freezed": false,
-	"serializable": false,
-	"equatable": true,
-	"immutable": false,
-	"toString": true,
-	"copyWith": true,
-	"equality": true,
-	"targetdirectory": "/lib/models"
-  }
+		// Generates Freezed classes.
+		// If it's true, everything below will be ignored because Freezed supports them all.
+		"freezed": false,
+		// Enable Json Serializable builder.
+		"serializable": false,
+		// Enable Equatable support.
+		// If it's true, equality operator and immutability will be ignored.
+		"equatable": false,
+		// Generate immutable classes.
+		"immutable": false,
+		// Add toString method to improve the debugging experience.
+		"toString": false,
+		// Add copyWith method (Recommended with immutable classes).
+		"copyWith": false,
+		// Add equality operator.
+		"equality": false,
+		// Default target directory.
+		"targetDirectory": "/lib/models"
+	}
 ]
 ```
-Put your all json objects to this list below configuration object separated by commas. Configuration item must be first in the list. Note that you add base class names to each object with key `"__className": "MyClass",`
-Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
+Put your all json objects to this list below configuration object separated by commas. Configuration object must be first in the list. ***Note that you add base class names to each object with key*** `"__className": "MyClass",` class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
 
-```json
+```jsonc
 {
-	"__className": "UserPost",
+	"__className": "UserPost", // <- The base class name of the object.
 	"userId": 1,
 	"id": 1,
 	"title": "Json To Dart Model",
 	"body": "Json to Dart advanced..."
 },
 ```
-After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete it from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
+After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
 
 Your final result should look like this:
 
@@ -136,12 +145,12 @@ Your final result should look like this:
 	{
 		"freezed": false,
 		"serializable": false,
-		"equatable": true,
+		"equatable": false,
 		"immutable": false,
-		"toString": true,
-		"copyWith": true,
-		"equality": true,
-		"targetdirectory": "/lib/models"
+		"toString": false,
+		"copyWith": false,
+		"equality": false,
+		"targetDirectory": "/lib/models"
 	},
 	{
 		"__className": "UserPost",
@@ -152,6 +161,7 @@ Your final result should look like this:
 	}
 ]
 ```
+> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to provide more secure and cleaner code.
 
 ## JSON Serializable
 

@@ -39,7 +39,7 @@ export class Models {
         sb += printLine('// Enable Json Serializable builder.', true, 2);
         sb += printLine('"serializable": false,', true, 2);
         sb += printLine('// Enable Equatable support.', true, 2);
-        sb += printLine('// If it\'s true, equality operator and immutability will be ignored', true, 2);
+        sb += printLine('// If it\'s true, equality operator and immutability will be ignored.', true, 2);
         sb += printLine('"equatable": false,', true, 2);
         sb += printLine('// Generate immutable classes.', true, 2);
         sb += printLine('"immutable": false,', true, 2);
@@ -47,7 +47,7 @@ export class Models {
         sb += printLine('"toString": false,', true, 2);
         sb += printLine('// Add copyWith method (Recommended with immutable classes).', true, 2);
         sb += printLine('"copyWith": false,', true, 2);
-        sb += printLine('// Add equality operator', true, 2);
+        sb += printLine('// Add equality operator.', true, 2);
         sb += printLine('"equality": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
         sb += printLine('"targetDirectory": "/lib/models"', true, 2);
