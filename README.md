@@ -56,13 +56,13 @@
 
 <space><space>
 
-Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries. It is also possible to generate **Freezed** classes.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an api service provider, you can build a `models.jsonc` file for your users to convert json to `Dart` language with a few clicks.
 
 ## How it works
 
 `Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep your code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
 
-- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names.
+- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names. **Note:** konvertering from file `Json to Dart Model` will help to avoid it.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
 
@@ -97,32 +97,34 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 - Convert your all json objects from the file.
 
-`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `mendels.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
+`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `models.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
 
 Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration object. 
 
 ```jsonc
 [
   {
-		// Generates Freezed classes.
-		// If it's true, everything below will be ignored because Freezed supports them all.
-		"freezed": false,
-		// Enable Json Serializable builder.
-		"serializable": false,
-		// Enable Equatable support.
-		// If it's true, equality operator and immutability will be ignored.
-		"equatable": false,
-		// Generate immutable classes.
-		"immutable": false,
-		// Add toString method to improve the debugging experience.
-		"toString": false,
-		// Add copyWith method (Recommended with immutable classes).
-		"copyWith": false,
-		// Add equality operator.
-		"equality": false,
-		// Default target directory.
-		"targetDirectory": "/lib/models"
-	}
+    // Generates Freezed classes.
+    // If it's true, everything below will be ignored because Freezed supports them all.
+    "freezed": false,
+    // Enable Json Serializable builder.
+    "serializable": false,
+    // Enable Equatable support.
+    // If it's true, equality operator and immutability will be ignored.
+    "equatable": false,
+    // Generate immutable classes.
+    "immutable": false,
+    // Add toString method to improve the debugging experience.
+    "toString": false,
+    // Add copyWith method (Recommended with immutable classes).
+    "copyWith": false,
+    // Add equality operator.
+    "equality": false,
+    // Default target directory.
+    "targetDirectory": "/lib/models",
+    // Disable ask for confirmation to start the conversion.
+    "fastMode": false
+  }
 ]
 ```
 Put your all json objects to this list below configuration object separated by commas. Configuration object must be first in the list. ***Note that you add base class names to each object with key*** `"__className": "MyClass",` class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
@@ -142,26 +144,27 @@ Your final result should look like this:
 
 ```json
 [
-	{
-		"freezed": false,
-		"serializable": false,
-		"equatable": false,
-		"immutable": false,
-		"toString": false,
-		"copyWith": false,
-		"equality": false,
-		"targetDirectory": "/lib/models"
-	},
-	{
-		"__className": "UserPost",
-		"userId": 1,
-		"id": 1,
-		"title": "Json To Dart Model",
-		"body": "Json to Dart advanced..."
-	}
+  {
+    "freezed": false,
+    "serializable": false,
+    "equatable": false,
+    "immutable": false,
+    "toString": false,
+    "copyWith": false,
+    "equality": false,
+    "targetDirectory": "/lib/models",
+    "fastMode": false
+  },
+  {
+    "__className": "UserPost",
+    "userId": 1,
+    "id": 1,
+    "title": "Json To Dart Model",
+    "body": "Json to Dart advanced..."
+  }
 ]
 ```
-> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to provide more secure and cleaner code.
+> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources for analysis to provide more secure and cleaner code.
 
 ## JSON Serializable
 
@@ -237,21 +240,21 @@ class Todos extends Equatable {
   });
 
   factory Todos.fromJson(Map<String, dynamic> json) {
-	 return Todos(
-		userId: json['userId'] as int,
-		id: json['id'] as int,
-		title: json['title'] as String,
-		completed: json['completed'] as bool,
-	 );
+    return Todos(
+      userId: json['userId'] as int,
+      id: json['id'] as int,
+      title: json['title'] as String,
+      completed: json['completed'] as bool,
+    );
   }
 
   Map<String, dynamic> toJson() {
-	 return {
-		 'userId': userId,
-		 'id': id,
-		 'title': title,
-		 'completed': completed,
-	 };
+    return {
+      'userId': userId,
+      'id': id,
+      'title': title,
+      'completed': completed,
+    };
   }
 
   // Here will be more methods after your customization.
@@ -306,10 +309,10 @@ Todos copyWith({
   bool completed,
 }) {
   return Todos(
-  	userId: userId ?? this.userId,
-  	id: id ?? this.id,
-  	title: title ?? this.title,
-  	completed: completed ?? this.completed,
+    userId: userId ?? this.userId,
+    id: id ?? this.id,
+    title: title ?? this.title,
+    completed: completed ?? this.completed,
   );
 }
 ```
@@ -363,7 +366,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
    sudo apt-get install xclip
    ```
 
-2. Matches the wrong type. In my experience some api deliverers write `integer` values instead of `double`, example: 1 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. If you write yourself json objects try to give the right value type for better results. It’s all about json quality  :sunglasses:
+2. Matches the wrong type. In my experience some api deliverers write `integer` values instead of `double`, example: 1 or 1.00 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. If you write yourself json objects try to give the right value type for better results. It’s all about json quality  :sunglasses:
 
 ### Links
 

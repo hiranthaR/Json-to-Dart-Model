@@ -139,7 +139,7 @@ export async function createClass(settings: InputSettings) {
       const targetPath = `${settings.targetDirectory}/${c.path}.dart`
 
       if (fs.existsSync(targetPath)) {
-        handleError(Error(`${c.path}.dart already exists`));
+        window.showInformationMessage(`${c.path}.dart already exists`);
         return;
       }
 
