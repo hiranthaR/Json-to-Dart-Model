@@ -62,7 +62,7 @@ Given a JSON string, this library will generate all the necessary Dart classes t
 
 `Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep your code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
 
-- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names. **Note:** konvertering from file `Json to Dart Model` will help to avoid it.
+- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names. **Note:** converting from file `Json to Dart Model` will help to avoid it.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
 
@@ -131,11 +131,11 @@ Put your all json objects to this list below configuration object separated by c
 
 ```jsonc
 {
-	"__className": "UserPost", // <- The base class name of the object.
-	"userId": 1,
-	"id": 1,
-	"title": "Json To Dart Model",
-	"body": "Json to Dart advanced..."
+  "__className": "UserPost", // <- The base class name of the object.
+  "userId": 1,
+  "id": 1,
+  "title": "Json To Dart Model",
+  "body": "Json to Dart advanced..."
 },
 ```
 After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
@@ -164,7 +164,7 @@ Your final result should look like this:
   }
 ]
 ```
-> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources for analysis to provide more secure and cleaner code.
+> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
 
 ## JSON Serializable
 

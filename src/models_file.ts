@@ -119,7 +119,7 @@ export class Models {
 
 function getHelp(needHelp: string | undefined) {
     if (needHelp === "Help") {
-        const uri = Uri.parse("https://github.com/hiranthaR/Json-to-Dart-Model#convert-from-file")
+        const uri = Uri.parse("https://github.com/hiranthaR/Json-to-Dart-Model#convert-from-file");
         commands.executeCommand('vscode.open', uri);
     }
 }
