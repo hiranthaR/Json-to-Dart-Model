@@ -1,0 +1,34 @@
+name: publish to marketplace
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@master
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v3.x
+      - name: install dependencies
+        run: npm install
+      - name: install vsce
+        run: sudo npm install -g vsce
+      - name: publish into marketplace
+        run: vsce publish -p ${{ secrets.TOKEN }}
+      - name: extract version number
+        run: |
+          export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}')
+          [[ "${{ env.GITHUB_REF_SLUG }}" == "master" ]] && echo "TAG_VERSION=v$BUILD_VERSION" || echo "TAG_VERSION=${{ env.GITHUB_REF_SLUG }}-v$BUILD_VERSION" >> $GITHUB_ENV
+      - name: package the extension
+        run: vsce package
+      - name: release package to github repo
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: '${{ secrets.GITHUB_TOKEN }}'
+          automatic_release_tag: ${{ env.TAG_VERSION }}
+          prerelease: false
+          title: 'Json to Dart Extension ${{ env.TAG_VERSION }}'
+          files: |
+            ./json-to-dart-${{ env.BUILD_VERSION }}.vsix
