@@ -27,7 +27,7 @@ jobs:
         with:
           repo_token: '${{ secrets.GITHUB_TOKEN }}'
           automatic_release_tag: master-${{ env.BUILD_VERSION }}
-          prerelease: pre
+          prerelease: true
           title: 'Json to Dart Extension master-v${{ env.BUILD_VERSION }}'
           files: |
             ./json-to-dart-${{ env.BUILD_VERSION }}.vsix
