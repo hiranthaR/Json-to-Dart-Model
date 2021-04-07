@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@master
-      - name: Inject slug/short variables
-        uses: rlespinasse/github-slug-action@v3.x
       - name: install dependencies
         run: npm install
       - name: install vsce
@@ -19,8 +17,11 @@ jobs:
         run: vsce publish -p ${{ secrets.TOKEN }}
       - name: extract version number
         run: |
+          export BUILD_BRANCH_PARTS=(${GITHUB_REF//// })
           export BUILD_VERSION=$(grep version package.json | awk -F \" '{print $4}')
-          [[ "${{ env.GITHUB_REF_SLUG }}" == "master" ]] && echo "TAG_VERSION=v$BUILD_VERSION" || echo "TAG_VERSION=${{ env.GITHUB_REF_SLUG }}-v$BUILD_VERSION" >> $GITHUB_ENV
+          [[ "${BUILD_BRANCH_PARTS[-1]}" == "master" ]] && echo "TAG_VERSION=v$BUILD_VERSION" || echo "TAG_VERSION=${BUILD_BRANCH_PARTS[-1]}-v$BUILD_VERSION" > $GITHUB_ENV
+          echo "build version: ${BUILD_VERSION}" 
+          echo "tag version: ${{ env.TAG_VERSION }}"
       - name: package the extension
         run: vsce package
       - name: release package to github repo
