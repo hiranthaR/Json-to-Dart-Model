@@ -1,4 +1,4 @@
-name: publish to marketplace
+name: publish to marketplace custom branch
 
 on: [workflow_dispatch]
 

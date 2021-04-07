@@ -1,4 +1,4 @@
-name: publish to marketplace
+name: release master branch
 
 on:
   push:
