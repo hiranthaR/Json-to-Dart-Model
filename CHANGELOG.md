@@ -2,6 +2,14 @@
 
 ## [Released]
 
+## [3.0.2] - 2021-04-06
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/27) from [Arnas](https://github.com/iamarnas)
+   - Added better support for building models from `models.jsonc` file.
+   - Those who update to 3.0.2 from older version. Be sure to add `"fastMode": false` to `models.jsonc` configuration or go to help for more information if you were warned.
+
 ## [3.0.0] - 2021-03-31
 
 ### Added

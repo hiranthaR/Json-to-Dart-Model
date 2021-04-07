@@ -1,6 +1,7 @@
-import { window, workspace } from "vscode";
+import { commands, Uri, window, workspace } from "vscode";
 import { printLine } from "./syntax";
 import * as fs from "fs";
+import { Input } from "./input";
 
 export class Models {
     private fileName: string = "/models.jsonc";
@@ -50,7 +51,9 @@ export class Models {
         sb += printLine('// Add equality operator.', true, 2);
         sb += printLine('"equality": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
-        sb += printLine('"targetDirectory": "/lib/models"', true, 2);
+        sb += printLine('"targetDirectory": "/lib/models",', true, 2);
+        sb += printLine('// Disable ask for confirmation to start the conversion.', true, 2);
+        sb += printLine('"fastMode": false', true, 2);
         sb += printLine('}', true, 1);
         sb += printLine('// Add your json objects here separated by commas.', true, 1);
         sb += printLine('// Configuration item must be first in the list.', true, 1);
@@ -78,35 +81,52 @@ export class Models {
     }
 
     async create(): Promise<void> {
-        let accepted = await askForFileCreation();
+        const text = "models.jsonc file was created for the first time";
+        const accepted = await askForFileCreation();
         if (accepted) {
             fs.writeFile(this.file, this.toString(), "utf8", (err) => {
                 if (err) {
                     return console.error(err);
                 }
-                window.showInformationMessage("models.jsonc file was created for the first time.");
+                window.showInformationMessage(text);
                 return;
             });
         }
     }
+
+    async validateSettings(input: Input): Promise<boolean> {
+        const settings = Object.entries(input);
+        for (const v of settings) {
+            const key = v[0] === "generate" ? "serializable" : v[0];
+            const value = v[1];
+            if (value === undefined || typeof value === "function") {
+                const text = `The key "${key}" was not found in the models.jsonc configuration`;
+                window.showInformationMessage(text, ...["Help"]).then(getHelp);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    async getConfirmation(): Promise<boolean> {
+        return window.showInformationMessage(
+            'Start building JSON models?\n\nBuilds from file models.jsonc',
+            { modal: true }, ...["Start"]).then((action) => {
+                return action === "Start" ? true : false;
+            });
+    }
+}
+
+function getHelp(needHelp: string | undefined) {
+    if (needHelp === "Help") {
+        const uri = Uri.parse("https://github.com/hiranthaR/Json-to-Dart-Model#convert-from-file");
+        commands.executeCommand('vscode.open', uri);
+    }
 }
 
 async function askForFileCreation(): Promise<boolean> {
-    const selection = await window.showQuickPick(
-        [
-            {
-                label: "No",
-                picked: false,
-            },
-            { label: "Yes" },
-        ],
-        { placeHolder: "models.jsonc file not found. Do you want it to be created for you?" }
-    );
-
-    switch (selection?.label) {
-        case "Yes":
-            return true;
-        default:
-            return false;
-    }
+    const text = 'models.jsonc file not found.'
+        + '\n\n\Do you want it to be created for you?';
+    return window.showInformationMessage(text, { modal: true }, ...["Add"])
+        .then((action) => action === "Add" ? true : false);
 }

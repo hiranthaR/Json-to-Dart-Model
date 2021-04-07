@@ -72,8 +72,6 @@ function runGenerator() {
   );
 }
 
-
-
 async function transformFromFile() {
   const jsonc = require('jsonc').safe;
   const runFromFile = true;
@@ -83,27 +81,41 @@ async function transformFromFile() {
     const data = models.data;
     const [err, result] = jsonc.parse(data);
     if (err) {
-      handleError(new Error(`Failed to parse JSON: ${err.message}`));
+      handleError(new Error(`Failed to parse JSON: ${err.message}.\nProbably bad JSON syntax.`));
     } else {
       // All json objects from the models.jsonc.
       const objects: any[] = result;
       // User configuration.
       const input = new Input(objects[0]);
+      const isValid = await models.validateSettings(input);
+
+      if (!isValid) {
+        return;
+      }
+
       const targetDirectory = models.directory + input.targetDirectory;
       const duplicates = await models.duplicatesClass(objects);
 
       if (duplicates.length) {
         for (const name of duplicates) {
           if (name === undefined) {
-            window.showErrorMessage(`Some json objects do not have a class name`);
+            window.showWarningMessage(`Some json objects do not have a class name`);
             return;
           }
-          window.showErrorMessage(`Rename any of the duplicate class ${name} to continue`);
+          window.showWarningMessage(`Rename any of the duplicate class ${name} to continue`);
           return;
         }
       }
 
-      if (objects.length > 1) {
+      const fastMode = objects[0].fastMode ?? false;
+      const confirm = !fastMode ? await models.getConfirmation() : fastMode;
+
+      if (confirm && objects.length === 1) {
+        window.showInformationMessage('models.jsonc file is empty');
+      }
+
+      if (confirm && objects.length > 1) {
+        // Start converting.
         for await (const object of objects.slice(1)) {
           // Class name key.
           const key = '__className';
@@ -111,7 +123,7 @@ async function transformFromFile() {
           const { [key]: className, ...jsonObject } = object;
           // Conver back to json.
           const json = JSON.stringify(jsonObject);
-
+          // Set settings.
           const settings = new InputSettings(
             className,
             <string>targetDirectory,
@@ -120,13 +132,12 @@ async function transformFromFile() {
             input,
             runFromFile
           );
-
-          generateClass(settings).then((_) => {
-            window.showInformationMessage('Models successfully added')
-          });
+          generateClass(settings);
         }
-      } else {
-        window.showInformationMessage('models.jsonc file is empty')
+        window.showInformationMessage('Models successfully added');
+        if (input.generate || input.freezed) {
+          runGenerator();
+        }
       }
     }
   } else {
@@ -283,11 +294,7 @@ async function generateClass(settings: InputSettings) {
   if (!fs.existsSync(classDirectoryPath)) {
     await createDirectory(classDirectoryPath);
   }
-  await createClass(settings).then((_) => {
-    if (settings.isFromFile && settings.codeGen || settings.input.freezed) {
-      runGenerator();
-    }
-  });
+  await createClass(settings);
 }
 
 function createDirectory(targetDirectory: string): Promise<void> {
