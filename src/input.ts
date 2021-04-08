@@ -12,6 +12,7 @@ interface InputInterface {
      * Required root path. 
      */
     targetDirectory: string;
+    nullSafety: boolean;
     fastMode: boolean;
 }
 
@@ -26,6 +27,7 @@ export class Input implements InputInterface {
     copyWith: boolean = false;
     equality: boolean = false;
     generate: boolean = false;
+    nullSafety: boolean = false;
     targetDirectory: string = '/lib/models';
     fastMode: boolean = false;
 
@@ -37,6 +39,7 @@ export class Input implements InputInterface {
         this.copyWith = obj.copyWith;
         this.equality = obj.equality;
         this.generate = obj.serializable;
+        this.nullSafety = obj.nullSafety;
         this.targetDirectory = obj.targetDirectory;
         this.fastMode = obj.fastMode;
     }
@@ -55,7 +58,12 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
 
     input.generate = generate;
 
-    if (generate) { input.freezed = await askForFreezed(); }
+    if (generate) {
+        input.freezed = await askForFreezed();
+        if (input.freezed) {
+            input.nullSafety = await askForNullSafety();
+        }
+    }
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
         input.equatable = await askForEquatableCompatibility();
@@ -65,8 +73,8 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
         }
         input.toString = await askForToStringMethod();
         input.copyWith = await askForCopyWithMethod();
+        input.nullSafety = await askForNullSafety();
     }
-
     return input;
 }
 /**
@@ -195,3 +203,22 @@ async function askForEqualityOperator(): Promise<boolean> {
     }
 }
 
+async function askForNullSafety(): Promise<boolean> {
+    const selection = await window.showQuickPick(
+        [
+            {
+                label: "No",
+                picked: true,
+            },
+            { label: "Yes" },
+        ],
+        { placeHolder: "Enable support for Dart sound null safety?" }
+    );
+
+    switch (selection?.label) {
+        case "Yes":
+            return true;
+        default:
+            return false;
+    }
+}
