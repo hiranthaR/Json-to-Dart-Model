@@ -59,7 +59,7 @@ export const printLine = (print: string, newLine = false, tabs = 0): string => {
 /**
  * To indicate that a variable might have the value null.
  * @param {Input} input the user input.
- * @returns string. If disable true returns empty string.
+ * @returns string as "?" if null safety enabled. Otherwise empty string.
  */
 const questionMark = (input: Input): string => {
   return input.nullSafety ? "?" : "";
@@ -472,7 +472,7 @@ export class ClassDefinition {
     for (var [key, value] of this.fields) {
       const fieldName = value.getName(this._privateFields);
       sb += printLine(`@JsonKey(name: "${key}")`, true, 2);
-      sb += printLine(` ${this.addType(value, input)}} ${fieldName},`);
+      sb += printLine(` ${this.addType(value, input)} ${fieldName},`);
     };
     sb += printLine(`}) = _${this.name};`, true, 1);
     sb += printLine(`${this.codeGenJsonParseFunc(true)}`);
