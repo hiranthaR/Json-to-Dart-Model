@@ -212,7 +212,7 @@ async function askForNullSafety(): Promise<boolean> {
             },
             { label: "Yes" },
         ],
-        { placeHolder: "Enable support for Dart sound null safety?" }
+        { placeHolder: "Enable support for Dart null safety?" }
     );
 
     switch (selection?.label) {

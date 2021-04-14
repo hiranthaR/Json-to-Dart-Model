@@ -190,7 +190,7 @@ Add serializing JSON using code generation libraries to `pubspec.yaml`.
 
 ## Freezed
 
-Freezed requires three packages to generate json files to Freezed classes with a few clicks.
+Freezed supports both old versions to 0.12.7 and new from 0.14.0 and higher. Freezed requires three packages to generate json files to Freezed classes with a few clicks.
   
   structure of the `pubspec.yaml`
 
@@ -209,9 +209,10 @@ Freezed requires three packages to generate json files to Freezed classes with a
   All generated classes with Freezed will be `@immutable` and support all methods like [copyWith](#copyWith-method), [toString](#to-string-method), [equality operator](#equality-operator)`==`... See example:
 
 ```dart
+// Examples are for Freezed up to version 0.12.7
 @freezed
 abstract class Address with _$Address {
-  const factory Address({
+  factory Address({
     @JsonKey(name: "street") String street,
     @JsonKey(name: "suite") String suite,
     @JsonKey(name: "city") String city,
@@ -222,6 +223,7 @@ abstract class Address with _$Address {
   factory Address.fromJson(Map<String, dynamic> json) => _$AddressFromJson(json);
 }
 ```
+
 Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
 
 **TIP:** If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).

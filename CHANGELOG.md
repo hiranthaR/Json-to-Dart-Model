@@ -2,6 +2,17 @@
 
 ## [Released]
 
+## [3.1.0] - 2021-04-14
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/28) from [Arnas](https://github.com/iamarnas)
+   - Added support for Dart null safety. 
+
+   > For any suggestions on how to improve the better null safety syntax your are welcome  to open [discuss](https://github.com/hiranthaR/Json-to-Dart-Model/discussions).
+
+   - Those who update to 3.1.0 from older version. Be sure to add `"nullSafety": false,` to `models.jsonc` configuration or go to help for more information if you were warned.
+
 ## [3.0.3] - 2021-04-06
 
 ### Added

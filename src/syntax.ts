@@ -448,7 +448,7 @@ export class ClassDefinition {
   private freezedField(input: Input): string {
     var sb = "";
     sb += printLine("@freezed");
-    sb += printLine(`class ${this.name} with `, true);
+    sb += printLine(`${input.nullSafety ? "" : "abstract "}class ${this.name} with `, true);
     sb += printLine(`_$${this.name} {`);
     sb += printLine(`factory ${this.name}({`, true, 1);
     for (var [key, value] of this.fields) {
