@@ -3,15 +3,16 @@
 </p>
 
 <p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?style=flat-square" alt="Version"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?style=flat-square" alt="Install"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?style=flat-square" alt="Download"></a>
-<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg?style=flat-square" alt="Ask Me Anything"></a>
-<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?logo=github&style=flat-square" alt="Issues"></a>
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-orange.svg?style=flat-square" alt="License: MIT"></a>
-<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/style-Effective%20Dart-blue?style=flat-square" alt="Effective Dart Style"></a>
-<a href="https://github.com/rrousselGit/freezed"><img src="https://img.shields.io/badge/supports-Freezed-blue?style=flat-square" alt="Freezed"></a>
-<a href="https://github.com/google/json_serializable.dart/tree/master/json_serializable"><img src="https://img.shields.io/badge/supports-Json_Serializable-blue?style=flat-square" alt="Json Serializable"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?labelColor=009903&style=flat-square" alt="Version"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?label=Installs&labelColor=009903&style=flat-square" alt="Install"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?label=Downloads&labelColor=009903&style=flat-square" alt="Download"></a>
+<a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20Me-Anything-1abc9c.svg?labelColor=007d80&style=flat-square" alt="Ask Me Anything"></a>
+<a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?label=Issues&labelColor=c95149&logo=github&color=ff5b4f&style=flat-square" alt="Issues"></a>
+<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-orange.svg?labelColor=d67c15&style=flat-square" alt="License: MIT"></a>
+<a href="https://dart.dev/guides/language/effective-dart/style"><img src="https://img.shields.io/badge/Style-Effective%20Dart-blue?labelColor=005f96&style=flat-square" alt="Effective Dart Style"></a>
+<a href="https://github.com/rrousselGit/freezed"><img src="https://img.shields.io/badge/Supports-Freezed-blue?labelColor=005f96&style=flat-square" alt="Freezed"></a>
+<a href="https://github.com/google/json_serializable.dart/tree/master/json_serializable"><img src="https://img.shields.io/badge/Supports-Json_Serializable-blue?labelColor=005f96&style=flat-square" alt="Json Serializable"></a> 
+<a href="https://dart.dev/null-safety"><img src="https://img.shields.io/badge/Dart-Null_Safety-blue?labelColor=005f96&style=flat-square&logo=Dart" alt="Null Safety"></a>
 </p>
 
 > From JSON to Dart advanced
@@ -31,10 +32,11 @@
     <li>
       <a href="#the-syntax">The Syntax</a>
       <ul>
-        <li><a href="#to-string-method">To String method</a></li>
-        <li><a href="#copyWith-method">CopyWith method</a></li>
+        <li><a href="#to-string-method">toString method</a></li>
+        <li><a href="#copyWith-method">copyWith method</a></li>
         <li><a href="#equality-operator">Equality Operator</a></li>
         <li><a href="#equatable">Equatable</a></li>
+        <li><a href="#null-safety">Null safety</a></li>
       </ul>
     </li>
     <li><a href="#supported-generators">Supported Generators</a></li>
@@ -97,7 +99,7 @@ To customise your classes is very easy. If you want fast create a simple class t
 
 - Convert your all json objects from the file.
 
-`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `models.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, choose `Yes` and hit `Enter`. After adding file open it to read detailed instructions on how it works.
+`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `models.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, hit `Enter` to add file. After adding file open it to read detailed instructions on how it works.
 
 Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration object. 
 
@@ -120,6 +122,8 @@ Create file manually. Add new file to your app directory `my_app/models.jsonc` a
     "copyWith": false,
     // Add equality operator.
     "equality": false,
+    // Indicate that a variable can have the value null.
+    "nullSafety": false,
     // Default target directory.
     "targetDirectory": "/lib/models",
     // Disable ask for confirmation to start the conversion.
@@ -152,6 +156,7 @@ Your final result should look like this:
     "toString": false,
     "copyWith": false,
     "equality": false,
+    "nullSafety": false,
     "targetDirectory": "/lib/models",
     "fastMode": false
   },
@@ -185,7 +190,7 @@ Add serializing JSON using code generation libraries to `pubspec.yaml`.
 
 ## Freezed
 
-Freezed requires three packages to generate json files to Freezed classes with a few clicks.
+Freezed supports both old versions to 0.12.7 and new from 0.14.0 and higher. Freezed requires three packages to generate json files to Freezed classes with a few clicks.
   
   structure of the `pubspec.yaml`
 
@@ -204,9 +209,10 @@ Freezed requires three packages to generate json files to Freezed classes with a
   All generated classes with Freezed will be `@immutable` and support all methods like [copyWith](#copyWith-method), [toString](#to-string-method), [equality operator](#equality-operator)`==`... See example:
 
 ```dart
+// Examples are for Freezed up to version 0.12.7
 @freezed
 abstract class Address with _$Address {
-  const factory Address({
+  factory Address({
     @JsonKey(name: "street") String street,
     @JsonKey(name: "suite") String suite,
     @JsonKey(name: "city") String city,
@@ -217,6 +223,7 @@ abstract class Address with _$Address {
   factory Address.fromJson(Map<String, dynamic> json) => _$AddressFromJson(json);
 }
 ```
+
 Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
 
 **TIP:** If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
@@ -296,6 +303,12 @@ String toString() {
   return 'Todos(userId: $userId, id: $id, title: $title, completed: $completed)';
 }
 ```
+Equatable can implement [toString](https://github.com/felangel/equatable/blob/master/README.md#tostring-implementation) method including all the given props. If Equatable support enabled then will implement Equatable `toString` Implementation.
+
+```dart
+@override
+bool get stringify => true;
+```
 
 ## CopyWith method
 
@@ -316,6 +329,12 @@ Todos copyWith({
   );
 }
 ```
+
+## Null Safety
+
+If `null safety` enabled it will indicate that a variable may have the value `null`. Required in the new `Dart` language from version 2.12... 
+
+> **Note:** Before enable null safety make sure your packages also support Dart null safety.
 
 ## Serializing JSON using code generation libraries
 

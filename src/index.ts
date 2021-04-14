@@ -171,7 +171,13 @@ async function transformFromSelection(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+      generateClass(new InputSettings(
+        className,
+        <string>targetDirectory,
+        json,
+        false,
+        input
+      )))
     .catch(handleError);
 }
 
@@ -201,7 +207,13 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+      generateClass(new InputSettings(
+        className,
+        <string>targetDirectory,
+        json,
+        true,
+        input
+      )))
     .then((_) => runGenerator()).catch(handleError);
 }
 
@@ -231,7 +243,13 @@ async function transformFromClipboard(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+      generateClass(new InputSettings(
+        className,
+        <string>targetDirectory,
+        json,
+        false,
+        input
+      )))
     .catch(handleError);
 }
 
@@ -261,7 +279,13 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(className, <string>targetDirectory, json, true, input)))
+      generateClass(new InputSettings(
+        className,
+        <string>targetDirectory,
+        json,
+        true,
+        input
+      )))
     .then((_) => runGenerator()).catch(handleError);
 }
 
