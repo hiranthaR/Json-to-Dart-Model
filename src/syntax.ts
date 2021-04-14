@@ -58,7 +58,7 @@ export const printLine = (print: string, newLine = false, tabs = 0): string => {
 /**
  * To indicate that a variable might have the value null.
  * @param {Input} input the user input.
- * @returns string. If disable true returns empty string.
+ * @returns string as "?" if null safety enabled. Otherwise empty string.
  */
 const questionMark = (input: Input): string => {
   return input.nullSafety ? "?" : "";
