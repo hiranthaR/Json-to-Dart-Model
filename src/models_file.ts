@@ -50,7 +50,7 @@ export class Models {
         sb += printLine('"copyWith": false,', true, 2);
         sb += printLine('// Add equality operator.', true, 2);
         sb += printLine('"equality": false,', true, 2);
-        sb += printLine('// Enable support for Dart sound null safety.', true, 2);
+        sb += printLine('// Indicate that a variable can have the value null.', true, 2);
         sb += printLine('"nullSafety": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
         sb += printLine('"targetDirectory": "/lib/models",', true, 2);
