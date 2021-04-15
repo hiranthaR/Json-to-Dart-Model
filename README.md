@@ -1,7 +1,9 @@
+<!-- LOGO -->
 <p align="center">
 <img src="readme_assets/banner.png" style="background-color: transparent;" height=100 alt="JSON to Dart Model"/>
 </p>
 
+<!-- BADGES -->
 <p align="center">
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?labelColor=009903&style=flat-square" alt="Version"></a>
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?label=Installs&labelColor=009903&style=flat-square" alt="Install"></a>
@@ -15,7 +17,7 @@
 <a href="https://dart.dev/null-safety"><img src="https://img.shields.io/badge/Dart-Null_Safety-blue?labelColor=005f96&style=flat-square&logo=Dart" alt="Null Safety"></a>
 </p>
 
-> From JSON to Dart advanced
+> From JSON to Dart Advanced
 
 <!-- TABLE OF CONTENTS -->
 <details closed="closed">
@@ -23,7 +25,7 @@
   <ol>
     <li> <a href="#features">Features</a>
       <ul>
-        <li><a href="#convert-from-clipboard-o-manual-model-classes">Convert from clipboard</a></li>
+        <li><a href="#convert-from-clipboard-to-manual-model-classes">Convert from clipboard</a></li>
         <li><a href="#convert-from-selection-to-manual-model-classes">Convert from selection</a></li>
         <li><a href="#convert-from-clipboard-to-code-generation-libraries-supported-model-classes">Convert from clipboard to code generation</a></li>
         <li><a href="#convert-from-selection-to-code-generation-libraries-supported-model-classes">Convert from selection to code generation</a></li>
@@ -33,7 +35,7 @@
       <a href="#the-syntax">The Syntax</a>
       <ul>
         <li><a href="#to-string-method">toString method</a></li>
-        <li><a href="#copyWith-method">copyWith method</a></li>
+        <li><a href="#copywith-method">copyWith method</a></li>
         <li><a href="#equality-operator">Equality Operator</a></li>
         <li><a href="#equatable">Equatable</a></li>
         <li><a href="#null-safety">Null safety</a></li>
@@ -42,11 +44,11 @@
     <li><a href="#supported-generators">Supported Generators</a></li>
     <ul>
         <li><a href="#freezed">Freezed</a></li>
-        <li><a href="#JSON-Serializable">JSON Serializable</a></li>
+        <li><a href="#json-serializable">JSON Serializable</a></li>
     </ul>
     <li><a href="#how-to-use">How to use</a></li>
     <ul>
-        <li><a href="#customise">Customise</a></li>
+        <li><a href="#customize">Customize</a></li>
         <li><a href="#key-bindings">Key bindings</a></li>
         <li><a href="https://pub.dev/packages/freezed">Freezed documentation</a></li>
         <li><a href="#converter">Converter</a></li>
@@ -58,50 +60,43 @@
 
 <space><space>
 
-Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate `Flutter` friendly model classes following the [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style). Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an api service provider, you can build a `models.jsonc` file for your users to convert json to `Dart` language with a few clicks.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an API service provider, you can build a `models.jsonc` file for your users to convert JSON to Dart language with a few clicks.
 
+<!-- HOW IT WORKS -->
 ## How it works
 
-`Dart to Json Model Generator` creates your `JSON` object into separate files and thanks to this if similar structures are detected `generator` will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way you can keep your code cleaner and more readable. The path name in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with index for infinity renaming.
+`Dart to Json Model Generator` creates your JSON object into separate files and thanks to this if similar structures are detected generator will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way, you can keep your code cleaner and more readable. The pathname in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with the index for infinity renaming.`
 
-- Avoid using file base class name as json keys to avoid conflicts and unwanted change of structure names. **Note:** converting from file `Json to Dart Model` will help to avoid it.
+- Avoid using file base class names as JSON keys to avoid conflicts and unwanted change of structure names. Note: converting from file `Json to Dart Model` will help to avoid it.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
 
+<!-- CUSTOMIZE -->
+## Customize
 
-## Customise
+To customize your classes is very easy. If you want fast to create a simple class then just click enter continue to skip all methods. Otherwise, build your own. To generate Freezed class and Json Serializable choose Code Generation.
 
-To customise your classes is very easy. If you want fast create a simple class then just click enter to continue skip all methods. Otherwise build your own. For generate Freezed class and Json Serializable choose Code Generation.
-
+<!-- HOW TO CUSTOMIZE GIF -->
 <p align="center">
-<img src="readme_assets/usage.gif" alt="How To Customise"/>
+<img src="readme_assets/usage.gif" alt="How To Customize"/>
 </p>
 
-
+<!-- FEATURES -->
 ## Features
 
 #### Convert from clipboard to manual model classes
-
-- Convert json you copied in to dart model classes.
-
+- Convert JSON you copied into dart model classes.
 #### Convert from selection to manual model classes
-
-- Convert json you selected in to dart model classes.
-
+- Convert JSON you selected into dart model classes.
 #### Convert from clipboard to code generation libraries supported model classes
-
-- Convert json you copied in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
-
+- Convert JSON you copied into code generation libraries supported model classes. A terminal session runs after conversion to generate the rest parts.
 #### Convert from selection to code generation libraries supported model classes
-
-- Convert json you selected in to code generarion libraries supported model classes. A terminal session run after convertion to generate rest parts.
-
+- Convert JSON you selected into code generation libraries supported model classes. A terminal session runs after conversion to generate the rest parts.
 #### Convert from file
+- Convert all JSON objects from the file.
 
-- Convert your all json objects from the file.
+`Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. After adding the file open it to read detailed instructions on how it works.
 
-`Json to Dart Model` generator keep all your json objects in the file with name `models.jsonc` and allows you to configure your classes according to you preferences. `models.jsonc` content is a list that contains all of your json objects that will later be converted to `Dart` classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your json objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys bingning `Shift + Ctrl + Alt + B` and you will be asked if you want create file, hit `Enter` to add file. After adding file open it to read detailed instructions on how it works.
-
-Create file manually. Add new file to your app directory `my_app/models.jsonc` and add configuration object. 
+Create file manually. Add a new file to your app directory `my_app/models.jsonc` and add a configuration object.
 
 ```jsonc
 [
@@ -131,7 +126,8 @@ Create file manually. Add new file to your app directory `my_app/models.jsonc` a
   }
 ]
 ```
-Put your all json objects to this list below configuration object separated by commas. Configuration object must be first in the list. ***Note that you add base class names to each object with key*** `"__className": "MyClass",` class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
+
+Put all JSON objects to this list below configuration object separated by commas. Configuration object must be first in the list. ***Note that you add base class names to each object with key***  `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
 
 ```jsonc
 {
@@ -142,7 +138,8 @@ Put your all json objects to this list below configuration object separated by c
   "body": "Json to Dart advanced..."
 },
 ```
-After adding the object and convert to `Dart` classes just run command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class just delete class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
+
+After adding the object and convert to Dart classes just run a command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class, just delete the class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
 
 Your final result should look like this:
 
@@ -169,13 +166,15 @@ Your final result should look like this:
   }
 ]
 ```
+
 > TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
 
+<!-- JSON SERIALIZABLE -->
 ## JSON Serializable
 
-Add serializing JSON using code generation libraries to `pubspec.yaml`.
+Add serializing JSON using code generation libraries to `pubspec.yaml`
 
-  structure of the `pubspec.yaml`
+  structure of the `pubspec.yaml`  
 
   ```yaml
   dependencies:
@@ -188,9 +187,10 @@ Add serializing JSON using code generation libraries to `pubspec.yaml`.
     json_serializable: <latest_version>
   ```
 
+<!-- FREEZED -->
 ## Freezed
 
-Freezed supports both old versions to 0.12.7 and new from 0.14.0 and higher. Freezed requires three packages to generate json files to Freezed classes with a few clicks.
+Freezed supports both old versions to 0.12.7 and new from 0.14.0 and higher. Freezed requires three packages to generate JSON files to Freezed classes with a few clicks.
   
   structure of the `pubspec.yaml`
 
@@ -204,9 +204,10 @@ Freezed supports both old versions to 0.12.7 and new from 0.14.0 and higher. Fre
      build_runner: <latest_version>
      freezed: <latest_version>
    ```
-   Read more about how to install [freezed](https://pub.dev/packages/freezed#install). 
 
-  All generated classes with Freezed will be `@immutable` and support all methods like [copyWith](#copyWith-method), [toString](#to-string-method), [equality operator](#equality-operator)`==`... See example:
+Read more about how to install [Freezed](https://pub.dev/packages/freezed#install).
+
+All generated classes with Freezed will be `@immutable` and support all methods like `copyWith`, `toString`, equality operator`==`... See example:
 
 ```dart
 // Examples are for Freezed up to version 0.12.7
@@ -224,13 +225,14 @@ abstract class Address with _$Address {
 }
 ```
 
-Freezed generator are useful for who work daily with coding. All you have to do is upgrade some values and Freezed will takecare of the rest. Your don't need worry about that you have forget update  parser to some method. More what you can do withFreezed read [freezed documentation](https://pub.dev/packages/freezed). 
+Freezed generator is useful for those who work daily with coding. All you have to do is upgrade some values and Freezed will take care of the rest. You don't need to worry that you have forgotten to update the parser to some method. More what you can do with Freezed read [Freezed documentation](https://pub.dev/packages/freezed).
 
-**TIP:** If you think that you have too much generated files you can look at tips by Freezed how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
+> **TIP:** If you think that you have too many generated files you can look at tips by Freezed on how to [ignore lint warnings on generated files](https://pub.dev/packages/freezed#ignore-lint-warnings-on-generated-files).
 
+<!-- EQUATABLE -->
 ## Equatable
 
-`Equatable` are immutable class with ability to compare your generated models in a better way. You can check if 2 classes, that are diferent instances, are equals **_without a single line of extra code_**. Ofcourse you can add [toString](#to-string-method) method and [copyWith](#copyWith-method) for better experience.
+Equatable is the immutable class with the ability to compare your generated models in a better way. You can check if 2 classes, which are different instances, are equals **_without a single line of extra code_**. Of course, you can add [toString](#to-string-method) method and [copyWith](#copyWith-method) for a better experience.
 
 ```dart
 class Todos extends Equatable {
@@ -273,13 +275,14 @@ class Todos extends Equatable {
 }
 ```
 
-To add`Equatable` support you just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check in your Dart models
+To add Equatable support you just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check-in your Dart models.
 
 ![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
 
+<!-- EQUALITY OPERATOR -->
 ## Equality Operator
 
-If you don't want install `Equatable` package and work with `@immutable` classes and values then you can add equality operator `==` with less boilerplate syntax. And customize your class as mutable.
+If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator `==` with less boilerplate syntax. And customize your class as mutable.
 
 ```dart
 @override
@@ -293,9 +296,11 @@ bool operator ==(Object o) =>
 @override
 int get hashCode => hashValues(userId, id, title, completed);
 ```
+
+<!-- TO STRING METHOD -->
 ## To String method
 
-You can add `toString()` method in your classes to improve the debugging experience.
+You can add `toString` method in your classes to improve the debugging experience.
 
 ```dart
 @override
@@ -303,16 +308,18 @@ String toString() {
   return 'Todos(userId: $userId, id: $id, title: $title, completed: $completed)';
 }
 ```
-Equatable can implement [toString](https://github.com/felangel/equatable/blob/master/README.md#tostring-implementation) method including all the given props. If Equatable support enabled then will implement Equatable `toString` Implementation.
+
+Equatable can implement [toString](https://github.com/felangel/equatable/blob/master/README.md#tostring-implementation) method including all the given props. If Equatable support is enabled then will implement Equatable `toString` implementation.
 
 ```dart
 @override
 bool get stringify => true;
 ```
 
+<!-- COPY WITH METHOD -->
 ## CopyWith method
 
-`copyWith()` method will make your life easier with `@immutable` classes. Highly recommended with imuttable classes.
+`copyWith` method will make your life easier with `@immutable` classes. Highly recommended with immutable classes.
 
 ```dart
 Todos copyWith({
@@ -329,34 +336,34 @@ Todos copyWith({
   );
 }
 ```
-
+<!-- NULL SAFETY -->
 ## Null Safety
 
-If `null safety` enabled it will indicate that a variable may have the value `null`. Required in the new `Dart` language from version 2.12... 
+If `null safety` enabled it will indicate that a variable may have the value `null`. Required in the new Dart language from version 2.12...
 
-> **Note:** Before enable null safety make sure your packages also support Dart null safety.
+> **Note:** Before enabling null safety make sure your packages also support Dart null safety.
 
+<!-- SERIALIZING JSON USING CODE GENERATION LIBRARIES -->
 ## Serializing JSON using code generation libraries
 
-If you'd like to use Code Generation Libraries from **Flutter**, first of all I suggest you to add dependencies to the `pubspec.yaml` file. It also can be done with this extension. You don't need to worry about it :wink:.
-After that you can convert your `JSON` to model classes.
-Then you need to run the `flutter pub run build_runner build` command to generate the missing code of the models, according to Flutter documentation.
-Fortunately the extension automatically opens a new terminal session and runs that command for you, yey :smile:.
+If you'd like to use Code Generation Libraries from Flutter, first of all, I suggest you add dependencies to the `pubspec.yaml` file. It also can be done with this extension. You don't need to worry about it :wink: After that, you can convert your JSON to model classes. Then you need to run the `flutter pub run build_runner build` command to generate the missing code of the models, according to Flutter documentation. Fortunately, the extension automatically opens a new terminal session and runs that command for you, yey :smile:
 
 - Read more about [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) about **JSON and serialization**
 
+<!-- HOW TO USE -->
 ## How to use
 
-1. Select a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert From Selection` or `Convert From Selection To Code Generation Supported Classes`. Provide a Base class name and location to save.
+1. Select a valid JSON. Press `Ctrl + shift + P` (Linux and Mac) or `Ctrl + P` (Windows) and search for `Convert From Selection` or `Convert From Selection To Code Generation Supported Classes`. Provide a Base class name and location to save.
 
-2. Copy a valid json. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Convert From Clipboard` or `Convert From Clipboard To Code Generation Supported Classes`. Provide a Base class name and location to save.
+2. Copy a valid JSON. Press `Ctrl + shift + P` (Linux and Mac) or `Ctrl + P` (Windows) and search for `Convert From Clipboard` or `Convert From Clipboard To Code Generation Supported Classes`. Provide a Base class name and location to save.
 
-3. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Add Code Generation Libraries To pubspec.yaml` and hit enter.
+3. Press `Ctrl + shift + P` (Linux and mac) or `Ctrl + P` (Windows) and search for `Add Code Generation Libraries To pubspec.yaml` and hit enter.
 
-4. Press `Ctrl + shift + P` (linux and mac) or `Ctrl + P` (Windows) and search for `Build Models` and hit enter.
+4. Press `Ctrl + shift + P` (Linux and Mac) or `Ctrl + P` (Windows) and search for `Build Models` and hit enter.
 
 5. Using short cuts.
 
+<!-- KEY BINDINGS -->
 ## Key bindings
 
 Convert from Clipboard (`Shift + Ctrl + Alt + V`)
@@ -369,6 +376,7 @@ Convert from Clipboard to Code Generation supported classes (`Shift + Ctrl + Alt
 
 Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt + H`)
 
+<!-- CONVERTER -->
 ## Converter
 
 - Array type merging
@@ -377,6 +385,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 - Optional types
 - Array types
 
+<!-- KNOWN ISSUES -->
 ## Known Issues
 
 1. Using key binding on `Linux` can throw error `Command failed: xclip -selection clipboard -o` it happens when Linux lacks clipboard package. To resolve this error run in the terminal this command to install the missing package.
@@ -385,21 +394,25 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
    sudo apt-get install xclip
    ```
 
-2. Matches the wrong type. In my experience some api deliverers write `integer` values instead of `double`, example: 1 or 1.00 instead 1.10. The problem is that this generator does deep object scan and reads each items to detect the type of value and returns type as found. But with lists works well, if the list only has double and intengers, the list type returns as num. If you write yourself json objects try to give the right value type for better results. It’s all about json quality  :sunglasses:
+2. Matches the wrong type. In my experience, some API deliverers write `integer` values instead of `double`, for example, 1 or 1.00 instead of 1.10. The problem is that this generator does a deep object scan and reads each item to detect the type of value and returns the type as found. But with lists works well, if the list only has `double` and `integers`, the list type returns as `num`. If you write yourself JSON objects try to give the right value type for better results. It’s all about JSON quality :sunglasses:
 
-### Links
+<!-- LINKS -->
+## Links
 
 - [Repository](https://github.com/hiranthar/Json-to-Dart-Model.git)
 - [Issues](https://github.com/hiranthaR/Json-to-Dart-Model/issues)
 - [Changelog](https://github.com/hiranthaR/Json-to-Dart-Model/blob/master/CHANGELOG.md)
+- [Discussions](https://github.com/hiranthaR/Json-to-Dart-Model/discussions)
 
-### Special thanks
+<!-- SPECIAL THANKS -->
+## Special thanks
 
 :heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
 :heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
 :heart: Special thanks to [Ayush P Gupta](https://github.com/apgapg) for fixing bugs.
 
-### Support us
+<!-- SUPPORT US -->
+## Support us
 
 If you like this, please give us the :star: and share with your friends. Thank you :blue_heart:
 
@@ -408,7 +421,8 @@ If you like this, please give us the :star: and share with your friends. Thank y
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-### Contact me
+<!-- CONTACT ME -->
+## Contact me
 
 Feel free to contact me anytime :blush:
 
