@@ -537,8 +537,8 @@ export class ClassDefinition {
     var imports = "";
     // Sorted alphabetically for effective dart style.
     imports += input.equatable && !input.freezed ? "import 'package:equatable/equatable.dart';\n" : "";
-    imports += input.immutable && !input.generate ? "import 'package:flutter/foundation.dart';\n" : "";
-    imports += input.generate && !input.freezed ? `import 'package:json_annotation/json_annotation.dart';\n` : "";
+    imports += input.immutable && !input.serializable ? "import 'package:flutter/foundation.dart';\n" : "";
+    imports += input.serializable && !input.freezed ? `import 'package:json_annotation/json_annotation.dart';\n` : "";
     imports += input.freezed ? "import 'package:freezed_annotation/freezed_annotation.dart';\n" : "";
 
     if (imports.length === 0) {
@@ -551,7 +551,7 @@ export class ClassDefinition {
   private importsForParts(input: Input): string {
     var imports = "";
     imports += input.freezed ? "part '" + this._path + ".freezed.dart';\n" : "";
-    imports += input.generate || input.freezed ? "part '" + this._path + ".g.dart';\n" : "";
+    imports += input.generate ? "part '" + this._path + ".g.dart';\n" : "";
     if (imports.length === 0) {
       return imports;
     } else {

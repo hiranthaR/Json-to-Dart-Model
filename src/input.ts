@@ -7,12 +7,13 @@ interface InputInterface {
     toString: boolean;
     copyWith: boolean;
     equality: boolean;
-    generate: boolean;
+    serializable: boolean;
+    nullSafety: boolean;
     /**
      * Required root path. 
      */
     targetDirectory: string;
-    nullSafety: boolean;
+    primaryConfiguration: boolean;
     fastMode: boolean;
 }
 
@@ -26,9 +27,10 @@ export class Input implements InputInterface {
     toString: boolean = false;
     copyWith: boolean = false;
     equality: boolean = false;
-    generate: boolean = false;
+    serializable: boolean = false;
     nullSafety: boolean = false;
     targetDirectory: string = '/lib/models';
+    primaryConfiguration: boolean = false;
     fastMode: boolean = false;
 
     constructor(obj: any = {}) {
@@ -38,14 +40,19 @@ export class Input implements InputInterface {
         this.toString = obj.toString;
         this.copyWith = obj.copyWith;
         this.equality = obj.equality;
-        this.generate = obj.serializable;
+        this.serializable = obj.serializable;
         this.nullSafety = obj.nullSafety;
         this.targetDirectory = obj.targetDirectory;
+        this.primaryConfiguration = obj.primaryConfiguration;
         this.fastMode = obj.fastMode;
     }
 
     get isImmutable(): boolean {
         return this.equatable || this.immutable ? true : false;
+    }
+
+    get generate(): boolean {
+        return this.freezed || this.serializable ? true : false;
     }
 }
 
@@ -56,7 +63,7 @@ export class Input implements InputInterface {
 export async function getUserInput(generate: boolean = false): Promise<Input> {
     let input = new Input();
 
-    input.generate = generate;
+    input.serializable = generate;
 
     if (generate) {
         input.freezed = await askForFreezed();

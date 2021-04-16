@@ -2,6 +2,7 @@ import { commands, Uri, window, workspace } from "vscode";
 import { printLine } from "./syntax";
 import * as fs from "fs";
 import { Input } from "./input";
+import { handleError } from "./lib";
 
 export class Models {
     private fileName: string = "/models.jsonc";
@@ -31,8 +32,8 @@ export class Models {
         sb += printLine('// **************************************************************************', true, 1);
         sb += printLine('//', true, 1);
         sb += printLine('// Useful links to work with this file:', true, 1);
-        sb += printLine('// About jsonc: https://github.com/onury/jsonc.', true, 1);
-        sb += printLine('// Try jsonc: https://komkom.github.io/', true, 1);
+        sb += printLine('// About jsonc: https://github.com/onury/jsonc', true, 1);
+        sb += printLine('// Try jsonc: https://komkom.github.io', true, 1);
         sb += printLine('{', true, 1);
         sb += printLine('// Generates Freezed classes.', true, 2);
         sb += printLine('// If it\'s true, everything below will be ignored because Freezed supports them all.', true, 2);
@@ -54,6 +55,8 @@ export class Models {
         sb += printLine('"nullSafety": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
         sb += printLine('"targetDirectory": "/lib/models",', true, 2);
+        sb += printLine('// Enable as primary.', true, 2);
+        sb += printLine('"primaryConfiguration": false,', true, 2);
         sb += printLine('// Disable ask for confirmation to start the conversion.', true, 2);
         sb += printLine('"fastMode": false', true, 2);
         sb += printLine('}', true, 1);
@@ -96,14 +99,16 @@ export class Models {
         }
     }
 
-    async validateSettings(input: Input): Promise<boolean> {
+    private async validateSettings(input: Input, showMessage: boolean = true): Promise<boolean> {
         const settings = Object.entries(input);
         for (const v of settings) {
-            const key = v[0] === "generate" ? "serializable" : v[0];
+            const key = v[0];
             const value = v[1];
             if (value === undefined || typeof value === "function") {
-                const text = `The key "${key}" was not found in the models.jsonc configuration`;
-                window.showInformationMessage(text, ...["Help"]).then(getHelp);
+                const text = `The key "${key}" was not found in the models.jsonc configuration.`;
+                if (showMessage) {
+                    window.showInformationMessage(text, ...["Help"]).then(getHelp);
+                }
                 return false;
             }
         }
@@ -116,6 +121,25 @@ export class Models {
             { modal: true }, ...["Start"]).then((action) => {
                 return action === "Start" ? true : false;
             });
+    }
+
+    async getConfiguration(showMessage: boolean = false): Promise<Input | undefined> {
+        const jsonc = require('jsonc').safe;
+        if (this.exist) {
+            const [err, result] = jsonc.parse(this.data);
+            if (!err) {
+                // All json objects from the models.jsonc.
+                const objects: any[] = result;
+                // User configuration.
+                const input = new Input(objects[0]);
+                const isValid = await this.validateSettings(input, showMessage);
+
+                if (isValid) {
+                    return input;
+                }
+            }
+        }
+        return undefined;
     }
 }
 
