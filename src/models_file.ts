@@ -55,7 +55,7 @@ export class Models {
         sb += printLine('"nullSafety": false,', true, 2);
         sb += printLine('// Default target directory.', true, 2);
         sb += printLine('"targetDirectory": "/lib/models",', true, 2);
-        sb += printLine('// Enable as primary.', true, 2);
+        sb += printLine('// Activate as primary global configuration.', true, 2);
         sb += printLine('"primaryConfiguration": false,', true, 2);
         sb += printLine('// Disable ask for confirmation to start the conversion.', true, 2);
         sb += printLine('"fastMode": false', true, 2);

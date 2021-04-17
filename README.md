@@ -30,6 +30,7 @@
         <li><a href="#convert-from-clipboard-to-code-generation-libraries-supported-model-classes">Convert from clipboard to code generation</a></li>
         <li><a href="#convert-from-selection-to-code-generation-libraries-supported-model-classes">Convert from selection to code generation</a></li>
         <li><a href="#convert-from-file">Convert from file</a></li>
+        <li><a href="#speed-up-converting">Speed up converting</a></li>
       </ul>
     <li>
       <a href="#the-syntax">The Syntax</a>
@@ -63,7 +64,7 @@
 Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an API service provider, you can build a `models.jsonc` file for your users to convert JSON to Dart language with a few clicks.
 
 <!-- HOW IT WORKS -->
-## How it works
+## How it Works
 
 `Dart to Json Model Generator` creates your JSON object into separate files and thanks to this if similar structures are detected generator will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way, you can keep your code cleaner and more readable. The pathname in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with the index for infinity renaming.`
 
@@ -121,6 +122,8 @@ Create file manually. Add a new file to your app directory `my_app/models.jsonc`
     "nullSafety": false,
     // Default target directory.
     "targetDirectory": "/lib/models",
+    // Activate as primary global configuration.
+    "primaryConfiguration": false,
     // Disable ask for confirmation to start the conversion.
     "fastMode": false
   }
@@ -155,6 +158,7 @@ Your final result should look like this:
     "equality": false,
     "nullSafety": false,
     "targetDirectory": "/lib/models",
+    "primaryConfiguration": false,
     "fastMode": false
   },
   {
@@ -167,7 +171,14 @@ Your final result should look like this:
 ]
 ```
 
-> TIP: This may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
+> TIP: this may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
+
+<!-- SPEED UP CONVERTING -->
+## Speed Up Converting
+
+If you work a lot with JSON files and get tired every time customize your models in the command palette. Then you can set the primary configuration to `true`. And `Json to Dart Model` will use `models.jsonc` configuration everywhere and never ask you about input. Just choose any command from the `selection` or `clipboard` and pick the directory. Set fast mode to `true` for faster converting to the default directory. 
+
+> Note: if `models.jsonc` **_configuration_** or some **_key_** does not exist then you will be asked for manual input.
 
 <!-- JSON SERIALIZABLE -->
 ## JSON Serializable
@@ -298,7 +309,7 @@ int get hashCode => hashValues(userId, id, title, completed);
 ```
 
 <!-- TO STRING METHOD -->
-## To String method
+## To String Method
 
 You can add `toString` method in your classes to improve the debugging experience.
 
@@ -317,7 +328,7 @@ bool get stringify => true;
 ```
 
 <!-- COPY WITH METHOD -->
-## CopyWith method
+## CopyWith Method
 
 `copyWith` method will make your life easier with `@immutable` classes. Highly recommended with immutable classes.
 
@@ -344,14 +355,14 @@ If `null safety` enabled it will indicate that a variable may have the value `nu
 > **Note:** Before enabling null safety make sure your packages also support Dart null safety.
 
 <!-- SERIALIZING JSON USING CODE GENERATION LIBRARIES -->
-## Serializing JSON using code generation libraries
+## Serializing JSON Using Code Generation Libraries
 
 If you'd like to use Code Generation Libraries from Flutter, first of all, I suggest you add dependencies to the `pubspec.yaml` file. It also can be done with this extension. You don't need to worry about it :wink: After that, you can convert your JSON to model classes. Then you need to run the `flutter pub run build_runner build` command to generate the missing code of the models, according to Flutter documentation. Fortunately, the extension automatically opens a new terminal session and runs that command for you, yey :smile:
 
 - Read more about [flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) about **JSON and serialization**
 
 <!-- HOW TO USE -->
-## How to use
+## How To Use
 
 1. Select a valid JSON. Press `Ctrl + shift + P` (Linux and Mac) or `Ctrl + P` (Windows) and search for `Convert From Selection` or `Convert From Selection To Code Generation Supported Classes`. Provide a Base class name and location to save.
 
@@ -364,7 +375,7 @@ If you'd like to use Code Generation Libraries from Flutter, first of all, I sug
 5. Using short cuts.
 
 <!-- KEY BINDINGS -->
-## Key bindings
+## Key Bindings
 
 Convert from Clipboard (`Shift + Ctrl + Alt + V`)
 
@@ -405,7 +416,7 @@ Convert from Selection to Code Generation supported classes (`Shift + Ctrl + Alt
 - [Discussions](https://github.com/hiranthaR/Json-to-Dart-Model/discussions)
 
 <!-- SPECIAL THANKS -->
-## Special thanks
+## Special Thanks
 
 :heart: Special thanks to [Israel Ibarra](https://github.com/ElZombieIsra) for adding [equatable](https://pub.dev/packages/equatable) support.</br>
 :heart: Special thanks to [Arnas](https://github.com/iamarnas) for adding [Effective Dart: Styles](https://dart.dev/guides/language/effective-dart/style).</br>
