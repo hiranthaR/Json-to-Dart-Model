@@ -2,6 +2,14 @@
 
 ## [Released]
 
+## [3.1.1] - 2021-04-17
+
+### Added
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/29) from [Arnas](https://github.com/iamarnas)
+   - Added primary configuration option to the `models.jsonc` file.
+   - Those who update to 3.1.0 from older version. Be sure to add `"primaryConfiguration": false` to `models.jsonc` configuration or go to help for more information if you were warned.
+
 ## [3.1.0] - 2021-04-14
 
 ### Added
