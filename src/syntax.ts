@@ -564,7 +564,7 @@ export class ClassDefinition {
     imports += this.getFields((f) => {
       var sb = "";
       if (f.importName !== null) {
-        sb = 'import "' + f.importName + `.dart";\n`;
+        sb = "import '" + f.importName + `.dart';\n`;
       }
       return sb;
     }).sort().join("");
