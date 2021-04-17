@@ -86,10 +86,9 @@ async function transformFromFile() {
       // All json objects from the models.jsonc.
       const objects: any[] = result;
       // User configuration.
-      const input = new Input(objects[0]);
-      const isValid = await models.validateSettings(input);
+      const input = await models.getConfiguration(true);
 
-      if (!isValid) {
+      if (input === undefined) {
         return;
       }
 
@@ -107,7 +106,7 @@ async function transformFromFile() {
         }
       }
 
-      const fastMode = objects[0].fastMode ?? false;
+      const fastMode = input.fastMode ?? false;
       const confirm = !fastMode ? await models.getConfirmation() : fastMode;
 
       if (confirm && objects.length === 1) {
@@ -128,14 +127,13 @@ async function transformFromFile() {
             className,
             <string>targetDirectory,
             json,
-            input.generate,
             input,
             runFromFile
           );
           generateClass(settings);
         }
         window.showInformationMessage('Models successfully added');
-        if (input.generate || input.freezed) {
+        if (input.generate) {
           runGenerator();
         }
       }
@@ -146,15 +144,23 @@ async function transformFromFile() {
 }
 
 async function transformFromSelection(uri: Uri) {
+  const primaryInput = await new Models().getConfiguration();
   const className = await promptForBaseClassName();
+  let input: Input;
+
   if (_.isNil(className) || className.trim() === "") {
     window.showErrorMessage("The class name must not be empty");
     return;
   }
 
-  const input = await getUserInput();
+  if (primaryInput && primaryInput.primaryConfiguration) {
+    input = primaryInput;
+  } else {
+    input = await getUserInput();
+  }
 
   let targetDirectory: String | undefined;
+
   if (
     _.isNil(_.get(uri, "fsPath")) ||
     !fs.lstatSync(uri.fsPath).isDirectory()
@@ -175,22 +181,33 @@ async function transformFromSelection(uri: Uri) {
         className,
         <string>targetDirectory,
         json,
-        false,
         input
-      )))
+      ))).then((_) => {
+        if (input.generate) {
+          runGenerator()
+        }
+      })
     .catch(handleError);
 }
 
 async function transformFromSelectionToCodeGen(uri: Uri) {
+  const primaryInput = await new Models().getConfiguration();
   const className = await promptForBaseClassName();
+  let input: Input;
+
   if (_.isNil(className) || className.trim() === "") {
     window.showErrorMessage("The class name must not be empty");
     return;
   }
 
-  const input = await getUserInput(true);
+  if (primaryInput && primaryInput.primaryConfiguration) {
+    input = primaryInput;
+  } else {
+    input = await getUserInput(true);
+  }
 
   let targetDirectory: String | undefined;
+
   if (
     _.isNil(_.get(uri, "fsPath")) ||
     !fs.lstatSync(uri.fsPath).isDirectory()
@@ -211,22 +228,33 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
         className,
         <string>targetDirectory,
         json,
-        true,
         input
       )))
-    .then((_) => runGenerator()).catch(handleError);
+    .then((_) => {
+      if (input.generate) {
+        runGenerator()
+      }
+    }).catch(handleError);
 }
 
 async function transformFromClipboard(uri: Uri) {
+  const primaryInput = await new Models().getConfiguration();
   const className = await promptForBaseClassName();
+  let input: Input;
+
   if (_.isNil(className) || className.trim() === "") {
     window.showErrorMessage("The class name must not be empty");
     return;
   }
 
-  const input = await getUserInput();
+  if (primaryInput && primaryInput.primaryConfiguration) {
+    input = primaryInput;
+  } else {
+    input = await getUserInput();
+  }
 
   let targetDirectory: String | undefined;
+
   if (
     _.isNil(_.get(uri, "fsPath")) ||
     !fs.lstatSync(uri.fsPath).isDirectory()
@@ -247,22 +275,32 @@ async function transformFromClipboard(uri: Uri) {
         className,
         <string>targetDirectory,
         json,
-        false,
         input
-      )))
+      ))).then((_) => {
+        if (input.generate) {
+          runGenerator()
+        }
+      })
     .catch(handleError);
 }
 
 async function transformFromClipboardToCodeGen(uri: Uri) {
+  const primaryInput = await new Models().getConfiguration();
   const className = await promptForBaseClassName();
+  let input: Input;
   if (_.isNil(className) || className.trim() === "") {
     window.showErrorMessage("The class name must not be empty");
     return;
   }
 
-  const input = await getUserInput(true);
+  if (primaryInput && primaryInput.primaryConfiguration) {
+    input = primaryInput;
+  } else {
+    input = await getUserInput(true);
+  }
 
   let targetDirectory: String | undefined;
+
   if (
     _.isNil(_.get(uri, "fsPath")) ||
     !fs.lstatSync(uri.fsPath).isDirectory()
@@ -283,10 +321,13 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
         className,
         <string>targetDirectory,
         json,
-        true,
         input
       )))
-    .then((_) => runGenerator()).catch(handleError);
+    .then((_) => {
+      if (input.generate) {
+        runGenerator()
+      }
+    }).catch(handleError);
 }
 
 function promptForBaseClassName(): Thenable<string | undefined> {

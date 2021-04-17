@@ -102,7 +102,6 @@ export class InputSettings {
   className: string;
   targetDirectory: string;
   object: string;
-  codeGen: boolean;
   input: Input;
   isFromFile: boolean;
 
@@ -110,14 +109,12 @@ export class InputSettings {
     className: string,
     targetDirectory: string,
     object: string,
-    codeGen: boolean,
     input: Input,
     isFromFile: boolean = false,
   ) {
     this.className = className;
     this.targetDirectory = targetDirectory;
     this.object = object;
-    this.codeGen = codeGen;
     this.input = input;
     this.isFromFile = isFromFile;
     if (isFromFile) {
@@ -145,7 +142,7 @@ export async function createClass(settings: InputSettings) {
 
       fs.writeFile(
         targetPath,
-        settings.codeGen || settings.input.freezed
+        settings.input.generate
           ? c.toCodeGenString(settings.input)
           : c.toString(settings.input),
         "utf8",
