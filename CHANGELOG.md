@@ -6,7 +6,7 @@
 
 ### Fixed
 
-- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/30) from [Arnas](https://github.com/iamarnas)
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/31) from [Arnas](https://github.com/iamarnas)
    - Improved some syntax correction.
 
 ## [3.1.1] - 2021-04-17
