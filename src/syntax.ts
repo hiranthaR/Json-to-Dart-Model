@@ -111,22 +111,22 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
           if (typeDef.isDate) {
             formatedValue += printLine(`.map((e) => ${parseDateTime("e")})`, true, tabs);
           } else {
-            formatedValue += printLine(`.map((e) => ${buildParseClass(key, jsonValue, true)})`, true, tabs);
+            formatedValue += printLine(`.map((e) => ${buildParseClass(key, "e")})`, true, tabs);
           }
         } else {
           if (typeDef.isDate) {
             formatedValue += printLine(`?.map((e) => ${parseDateTime("e")})`, true, tabs);
           } else {
-            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, jsonValue, true)})`, true, tabs);
+            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, "e")})`, true, tabs);
           }
         }
       } else {
         formatedValue += printLine(`?.map((e) => e == null`, true, 3 + 2 * result.length);
         formatedValue += printLine(`? null`, true, 5 + 2 * result.length);
         if (typeDef.isDate) {
-          formatedValue += printLine(`: ${parseDateTime(jsonValue)})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${parseDateTime("e")})`, true, 5 + 2 * result.length);
         } else {
-          formatedValue += printLine(`: ${buildParseClass(key, jsonValue)})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${buildParseClass(key, "e")})`, true, 5 + 2 * result.length);
         }
       }
       for (let i = 0; i < result.length - 1; i++) {
@@ -260,9 +260,9 @@ const buildToJsonClass = (expression: string, nullSafety: boolean = false): stri
     : `${expression}?.toJson()`;
 };
 
-const buildParseClass = (className: string, expression: string, nullSafety: boolean = false): string => {
+const buildParseClass = (className: string, expression: string): string => {
   const name = pascalCase(className).replace(/_/g, "");
-  return `${name}.fromJson(${nullSafety ? "e" : expression} as Map<String, dynamic>)`;
+  return `${name}.fromJson(${expression} as Map<String, dynamic>)`;
 };
 
 const parseDateTime = (expression: string): string => {

@@ -2,6 +2,13 @@
 
 ## [Released]
 
+## [3.1.2] - 2021-04-23
+
+### Fixed
+
+- see [pull request](https://github.com/hiranthaR/Json-to-Dart-Model/pull/30) from [Arnas](https://github.com/iamarnas)
+   - Improved some syntax correction.
+
 ## [3.1.1] - 2021-04-17
 
 ### Added
