@@ -63,6 +63,8 @@
 
 Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an API service provider, you can build a `models.jsonc` file for your users to convert JSON to Dart language with a few clicks.
 
+> **Note:** When you use `Freezed` or `Json Serializable` then `Json to Dart Model` generates only types and everything that happens after, then `Json Serializable` takes care of the rest and is responsible for generated code.
+
 <!-- HOW IT WORKS -->
 ## How it Works
 
