@@ -65,6 +65,88 @@ const questionMark = (input: Input): string => {
 };
 
 /**
+ * To indicate that a variable might have the value null.
+ * @param {Input} input the user input.
+ * @returns string as "?" if null safety enabled. Otherwise empty string.
+ */
+const defaultValue = (
+  typeDef: TypeDefinition,
+  nullable: boolean = false,
+  freezed: boolean = false,
+): string => {
+  if (!typeDef.defaultValue) return "";
+  if (typeDef.isList && typeDef.type !== null) {
+    const listType = typeDef.type?.replace(/List/g, "");
+    const listTypes = filterListType(typeDef.type);
+    if (!freezed) {
+      const withType = ` = const ${listType}[]`;
+      const withoutType = ` = const []`;
+      return listTypes.length > 1 ? withoutType : withType;
+    } else {
+      const withType = ` @Default(${listType}[])`;
+      const withoutType = ` @Default([])`;
+      return listTypes.length > 1 ? withoutType : withType;
+    }
+  } else if (typeDef.isDate) {
+    if (!freezed) {
+      const questionMark = nullable ? "?" : "";
+      return `${typeDef.type}${questionMark} ${typeDef.name}`;
+    } else {
+      return '';
+    }
+  } else if (typeDef.type?.startsWith("String")) {
+    const freezedDefaultString = ` @Default('${typeDef.value}')`;
+    const defaultString = ` = '${typeDef.value}'`;
+    return freezed ? freezedDefaultString : defaultString;
+  }
+  const freezedDefaultValue = ` @Default(${typeDef.value})`;
+  const defaultValue = ` = ${typeDef.value}`;
+  return freezed ? freezedDefaultValue : defaultValue;
+};
+
+const defaultDateTime = (
+  fields: Map<string, TypeDefinition>,
+  freezed: boolean = false
+): string => {
+  let sb = "";
+  let dates = Array.from(fields).filter(
+    (v) => v[1].isDate && !v[1].isList && v[1].defaultValue
+  );
+  if (!dates.length) { return sb; }
+  if (freezed) {
+    for (const field of dates) {
+      const typeDef = field[1];
+      const optional = camelCase(typeDef.prefix) + pascalCase(typeDef.name);
+      sb += '\n';
+      sb += printLine('@late', true, 1);
+      sb += printLine(`DateTime get ${typeDef.name} => ${optional}`, true, 1);
+      sb += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)};`);
+    }
+  } else {
+    for (let i = 0; i < dates.length; i++) {
+      const typeDef = dates[i][1];
+      const comma: string = dates.length - 1 === i ? "" : ",";
+      if (i === 0) {
+        sb += printLine(`\t: ${typeDef.name} = ${typeDef.name}`);
+        sb += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)}`) + comma;
+      } else {
+        sb += printLine(`\n\t\t\t\t${typeDef.name} = ${typeDef.name}`);
+        sb += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)}`) + comma;
+      }
+    }
+  }
+  return sb;
+}
+
+const requiredValue = (required: boolean = false, nullSafety: boolean = false): string => {
+  if (required) {
+    return nullSafety ? "required " : "@required ";
+  } else {
+    return "";
+  }
+}
+
+/**
  * Returns a string representation of a value obtained from a JSON
  * @param valueKey The key of the value in the JSON
  */
@@ -265,14 +347,22 @@ const buildParseClass = (className: string, expression: string): string => {
   return `${name}.fromJson(${expression} as Map<String, dynamic>)`;
 };
 
-const parseDateTime = (expression: string): string => {
-  return `DateTime.parse(${expression} as String)`;
+/**
+ * DateTime parse function.
+ * @param {string} expression specified value.
+ * @param {boolean} clean if it is true then returns without without argument type.
+ * @returns a string "DateTime.parse(expression)".
+ */
+const parseDateTime = (expression: string, clean: boolean = false): string => {
+  const withArgumentType = `DateTime.parse(${expression} as String)`;
+  const withoutArgumentType = `DateTime.parse(${expression})`;
+  return clean ? withoutArgumentType : withArgumentType;
 };
 
 const toIsoString = (expression: string, nullSafety: boolean = false): string => {
-  return nullSafety
-    ? `${expression}.toIso8601String()`
-    : `${expression}?.toIso8601String()`;
+  const withNullCheck = `${expression}?.toIso8601String()`;
+  const withoutNullCheck = `${expression}.toIso8601String()`;
+  return nullSafety ? withoutNullCheck : withNullCheck;
 };
 
 export class Dependency {
@@ -451,13 +541,22 @@ export class ClassDefinition {
     sb += printLine(`${input.nullSafety ? "" : "abstract "}class ${this.name} with `, true);
     sb += printLine(`_$${this.name} {`);
     sb += printLine(`factory ${this.name}({`, true, 1);
-    for (var [key, value] of this.fields) {
-      const fieldName = value.getName(this._privateFields);
-      sb += printLine(`@JsonKey(name: "${key}")`, true, 2);
-      sb += printLine(` ${this.addType(value, input)} ${fieldName},`);
+    for (var [name, typeDef] of this.fields) {
+      const optional = camelCase(typeDef.prefix) + pascalCase(typeDef.name);
+      const fieldName = typeDef.getName(this._privateFields);
+      const jsonKey = `@JsonKey(name: '${name}') `;
+      const defaultVal = defaultValue(typeDef, input.nullSafety, true);
+      const required = requiredValue(typeDef.required, input.nullSafety);
+      sb += printLine(jsonKey + required + defaultVal, true, 2);
+      if (typeDef.isDate && typeDef.defaultValue && !typeDef.isList) {
+        sb += printLine(`${this.addType(typeDef, input)} ${optional},`);
+      } else {
+        sb += printLine(`${this.addType(typeDef, input)} ${fieldName},`);
+      }
     };
     sb += printLine(`}) = _${this.name};`, true, 1);
     sb += printLine(`${this.codeGenJsonParseFunc(true)}`);
+    sb += defaultDateTime(this.fields, true);
     sb += printLine("}", true);
     return sb;
   }
@@ -535,9 +634,12 @@ export class ClassDefinition {
    */
   private importsFromPackage(input: Input): string {
     var imports = "";
+    var required = Array.from(this.fields).some((f) => f[1].required);
     // Sorted alphabetically for effective dart style.
     imports += input.equatable && !input.freezed ? "import 'package:equatable/equatable.dart';\n" : "";
-    imports += input.immutable && !input.serializable ? "import 'package:flutter/foundation.dart';\n" : "";
+    imports += input.immutable && !input.serializable || required
+      ? "import 'package:flutter/foundation.dart';\n"
+      : "";
     imports += input.serializable && !input.freezed ? `import 'package:json_annotation/json_annotation.dart';\n` : "";
     imports += input.freezed ? "import 'package:freezed_annotation/freezed_annotation.dart';\n" : "";
 
@@ -583,7 +685,7 @@ export class ClassDefinition {
       var sb = "";
       sb += "\t";
       sb += this.addType(f, input);
-      sb += `get ${publicName} => $privateFieldName;\n\tset ${publicName}(`;
+      sb += `get ${publicName} => ${privateName};\n\tset ${publicName}(`;
       sb += this.addType(f, input);
       sb += ` ${publicName}) => ${privateName} = ${publicName};`;
       return sb;
@@ -614,21 +716,30 @@ export class ClassDefinition {
     return sb;
   }
 
-  private defaultConstructor(equatable: boolean = false, immutable: boolean = false): string {
+  private defaultConstructor(input: Input): string {
     var sb = "";
-    if (equatable || immutable) {
-      sb += `\t${this.constKeyword(true)}${this.name}({`;
-    } else {
-      sb += `\t${this.constKeyword(false)}${this.name}({`;
-    }
-    var len = Array.from(this.fields).length;
-    var isShort = len < 3;
+    const matchDefaultDate = (f: [string, TypeDefinition]) => {
+      return f[1].isDate && !f[1].isList && f[1].defaultValue;
+    };
+    const invalidConstantValue = Array.from(this.fields).some(matchDefaultDate);
+    sb += `\t${invalidConstantValue ? "" : this.constKeyword(input.isImmutable)}${this.name}({`;
+    const len = Array.from(this.fields).length;
+    const isShort = len < 3;
     this.getFields((f) => {
-      var fieldName = f.getName(this._privateFields);
-      sb += isShort ? `this.${fieldName}` : `\n\t\tthis.${fieldName},`;
-      if (isShort) { sb += ", "; }
+      const fieldName = f.getName(this._privateFields);
+      const thisKeyword = f.isDate && f.defaultValue && !f.isList
+        ? ""
+        : `this.${fieldName}`;
+      const expression = requiredValue(f.required, input.nullSafety)
+        + `${thisKeyword}${defaultValue(f, input.nullSafety)}`;
+      sb += isShort ? expression : printLine(`${expression},`, true, 2);
+      if (isShort) {
+        sb += ", ";
+      }
     });
-    sb += isShort ? "});" : "\n\t});";
+    sb += isShort
+      ? `})${defaultDateTime(this.fields)};`
+      : `\n\t})${defaultDateTime(this.fields)};`;
     return isShort ? sb.replace(", });", "});") : sb;
   }
 
@@ -785,7 +896,7 @@ export class ClassDefinition {
         field += `@JsonSerializable()\n`;
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
         field += `${this.fieldListCodeGen(input)}\n\n`;
-        field += `${this.defaultConstructor(input.isImmutable)}`;
+        field += `${this.defaultConstructor(input)}`;
         if (!input.equatable) {
           field += `${this.toStringMethod(input.toString)}`;
         }
@@ -836,7 +947,7 @@ export class ClassDefinition {
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this.fieldList(input)}\n\n`;
-      field += `${this.defaultConstructor(input.isImmutable)}`;
+      field += `${this.defaultConstructor(input)}`;
       if (!input.equatable) {
         field += `${this.toStringMethod(input.toString)}`;
       }

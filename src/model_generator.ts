@@ -13,6 +13,17 @@ class DartCode extends WithWarning<string> {
     getCode() { return this.result; }
 }
 
+/**
+ * A function that cleans all annotations added by user to JSON key.
+ * @param {string} key a key to be processed.
+ * @returns string value.
+ */
+const cleanKey = (key: string): string => {
+    const search = /([^]@)/gi;
+    const replace = "";
+    return key.replace(search, replace);
+}
+
 export class Hint {
     path: string;
     type: string;
@@ -63,21 +74,25 @@ export class ModelGenerator {
             const _className = pascalCase(className)?.replace(/_/g, "");
             jsonRawData.forEach((value, key) => {
                 var typeDef: TypeDefinition;
-                var hint = this.hintForPath(`${path}/${key}`);
-                var node = navigateNode(astNode, key);
+                var hint = this.hintForPath(`${path}/${cleanKey(key)}`);
+                var node = navigateNode(astNode, cleanKey(key));
                 if (hint !== null && hint !== undefined) {
-                    typeDef = new TypeDefinition(null, key, _className, null, hint.type, value, false, node);
+                    typeDef = new TypeDefinition(
+                        null, key, _className, null, hint.type, value, false, node
+                    );
                 } else {
                     typeDef = typeDefinitionFromAny(value, node);
                 }
-                typeDef.jsonKey = key;
-                typeDef.name = fixFieldName(key, className);
+
+                const name = typeDef.filteredKey(key);
+
+                typeDef.name = fixFieldName(name, className);
                 typeDef.value = value;
                 typeDef.prefix = _className;
                 if (typeDef.type !== null) {
                     if (!typeDef.isPrimitive) {
-                        typeDef.updateImport(key);
-                        const type = pascalCase(key)?.replace(/_/g, "");
+                        typeDef.updateImport(name);
+                        const type = pascalCase(name)?.replace(/_/g, "");
                         if (typeDef.isList) {
                             typeDef.type = typeDef.type?.replace('Class', type);
                         } else {
@@ -86,12 +101,12 @@ export class ModelGenerator {
                     }
                 }
                 if (typeDef.type === null) {
-                    warnings.push(newEmptyListWarn(`${path}/${key}`));
+                    warnings.push(newEmptyListWarn(`${path}/${name}`));
                 }
                 if (typeDef.isAmbiguous) {
-                    warnings.push(newAmbiguousListWarn(`${path}/${key}`));
+                    warnings.push(newAmbiguousListWarn(`${path}/${name}`));
                 }
-                classDefinition.addField(key, typeDef);
+                classDefinition.addField(name, typeDef);
             });
             this.allClasses.push(classDefinition);
             var dependencies = classDefinition.dependencies;

@@ -133,8 +133,7 @@ export async function createClass(settings: InputSettings) {
 
   return new Promise<void>(async (resolve, reject) => {
     classes.map((c) => {
-      const targetPath = `${settings.targetDirectory}/${c.path}.dart`
-
+      const targetPath = `${settings.targetDirectory}/${c.path}.dart`;
       if (fs.existsSync(targetPath)) {
         window.showInformationMessage(`${c.path}.dart already exists`);
         return;

@@ -2,7 +2,6 @@ import { commands, Uri, window, workspace } from "vscode";
 import { printLine } from "./syntax";
 import * as fs from "fs";
 import { Input } from "./input";
-import { handleError } from "./lib";
 
 export class Models {
     private fileName: string = "/models.jsonc";

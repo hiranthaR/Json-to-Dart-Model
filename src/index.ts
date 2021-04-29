@@ -62,6 +62,24 @@ export function activate(context: ExtensionContext) {
 }
 
 /**
+ * Run dart format command to format dart code with formatting that follows Dart guidelines.
+ * @param {string} text the destination directory to be formatted.
+ * 
+ * To format directory test
+ * @example
+ * ```bash
+ * lib test
+ * ```
+ */
+async function dartFormat(directory: string, lastDirectory: string) {
+  const startIndex = directory.indexOf("lib/");
+  const formatDirectory = directory.substring(startIndex).split("/").join(" ");
+  const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
+  let terminal = window.createTerminal();
+  terminal.sendText("dart format bin " + fileDirectory);
+}
+
+/**
  * Run "build_runner build".
  */
 function runGenerator() {
@@ -133,6 +151,14 @@ async function transformFromFile() {
           generateClass(settings);
         }
         window.showInformationMessage('Models successfully added');
+        // Format directories
+        for await (const object of objects.slice(1)) {
+          // Class name key.
+          const key = '__className';
+          // Separate class names from objects.
+          const { [key]: className } = object;
+          await dartFormat(targetDirectory, className);
+        }
         if (input.generate) {
           runGenerator();
         }
@@ -183,6 +209,7 @@ async function transformFromSelection(uri: Uri) {
         json,
         input
       ))).then((_) => {
+        dartFormat(<string>targetDirectory, "models");
         if (input.generate) {
           runGenerator()
         }
@@ -231,6 +258,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
         input
       )))
     .then((_) => {
+      dartFormat(<string>targetDirectory, "models");
       if (input.generate) {
         runGenerator()
       }
@@ -277,6 +305,7 @@ async function transformFromClipboard(uri: Uri) {
         json,
         input
       ))).then((_) => {
+        dartFormat(<string>targetDirectory, "models");
         if (input.generate) {
           runGenerator()
         }
@@ -324,6 +353,7 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
         input
       )))
     .then((_) => {
+      dartFormat(<string>targetDirectory, "models");
       if (input.generate) {
         runGenerator()
       }
