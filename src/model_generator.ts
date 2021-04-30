@@ -231,7 +231,6 @@ export class ModelGenerator {
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. If the generated dart is invalid it will throw an error.
     generateDartClasses(rawJson: string): Array<ClassDefinition> {
-        rawJson = rawJson.split("null").join(`\"\"`);
         return this.generateUnsafeDart(rawJson);
     }
 }

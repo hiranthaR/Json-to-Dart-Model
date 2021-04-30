@@ -74,7 +74,7 @@ const defaultValue = (
   nullable: boolean = false,
   freezed: boolean = false,
 ): string => {
-  if (!typeDef.defaultValue) return "";
+  if (!typeDef.defaultValue) { return ""; }
   if (typeDef.isList && typeDef.type !== null) {
     const listType = typeDef.type?.replace(/List/g, "");
     const listTypes = filterListType(typeDef.type);
@@ -106,7 +106,8 @@ const defaultValue = (
 
 const defaultDateTime = (
   fields: Map<string, TypeDefinition>,
-  freezed: boolean = false
+  freezed: boolean = false,
+  nullSafety: boolean = false,
 ): string => {
   let sb = "";
   let dates = Array.from(fields).filter(
@@ -114,13 +115,25 @@ const defaultDateTime = (
   );
   if (!dates.length) { return sb; }
   if (freezed) {
-    for (const field of dates) {
-      const typeDef = field[1];
-      const optional = camelCase(typeDef.prefix) + pascalCase(typeDef.name);
+    for (let i = 0; i < dates.length; i++) {
+      const typeDef = dates[i][1];
+      const optional = 'optional' + pascalCase(typeDef.name);
+      const expressionBody = (): string => {
+        let body = '';
+        body += printLine(`DateTime get ${typeDef.name} => ${optional}`, true, 1);
+        body += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)};`);
+        return body;
+      };
+      const blockBody = (): string => {
+        let body = '';
+        body += printLine(`DateTime get ${typeDef.name} {`, true, 1);
+        body += printLine(`return ${optional} ?? ${parseDateTime(`'${typeDef.value}'`, true,)};`, true, 2);
+        body += printLine('}', true, 1);
+        return body;
+      };
       sb += '\n';
-      sb += printLine('@late', true, 1);
-      sb += printLine(`DateTime get ${typeDef.name} => ${optional}`, true, 1);
-      sb += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)};`);
+      sb += nullSafety ? '' : printLine('@late', true, 1);
+      sb += expressionBody().length > 78 ? blockBody() : expressionBody();
     }
   } else {
     for (let i = 0; i < dates.length; i++) {
@@ -136,7 +149,7 @@ const defaultDateTime = (
     }
   }
   return sb;
-}
+};
 
 const requiredValue = (required: boolean = false, nullSafety: boolean = false): string => {
   if (required) {
@@ -144,7 +157,7 @@ const requiredValue = (required: boolean = false, nullSafety: boolean = false): 
   } else {
     return "";
   }
-}
+};
 
 /**
  * Returns a string representation of a value obtained from a JSON
@@ -537,12 +550,18 @@ export class ClassDefinition {
    */
   private freezedField(input: Input): string {
     var sb = "";
+    const nonConstatValue = Array.from(this.fields).some((f) => {
+      return f[1].isDate && !f[1].isList && f[1].defaultValue;
+    });
+    const privatConstructor = input.nullSafety && nonConstatValue
+      ? printLine(`\n${this.name}._();`, true, 1)
+      : '';
     sb += printLine("@freezed");
     sb += printLine(`${input.nullSafety ? "" : "abstract "}class ${this.name} with `, true);
     sb += printLine(`_$${this.name} {`);
     sb += printLine(`factory ${this.name}({`, true, 1);
     for (var [name, typeDef] of this.fields) {
-      const optional = camelCase(typeDef.prefix) + pascalCase(typeDef.name);
+      const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
       const jsonKey = `@JsonKey(name: '${name}') `;
       const defaultVal = defaultValue(typeDef, input.nullSafety, true);
@@ -555,8 +574,9 @@ export class ClassDefinition {
       }
     };
     sb += printLine(`}) = _${this.name};`, true, 1);
+    sb += privatConstructor;
     sb += printLine(`${this.codeGenJsonParseFunc(true)}`);
-    sb += defaultDateTime(this.fields, true);
+    sb += defaultDateTime(this.fields, true, input.nullSafety);
     sb += printLine("}", true);
     return sb;
   }
@@ -721,8 +741,8 @@ export class ClassDefinition {
     const matchDefaultDate = (f: [string, TypeDefinition]) => {
       return f[1].isDate && !f[1].isList && f[1].defaultValue;
     };
-    const invalidConstantValue = Array.from(this.fields).some(matchDefaultDate);
-    sb += `\t${invalidConstantValue ? "" : this.constKeyword(input.isImmutable)}${this.name}({`;
+    const nonConstantValue = Array.from(this.fields).some(matchDefaultDate);
+    sb += `\t${nonConstantValue ? "" : this.constKeyword(input.isImmutable)}${this.name}({`;
     const len = Array.from(this.fields).length;
     const isShort = len < 3;
     this.getFields((f) => {
