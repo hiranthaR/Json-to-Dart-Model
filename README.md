@@ -30,6 +30,7 @@
         <li><a href="#convert-from-clipboard-to-code-generation-libraries-supported-model-classes">Convert from clipboard to code generation</a></li>
         <li><a href="#convert-from-selection-to-code-generation-libraries-supported-model-classes">Convert from selection to code generation</a></li>
         <li><a href="#convert-from-file">Convert from file</a></li>
+        <li><a href="#annotations">Annotations</a></li>
         <li><a href="#speed-up-converting">Speed up converting</a></li>
       </ul>
     <li>
@@ -175,6 +176,22 @@ Your final result should look like this:
 
 > TIP: this may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
 
+<!-- ANNOTATIONS -->
+## Annotations
+
+It is possible to mark `JSON` values as default or required. Everything that do you need to do, just add to your `JSON` key `d@` or `r@` and Json to Dart Model will generate them for you.
+
+- `d@` - Marks as default value.
+- `r@` - Marks as required value.
+
+```jsonc
+{
+  "r@id": 1,
+  "d@title": "Json To Dart Model",
+}
+```
+> ***Note:*** what happens if I use multiple annotations `"r@d@key"` then the generator will prioritize the default value and generate value as the default since only named parameters without a default value can be with required.
+
 <!-- SPEED UP CONVERTING -->
 ## Speed Up Converting
 
@@ -295,16 +312,18 @@ To add Equatable support you just have to select `Yes` when the process of parsi
 <!-- EQUALITY OPERATOR -->
 ## Equality Operator
 
-If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator `==` with less boilerplate syntax. And customize your class as mutable.
+If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator and customize your class as mutable.
 
 ```dart
 @override
-bool operator ==(Object o) =>
-    o is Todos &&
-    identical(o.userId, userId) &&
-    identical(o.id, id) &&
-    identical(o.title, title) &&
-    identical(o.completed, completed);
+bool operator ==(Object other) {
+  if(identical(other, this)) return true;
+  return other is Todos &&
+    other.userId == userId &&
+    other.id == id &&
+    other.title == title &&
+    other.completed == completed;
+}
 
 @override
 int get hashCode => hashValues(userId, id, title, completed);
