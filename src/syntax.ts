@@ -654,14 +654,21 @@ export class ClassDefinition {
    */
   private importsFromPackage(input: Input): string {
     var imports = "";
-    var required = Array.from(this.fields).some((f) => f[1].required);
+    const required = Array.from(this.fields.values()).some((f) => f.required && !input.nullSafety);
+    const listEquality = Array.from(this.fields.values()).some((f) => f.isList && input.equality);
     // Sorted alphabetically for effective dart style.
-    imports += input.equatable && !input.freezed ? "import 'package:equatable/equatable.dart';\n" : "";
-    imports += input.immutable && !input.serializable || required
+    imports += input.equatable && !input.freezed
+      ? "import 'package:equatable/equatable.dart';\n"
+      : "";
+    imports += input.immutable && !input.serializable || required || listEquality
       ? "import 'package:flutter/foundation.dart';\n"
       : "";
-    imports += input.serializable && !input.freezed ? `import 'package:json_annotation/json_annotation.dart';\n` : "";
-    imports += input.freezed ? "import 'package:freezed_annotation/freezed_annotation.dart';\n" : "";
+    imports += input.serializable && !input.freezed
+      ? `import 'package:json_annotation/json_annotation.dart';\n`
+      : "";
+    imports += input.freezed
+      ? "import 'package:freezed_annotation/freezed_annotation.dart';\n"
+      : "";
 
     if (imports.length === 0) {
       return imports;
@@ -834,9 +841,9 @@ export class ClassDefinition {
     if (!toString) { return ''; }
     var fieldName = (name: string): string => `${name}: $${name}`;
     var expressionBody = `\n\n\t@override\n\tString toString() => `
-      + `'${this.name}(${this.getFields((f) => fieldName(f.getName(this._privateFields))).join(', ')})';`.replace(' \'', '\'');
+      + `'${this.name}(${this.getFields((f) => fieldName(f.name)).join(', ')})';`.replace(' \'', '\'');
     var blockBody = `\n\n\t@override\n\tString toString() {\n\t\treturn '`
-      + `${this.name}(${this.getFields((f) => fieldName(f.getName(this._privateFields))).join(', ')})';\n\t}`;
+      + `${this.name}(${this.getFields((f) => fieldName(f.name)).join(', ')})';\n\t}`;
     var isShort = expressionBody.length < 76;
     return isShort ? expressionBody : blockBody;
   }
@@ -847,15 +854,23 @@ export class ClassDefinition {
    */
   private equalityOperator(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
-    var fieldName = (name: string): string => `identical(o.${name}, ${name})`;
-    var expressionBody = `\n\n\t@override\n\tbool operator ==(Object o) => o is `
-      + `${this.name} && `
-      + `${this.getFields((f) => fieldName(f.getName(this._privateFields))).join(' &&')};`.replace(' &&;', ';');
-    var blockBody = `\n\n\t@override\n\tbool operator ==(Object o) =>\n\t\t\to is `
-      + `${this.name} &&\n\t\t\t`
-      + `${this.getFields((f) => fieldName(f.getName(this._privateFields))).join(' &&\n\t\t\t')};`.replace(' &&;', ';');
-    var isShort = expressionBody.length < 89;
-    return isShort ? expressionBody : blockBody;
+    const fields = Array.from(this.fields.values());
+    let sb = '\n';
+    sb += printLine('@override', true, 1);
+    sb += printLine('bool operator ==(Object other) {', true, 1);
+    sb += printLine('if (identical(other, this)) return true;', true, 2);
+    sb += printLine(`return other is ${this.name} &&\n\t\t\t`, true, 2);
+    for (let i = 0; i < fields.length; i++) {
+      const field = fields[i];
+      const operator = fields.length - 1 === i ? ';' : ' &&\n\t\t\t\t';
+      if (field.isList) {
+        sb += `listEquals(other.${field.name}, ${field.name})` + operator;
+      } else {
+        sb += `other.${field.name} == ${field.name}` + operator;
+      }
+    }
+    sb += printLine('}', true, 1);
+    return sb;
   }
 
   private hashCode(input: Input): string {
