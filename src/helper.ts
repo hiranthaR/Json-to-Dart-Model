@@ -126,8 +126,8 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
 }
 
 export function getTypeName(obj: any): string {
-    var type = typeof obj + "";
-    if (obj === "" || obj === "undefined") {
+    var type = typeof obj;
+    if (obj === null || obj === "undefined") {
         return 'dynamic';
     } else if (isDate(obj) && type === "string") {
         return 'DateTime';

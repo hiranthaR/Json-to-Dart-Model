@@ -2,7 +2,6 @@ import { commands, Uri, window, workspace } from "vscode";
 import { printLine } from "./syntax";
 import * as fs from "fs";
 import { Input } from "./input";
-import { handleError } from "./lib";
 
 export class Models {
     private fileName: string = "/models.jsonc";
@@ -67,10 +66,10 @@ export class Models {
         sb += printLine('// FOR EXAMPLE:', true, 1);
         sb += printLine('/*\n', true, 1);
         sb += printLine('{', true, 1);
-        sb += printLine('"__className": "UserPost",', true, 2);
+        sb += printLine('"__className": "UserPost", // <- The base class name of the object.', true, 2);
         sb += printLine('"userId": 1,', true, 2);
-        sb += printLine('"id": 1,', true, 2);
-        sb += printLine('"title": "Json To Dart Model",', true, 2);
+        sb += printLine('"id": 1, // To mark as required value, change "id" to "d@id".', true, 2);
+        sb += printLine('"title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".', true, 2);
         sb += printLine('"body": "Json to Dart advanced..."', true, 2);
         sb += printLine('}\n', true, 1);
         sb += printLine('*/', true, 1);
