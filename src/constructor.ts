@@ -48,6 +48,14 @@ interface TypeDefinitionInterface {
    * If the value type is List, returns true.
    */
   isList: boolean;
+  /** 
+   * If it's true the value is marked as required.
+   */
+  required: boolean;
+  /** 
+  * If it's true the JSON value is marked as default.
+  */
+  defaultValue: boolean;
   /**
    * Get name of value.
    * @param {boolean} isPrivate returns as private or not.
@@ -65,6 +73,13 @@ interface TypeDefinitionInterface {
    * @param other a value to compare.
    */
   hasValue(other: any): boolean;
+  /**
+   * A function that returns raw JSON key by cleaning some annotations added by the user
+   * and marks properties according to the user's preferences.
+   * @param {string} key a key to be processed.
+   * @returns string value.
+   */
+  filteredKey(key: string): string;
 }
 
 /**
@@ -82,6 +97,8 @@ export class TypeDefinition implements TypeDefinitionInterface {
   isPrimitive = false;
   isDate = false;
   isList = false;
+  required = false;
+  defaultValue = false;
 
   constructor(
     importName: string | null,
@@ -94,7 +111,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
     astNode: ASTNode,
   ) {
     this._importName = importName;
-    this.jsonKey = jsonKey;
+    this.jsonKey = this.filteredKey(jsonKey);
     this.prefix = className;
     this.type = type;
     this.name = name;
@@ -119,6 +136,22 @@ export class TypeDefinition implements TypeDefinitionInterface {
 
   get importName() {
     return this._importName;
+  }
+
+  filteredKey(key: string): string {
+    const search = /([^]@)/gi;
+    const replace = "";
+
+    if (key.match(/d@/gi)) {
+      this.defaultValue = true;
+    }
+    if (key.match(/r@/gi)) {
+      this.required = this.defaultValue ? false : true;
+    }
+
+    this.jsonKey = key.replace(search, replace);
+
+    return this.jsonKey;
   }
 
   getName(isPrivate: boolean = false): string {
