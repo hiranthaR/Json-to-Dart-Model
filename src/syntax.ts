@@ -132,8 +132,12 @@ const defaultDateTime = (
         return body;
       };
       sb += '\n';
-      sb += nullSafety ? '' : printLine('@late', true, 1);
-      sb += expressionBody().length > 78 ? blockBody() : expressionBody();
+      if (!nullSafety) {
+        sb += printLine('@late', true, 1);
+        sb += expressionBody();
+      } else {
+        sb += expressionBody().length > 78 ? blockBody() : expressionBody();
+      }
     }
   } else {
     for (let i = 0; i < dates.length; i++) {
