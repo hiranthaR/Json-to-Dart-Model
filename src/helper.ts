@@ -51,10 +51,7 @@ const keywords = ["String", "int", "bool", "num", "double", "dynamic", "DateTime
  * ```
  */
 export function filterListType(typeName: string): string[] {
-    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
-    const _onlyList = (value: string) => value === "List";
-    const result = split.filter(_onlyList);
-    return result;
+    return typeName.match(/\bList\b/g) ?? [];
 };
 
 /**
@@ -65,22 +62,18 @@ export function filterListType(typeName: string): string[] {
  */
 export const isPrimitiveType = (typeName: string): boolean => {
     const identical = typeName === typeName.trim() ? true : false;
-    const arrowToLeft = typeName.split("").filter((e) => e === "<");
-    const leftArrows = arrowToLeft.map(
-        (_, __, arr) => typeName.split("")[arr.length * 5 - 1]
-    );
-    const arrowToRight = typeName.split("").filter((e) => e === ">");
-    const rightArrows = typeName.split("").splice(-arrowToRight.length);
-    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
-    const _ignoreEmpty = (value: string) => value !== "";
-    const values = split.filter(_ignoreEmpty);
-    const lists = values.filter((e) => e === "List");
+    const lists = typeName.match(/List/g) ?? [];
+    const values = typeName.split(/<|>|\ /g).filter((v) => v !== "");
+    const toLeft = typeName.match(/</g) ?? [];
+    const leftArrows = toLeft.map((_, i) => typeName.split("")[(i + 1) * 5 - 1]);
+    const toRight = typeName.match(/>/g) ?? [];
+    const rightArrows = typeName.split("").splice(-toRight.length);
     const validListSyntax =
         leftArrows.every((e) => e === "<") &&
         rightArrows.every((e) => e === ">") &&
-        arrowToRight.length === arrowToLeft.length &&
-        lists.length === arrowToRight.length &&
-        lists.length === arrowToLeft.length;
+        toRight.length === toLeft.length &&
+        lists.length === toRight.length &&
+        lists.length === toLeft.length;
     const validValue = values.every((e) => ["List", ...keywords].includes(e));
     const validSyntax = lists.length
         ? validListSyntax && validValue

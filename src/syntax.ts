@@ -183,6 +183,11 @@ export const joinAsClass = (key: string, value: string): string => {
 const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): string => {
   const jsonValue = valueFromJson(key);
   const type = typeDef.type;
+  // IMPORTANT. To keep the formatting correct.
+  // By using block body. Default tabs are longTab = 5; shortTab = 3; 
+  // By using expresion body. Default tabs are longTab = 6; shortTab = 4; 
+  const longTab = 6;
+  const shortTab = 4;
   let formatedValue = '';
   if (type !== null && !typeDef.isPrimitive || type !== null && typeDef.isDate) {
     if (typeDef.isList) {
@@ -193,7 +198,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
       formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input)})`);
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
-        const tabs = 5 + index;
+        const tabs = longTab + index;
         if (input.nullSafety) {
           if (i === 0) {
             formatedValue += printLine(`?.map((e) => (e as List<dynamic>)`, true, tabs);
@@ -205,7 +210,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
         }
       }
       if (input.nullSafety) {
-        const tabs = 3 + 2 * result.length;
+        const tabs = shortTab + 2 * result.length;
         if (result.length > 1) {
           if (typeDef.isDate) {
             formatedValue += printLine(`.map((e) => ${parseDateTime("e")})`, true, tabs);
@@ -220,28 +225,28 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
           }
         }
       } else {
-        formatedValue += printLine(`?.map((e) => e == null`, true, 3 + 2 * result.length);
-        formatedValue += printLine(`? null`, true, 5 + 2 * result.length);
+        formatedValue += printLine(`?.map((e) => e == null`, true, shortTab + 2 * result.length);
+        formatedValue += printLine(`? null`, true, longTab + 2 * result.length);
         if (typeDef.isDate) {
-          formatedValue += printLine(`: ${parseDateTime("e")})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${parseDateTime("e")})`, true, longTab + 2 * result.length);
         } else {
-          formatedValue += printLine(`: ${buildParseClass(key, "e")})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${buildParseClass(key, "e")})`, true, longTab + 2 * result.length);
         }
       }
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
-        const tabs = 3 + 2 * result.length - index;
+        const tabs = shortTab + 2 * result.length - index;
         formatedValue += printLine(input.nullSafety ? `.toList())` : `?.toList())`, true, tabs);
       }
-      formatedValue += printLine(input.nullSafety ? `.toList()` : `?.toList()`, true, 5);
+      formatedValue += printLine(input.nullSafety ? `.toList()` : `?.toList()`, true, longTab);
     } else {
       // Class
       formatedValue += printLine(`${jsonValue} == null`);
-      formatedValue += printLine(`? null`, true, 5);
+      formatedValue += printLine(`? null`, true, longTab);
       if (typeDef.isDate) {
-        formatedValue += printLine(`: ${parseDateTime(jsonValue)}`, true, 5);
+        formatedValue += printLine(`: ${parseDateTime(jsonValue)}`, true, longTab);
       } else {
-        formatedValue += printLine(`: ${buildParseClass(key, jsonValue)}`, true, 5);
+        formatedValue += printLine(`: ${buildParseClass(key, jsonValue)}`, true, longTab);
       }
     }
   }
@@ -775,25 +780,50 @@ export class ClassDefinition {
   }
 
   private jsonParseFunc(input: Input): string {
-    var sb = "\n\n";
-    sb += `\tfactory ${this.name}`;
-    sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this.name}(\n`;
-    sb += this.getFields((f, k) => {
-      return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
-    }).join('\n');
-    sb += "\n\t\t);\n\t}";
-    return sb;
+    const blockBody = (): string => {
+      let sb = "\n\n";
+      sb += `\tfactory ${this.name}`;
+      sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this.name}(\n`;
+      sb += this.getFields((f, k) => {
+        return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+      }).join('\n');
+      sb += "\n\t\t);\n\t}";
+      return sb;
+    };
+    const expressionBody = (): string => {
+      let sb = "\n\n";
+      sb += `\tfactory ${this.name}`;
+      sb += `.fromJson(Map<String, dynamic> json) => ${this.name}(\n`;
+      sb += this.getFields((f, k) => {
+        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+      }).join('\n');
+      sb += "\n\t\t\t);";
+      return sb;
+    };
+    return expressionBody();
   }
 
   private toJsonFunc(input: Input): string {
-    var sb = "";
-    sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
-    this.getFields((f) => {
-      sb += `\t\t\t${toJsonExpression(f, this._privateFields, input.nullSafety)}\n`;
-    });
-    sb += "\t\t};\n";
-    sb += "\t}";
-    return sb;
+    const blocBody = (): string => {
+      let sb = "";
+      sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
+      this.getFields((f) => {
+        sb += `\t\t\t${toJsonExpression(f, this._privateFields, input.nullSafety)}\n`;
+      });
+      sb += "\t\t};\n";
+      sb += "\t}";
+      return sb;
+    };
+    const expressionBody = (): string => {
+      var sb = "";
+      sb += "\tMap<String, dynamic> toJson() => {\n";
+      this.getFields((f) => {
+        sb += `\t\t\t\t${toJsonExpression(f, this._privateFields, input.nullSafety)}\n`;
+      });
+      sb += "\t\t\t};";
+      return sb;
+    };
+    return expressionBody();
   }
 
   /**
