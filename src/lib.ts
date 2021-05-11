@@ -3,8 +3,8 @@ import { ViewColumn, window } from "vscode";
 import * as fs from "fs";
 import { ModelGenerator } from "./model_generator";
 import { ClassDefinition } from "./syntax";
-import { Input } from "./input";
-import { pascalCase, snakeCase } from "./helper";
+import { pascalCase } from "./helper";
+import { Settings } from "./settings";
 
 export function getClipboardText() {
   try {
@@ -98,35 +98,8 @@ export function mapTsTypeToDartType(
   return types[type] ?? type;
 }
 
-export class InputSettings {
-  className: string;
-  targetDirectory: string;
-  object: string;
-  input: Input;
-  isFromFile: boolean;
-
-  constructor(
-    className: string,
-    targetDirectory: string,
-    object: string,
-    input: Input,
-    isFromFile: boolean = false,
-  ) {
-    this.className = className;
-    this.targetDirectory = targetDirectory;
-    this.object = object;
-    this.input = input;
-    this.isFromFile = isFromFile;
-    if (isFromFile) {
-      this.targetDirectory = `${targetDirectory}/${snakeCase(className)}`;
-    } else {
-      this.targetDirectory = `${targetDirectory}/models`;
-    }
-  }
-}
-
-export async function createClass(settings: InputSettings) {
-  var modelGenerator = new ModelGenerator(settings.className);
+export async function createClass(settings: Settings) {
+  var modelGenerator = new ModelGenerator(settings);
   var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
     settings.object
   );

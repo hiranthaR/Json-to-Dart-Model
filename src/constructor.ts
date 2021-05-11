@@ -1,5 +1,5 @@
 import { ASTNode } from "json-to-ast";
-import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, snakeCase } from "./helper";
+import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, pascalCase, snakeCase } from "./helper";
 import * as _ from "lodash";
 
 interface TypeDefinitionInterface {
@@ -162,7 +162,15 @@ export class TypeDefinition implements TypeDefinitionInterface {
     if (!this.isPrimitive) {
       this._importName = snakeCase(name);
     } else {
-      throw new Error(`TypeDefinition: Primitive objects cannot be imported and cannot be updated`);
+      throw new Error(`TypeDefinition: import can't be added to a primitive object.`);
+    }
+  }
+
+  updateObjectType(name: string) {
+    if (!this.isPrimitive) {
+      this.type = pascalCase(name);
+    } else {
+      throw new Error(`TypeDefinition: primitive objects can't be updated.`);
     }
   }
 

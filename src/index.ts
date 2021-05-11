@@ -14,7 +14,6 @@ import {
   validateLength,
   createClass,
   appendPubspecDependencies,
-  InputSettings,
 } from "./lib";
 
 import * as fs from "fs";
@@ -24,6 +23,7 @@ import * as mkdirp from "mkdirp";
 import cp = require("child_process");
 import { getUserInput, Input } from "./input";
 import { Models } from "./models_file";
+import { Settings } from "./settings";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -141,7 +141,7 @@ async function transformFromFile() {
           // Conver back to json.
           const json = JSON.stringify(jsonObject);
           // Set settings.
-          const settings = new InputSettings(
+          const settings = new Settings(
             className,
             <string>targetDirectory,
             json,
@@ -203,7 +203,7 @@ async function transformFromSelection(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(
+      generateClass(new Settings(
         className,
         <string>targetDirectory,
         json,
@@ -211,7 +211,7 @@ async function transformFromSelection(uri: Uri) {
       ))).then((_) => {
         dartFormat(<string>targetDirectory, "models");
         if (input.generate) {
-          runGenerator()
+          runGenerator();
         }
       })
     .catch(handleError);
@@ -251,7 +251,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
   getSelectedText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(
+      generateClass(new Settings(
         className,
         <string>targetDirectory,
         json,
@@ -260,7 +260,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
     .then((_) => {
       dartFormat(<string>targetDirectory, "models");
       if (input.generate) {
-        runGenerator()
+        runGenerator();
       }
     }).catch(handleError);
 }
@@ -299,7 +299,7 @@ async function transformFromClipboard(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(
+      generateClass(new Settings(
         className,
         <string>targetDirectory,
         json,
@@ -307,7 +307,7 @@ async function transformFromClipboard(uri: Uri) {
       ))).then((_) => {
         dartFormat(<string>targetDirectory, "models");
         if (input.generate) {
-          runGenerator()
+          runGenerator();
         }
       })
     .catch(handleError);
@@ -346,16 +346,16 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
   getClipboardText()
     .then(validateLength)
     .then((json) =>
-      generateClass(new InputSettings(
+      generateClass(new Settings(
         className,
         <string>targetDirectory,
         json,
         input
       )))
-    .then((_) => {
+    .then((a) => {
       dartFormat(<string>targetDirectory, "models");
       if (input.generate) {
-        runGenerator()
+        runGenerator();
       }
     }).catch(handleError);
 }
@@ -384,7 +384,7 @@ async function promptForTargetDirectory(): Promise<string | undefined> {
   });
 }
 
-async function generateClass(settings: InputSettings) {
+async function generateClass(settings: Settings) {
   const classDirectoryPath = `${settings.targetDirectory}`;
   if (!fs.existsSync(classDirectoryPath)) {
     await createDirectory(classDirectoryPath);

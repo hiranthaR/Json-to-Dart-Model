@@ -87,15 +87,28 @@ export const isPrimitiveType = (typeName: string): boolean => {
 
 export const isList = (text: string): boolean => text.startsWith("List<");
 export const camelCase = (text: string): string => changeCase.camelCase(text);
-export const pascalCase = (text: string): string => changeCase.pascalCase(text);
+export const pascalCase = (text: string): string => {
+    return changeCase.pascalCase(text).replace(/_/g, '');
+};
 export const snakeCase = (text: string): string => changeCase.snakeCase(text);
 export const snakeToCamel = (text: string) => text.replace(
     /([-_][a-z])/g,
     (group) => group.toUpperCase().replace('-', '').replace('_', '')
 );
 
+/**
+ * Supported date formats.
+ * 
+ * * 2008-09-15T15:53:00
+ * * 2007-03-01T13:00:00Z
+ * * 2015-10-05T21:46:54-1500
+ * * 2015-10-05T21:46:54+07:00
+ * * 2020-02-06T14:00:00+00:00
+ * @param {string} date formated date string.
+ * @returns true if include supported formats.
+ */
 export function isDate(date: string): boolean {
-    const datePattern = /^(?:[1-9]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)/g;
+    const datePattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(Z|[\+-]\d{2}:?\d{2})?$/gm;
     return datePattern.exec(date) !== null ? true : false;
 }
 

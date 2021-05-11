@@ -5,6 +5,7 @@ import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
 import parse = require("json-to-ast");
 import * as _ from "lodash";
+import { ISettings } from "./settings";
 
 class DartCode extends WithWarning<string> {
     constructor(result: string, warnings: Array<Warning>) {
@@ -22,7 +23,7 @@ const cleanKey = (key: string): string => {
     const search = /([^]@)/gi;
     const replace = "";
     return key.replace(search, replace);
-}
+};
 
 export class Hint {
     path: string;
@@ -35,14 +36,20 @@ export class Hint {
 }
 
 export class ModelGenerator {
+    private _settings: ISettings;
     private _rootClassName: string;
     private _privateFields: boolean;
     private allClasses = new Array<ClassDefinition>();
     private allClassMapping = new Map<ClassDefinition, Dependency>();
     hints: Array<Hint>;
 
-    constructor(rootClassName: string, privateFields = false, hints: Array<Hint> | null = null) {
-        this._rootClassName = rootClassName;
+    constructor(
+        settings: ISettings,
+        privateFields = false,
+        hints: Array<Hint> | null = null
+    ) {
+        this._settings = settings;
+        this._rootClassName = settings.className;
         this._privateFields = privateFields;
         if (hints !== null) {
             this.hints = hints;
@@ -71,7 +78,7 @@ export class ModelGenerator {
         } else {
             var jsonRawData: Map<any, any> = new Map(Object.entries(jsonRawDynamicData));
             var classDefinition = new ClassDefinition(className, this._privateFields);
-            const _className = pascalCase(className)?.replace(/_/g, "");
+            const _className = pascalCase(className);
             jsonRawData.forEach((value, key) => {
                 var typeDef: TypeDefinition;
                 var hint = this.hintForPath(`${path}/${cleanKey(key)}`);
@@ -92,7 +99,7 @@ export class ModelGenerator {
                 if (typeDef.type !== null) {
                     if (!typeDef.isPrimitive) {
                         typeDef.updateImport(name);
-                        const type = pascalCase(name)?.replace(/_/g, "");
+                        const type = pascalCase(name);
                         if (typeDef.isList) {
                             typeDef.type = typeDef.type?.replace('Class', type);
                         } else {
@@ -221,9 +228,9 @@ export class ModelGenerator {
         // After generating all classes, merge similar classes with paths.
         //
         // If duplicates are detected create a new path.
-        if (this.duplicatesKeys.length) {
-            this.mergeSimilarDefinitions();
-        }
+        //if (this.duplicatesKeys.length) {
+        //    this.mergeSimilarDefinitions();
+        //}
         return this.allClasses;
     }
 
