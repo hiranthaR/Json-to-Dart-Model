@@ -1,5 +1,5 @@
 import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, Dependency, } from "./syntax";
-import { navigateNode, mergeObjectList, pascalCase, fixFieldName, camelCase, snakeCase, getObject } from "./helper";
+import { navigateNode, mergeObjectList, pascalCase, fixFieldName } from "./helper";
 import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
@@ -58,10 +58,11 @@ export class ModelGenerator {
         }
     }
 
-    get duplicatesKeys() {
-        const getName = (c: ClassDefinition): string => camelCase(c.name);
+    get duplicates(): ClassDefinition[] {
+        const getPath = (c: ClassDefinition): string => c.path;
         const duplicatesOnly = (v: string, i: number, arr: string[]) => arr.indexOf(v) !== i;
-        return this.allClasses.map(getName).filter(duplicatesOnly) || [];
+        const paths = this.allClasses.map(getPath).filter(duplicatesOnly) || [];
+        return this.allClasses.filter((c) => paths.includes(c.path)) || [];
     }
 
     private hintForPath(path: string): Hint {
@@ -153,16 +154,19 @@ export class ModelGenerator {
         return warnings;
     }
 
-    private mergeDefinitions(arr: [ClassDefinition, Dependency][]) {
-        arr.forEach(([cd, d], i) => {
+    private async mergeDefinitions(arr: [ClassDefinition, Dependency][]) {
+        for (let i = 0; i < arr.length; i++) {
+            let cd = arr[i][0];
+            let d = arr[i][1];
             let paths = arr.map((c) => c[0].path);
             let count: any = {};
+
             if (paths.indexOf(cd.path) !== i) {
                 let p = cd.path;
                 let c = p in count ? count[p] = count[p] + 1 : count[p] = 1;
                 let idx = c;
                 // A class name for duplicate object.
-                let prefix = snakeCase(d.typeDef.prefix) + "_";
+                let prefix = d.typeDef.prefix + "_";
                 let path = prefix + p;
 
                 if (paths.indexOf(path) === -1) {
@@ -179,35 +183,81 @@ export class ModelGenerator {
                 // Navigate object to file.
                 d.typeDef.updateImport(path);
             }
-        });
+        }
     }
 
-    private definitionByDependence(dependency: Dependency): ClassDefinition | undefined {
+    private async sortByDependency(dependency: Dependency): Promise<ClassDefinition | undefined> {
         let classDef;
-        classDef = this.allClasses.find(c => {
-            if (dependency.typeDef.isList) {
-                return c.hasPath(dependency.typeDef.importName!)
-                    && c.hasValue(getObject(dependency.typeDef.value));
-            } else {
-                return c.hasPath(dependency.typeDef.importName!)
-                    && c.hasValue(dependency.typeDef.value);
-            }
+        classDef = this.allClasses.find((c) => {
+            const path = dependency.typeDef.importName;
+            const value = dependency.typeDef.value;
+
+            if (path === null) {
+                return false;
+            };
+
+            return c.hasPath(path) && c.hasValue(value);
         });
         if (classDef === undefined) {
-            console.log(`ModelGenerator: definitionByDependence => found undefined object`);
+            console.log(`ModelGenerator: sortByDependency => found undefined object`);
         }
         return classDef;
     }
 
-    private mergeSimilarDefinitions() {
-        for (const definition of this.allClasses) {
-            definition.dependencies.forEach((dependency) => {
-                const classDef = this.definitionByDependence(dependency)!;
-                if (classDef !== undefined) {
-                    this.allClassMapping.set(classDef, dependency);
+    private getDuplicatesByDependency(
+        dependency: Dependency,
+        callbackfn: (classDefinition: ClassDefinition, dependency: Dependency, index: number) => void
+    ) {
+        for (let i = 0; i < this.allClasses.length; i++) {
+            const c = this.allClasses[i];
+            const field = dependency.typeDef;
+            const value = dependency.typeDef.value;
+
+            if (c.hasField(field) && c.hasEqualField(value)) {
+                return callbackfn(c, dependency, i);
+            }
+        }
+    }
+
+    private updateDependecies(key: ClassDefinition, dependency: Dependency) {
+        for (const c of this.allClasses) {
+            for (let d of c.dependencies) {
+                const path = dependency.typeDef.importName;
+                const value = dependency.typeDef.value;
+                const prefix = this.allClassMapping.get(key)?.typeDef.prefix + '_';
+
+                if (d.typeDef.importName === path && d.typeDef.hasValue(value)) {
+                    d.typeDef.updateImport(prefix + path);
                 }
-            });
+            }
+        }
+    }
+
+    private async handleDuplicates() {
+        for await (const definition of this.allClasses) {
+            for (const dependency of definition.dependencies) {
+                const classDef = await this.sortByDependency(dependency);
+                if (classDef !== undefined) {
+                    if (this.duplicates.includes(classDef)) {
+                        this.getDuplicatesByDependency(dependency, (c, d, i) => {
+                            if (!this.allClassMapping.has(c)) {
+                                this.allClassMapping.set(c, d);
+                            }
+
+                            if (this.allClasses.map((v) => v.path).indexOf(c.path) !== i) {
+                                // Update all all existing dependencies.
+                                this.updateDependecies(c, d);
+                                // Update file path.
+                                //c.updatePath(c.path + this.allClassMapping.get(c)?.typeDef.prefix);
+                            }
+                        });
+                    } else {
+                        this.allClassMapping.set(classDef, dependency);
+                    }
+                }
+            }
         };
+
         const definitions = Array.from(this.allClassMapping);
         definitions.sort((a, b) => a[0].name.localeCompare(b[0].name));
         this.mergeDefinitions(definitions);
@@ -217,27 +267,30 @@ export class ModelGenerator {
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. The dart code is not validated so invalid dart code
     /// might be returned
-    generateUnsafeDart(rawJson: string): Array<ClassDefinition> {
+    private async generateUnsafeDart(rawJson: string): Promise<Array<ClassDefinition>> {
         var jsonRawData = parseJson(rawJson);
         var astNode = parse(rawJson, {
             loc: true,
             source: undefined
         });
-        var warnings: Array<Warning> =
-            this.generateClassDefinition(this._rootClassName, jsonRawData, "", astNode);
+        var warnings: Array<Warning> = this.generateClassDefinition(
+            this._rootClassName, jsonRawData, "", astNode
+        );
         // After generating all classes, merge similar classes with paths.
         //
         // If duplicates are detected create a new path.
-        //if (this.duplicatesKeys.length) {
-        //    this.mergeSimilarDefinitions();
-        //}
-        return this.allClasses;
+        if (this.duplicates.length) {
+            await this.handleDuplicates();
+            return Array.from(this.allClassMapping.keys());
+        } else {
+            return this.allClasses;
+        }
     }
 
     /// generateDartClasses will generate all classes and append one after another
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. If the generated dart is invalid it will throw an error.
-    generateDartClasses(rawJson: string): Array<ClassDefinition> {
+    generateDartClasses(rawJson: string): Promise<Array<ClassDefinition>> {
         return this.generateUnsafeDart(rawJson);
     }
 }

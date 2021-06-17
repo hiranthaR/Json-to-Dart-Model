@@ -100,7 +100,7 @@ export function mapTsTypeToDartType(
 
 export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
-  var classes: Array<ClassDefinition> = modelGenerator.generateDartClasses(
+  var classes: Array<ClassDefinition> = await modelGenerator.generateDartClasses(
     settings.object
   );
 

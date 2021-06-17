@@ -131,6 +131,42 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
     return isPrivate ? `_${fieldName}` : fieldName;
 }
 
+/**
+ * If the objects have identical keys and the same type returns true.
+ * 
+ * Otherwise returns false.
+ * @param object the object to compare.
+ * @param other the  other object to compare.
+ * @returns boolean
+ */
+export const equalByType = (object: any, other: any): boolean => {
+    const x = Object.keys(object).sort();
+    const y = Object.keys(other).sort();
+
+    if (x.length !== y.length) { return false; }
+
+    if (x.join() !== y.join()) { return false; }
+
+    for (const p in object) {
+        const a = object[p];
+        const b = other[p];
+
+        if (Array.isArray(a) && Array.isArray(b)) {
+            if (Array.from(a).length !== Array.from(b).length) {
+                return false;
+            }
+            if (getListTypeName(a) !== getListTypeName(b)) {
+                return false;
+            }
+        }
+        if (getTypeName(a) !== getTypeName(b)) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 export function getTypeName(obj: any): string {
     var type = typeof obj;
     if (obj === null || obj === "undefined") {
@@ -256,14 +292,14 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
 }
 
 /**  
- * Get object from the array.
+ * Get the object from the deeply nested array.
  * @param {any} obj - A object param.
  * @return {any} Return a any object.
  */
-export const getObject = (obj: any): any => {
+export const getNestedObject = (obj: any): any => {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
-            return getObject(obj[i]);
+            return getNestedObject(obj[i]);
         }
     } else {
         return obj;
@@ -274,7 +310,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(getObject(list[i])));
+        var toMerge = new Map(Object.entries(getNestedObject(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));

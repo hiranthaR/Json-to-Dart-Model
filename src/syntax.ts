@@ -1,4 +1,4 @@
-import { fixFieldName, camelCase, pascalCase, snakeCase, filterListType } from "./helper";
+import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./helper";
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
 import * as _ from "lodash";
@@ -446,11 +446,16 @@ export class ClassDefinition {
 
   /**
    * Check if has value.
+   * From the nested array will compare array object.
    * @param other value to compare.
    * @returns true if has value.
    */
   hasValue(other: any): boolean {
-    return _.isEqual(this.value, other);
+    if (Array.isArray(other)) {
+      return _.isEqual(this.value, getNestedObject(other));
+    } else {
+      return _.isEqual(this.value, other);
+    }
   }
 
   /**
@@ -460,6 +465,21 @@ export class ClassDefinition {
    */
   hasPath(path: string): boolean {
     return this._path === path;
+  }
+
+  /**
+   * Check if a field has identical keys and equal by type.
+   * From the nested array will compare array object.
+   * * For checking the exact value, use `hasValue` instead.
+   * @param other value to compare.
+   * @returns boolean.
+   */
+  hasEqualField(other: any): boolean {
+    if (Array.isArray(other)) {
+      return equalByType(this.value, getNestedObject(other));
+    } else {
+      return equalByType(this.value, other);
+    }
   }
 
   /**
@@ -567,7 +587,7 @@ export class ClassDefinition {
 
   /**
    * Advanced abstract class with immutable values and objects.
-   * @param freezed class should be printed or not.
+   * @param {Input} input user input.
    */
   private freezedField(input: Input): string {
     var sb = "";
@@ -604,7 +624,7 @@ export class ClassDefinition {
 
   /**
    * Returns a list of props that equatable needs to work properly.
-   * @param {Input} input the user input.
+   * @param {Input} input user input.
    */
   private equatablePropList(input: Input): string {
     if (!input.equatable) { return ''; }
@@ -671,14 +691,14 @@ export class ClassDefinition {
 
   /**
    * All imports from the Dart library.
-   * @param input should print the keyword or not.
+   * @param {Input} input user input.
    */
   private importsFromDart(input: Input): string {
     if (!input.equality || input.equatable || input.freezed) {
       return "";
     }
     var imports = "";
-    var len = Array.from(this.fields).length;
+    var len = this.fields.size;
     // If less two hashcode values do not need import dart:ui.
     if (len > 1) {
       imports += "import 'dart:ui';\n";
@@ -926,7 +946,7 @@ export class ClassDefinition {
 
   /**
    * Generate copyWith(); mehtod for easier work with immutable classes.
-   * @param copyWith method should be generated or not.
+   * @param {Input} input user input.
    */
   private copyWithMethod(input: Input): string {
     if (!input.copyWith) { return ''; }
@@ -991,7 +1011,7 @@ export class ClassDefinition {
 
   /**
    * Equality Operator to compare different instances of `Objects`.
-   * @param equality method should be generated or not.
+   * @param {Input} input user input.
    */
   private equalityOperator(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
@@ -1000,28 +1020,40 @@ export class ClassDefinition {
     sb += printLine('@override', 2, 1);
     sb += printLine('bool operator ==(Object other) {', 1, 1);
     sb += printLine('if (identical(other, this)) return true;', 1, 2);
-    sb += printLine(`return other is ${this.name} &&\n\t\t\t`, 1, 2);
-    for (let i = 0; i < fields.length; i++) {
-      const isEnd = fields.length - 1 === i;
-      const field = fields[i];
-      const separator = isEnd ? ';' : ' &&\n\t\t\t\t';
-      if (field.isList) {
-        sb += `listEquals(other.${field.name}, ${field.name})`;
-        sb += separator;
-      } else {
-        sb += `other.${field.name} == ${field.name}`;
-        sb += separator;
+    const printBlock = (lines: number = 1, tabs: number = 4): string => {
+      let sb;
+      sb = printLine(`return other is ${this.name} && `, 1, 2);
+
+      for (let i = 0; i < fields.length; i++) {
+        const isEnd = fields.length - 1 === i;
+        const field = fields[i];
+        const separator = isEnd ? ';' : ' &&';
+        if (field.isList) {
+          sb += printLine(`listEquals(other.${field.name}, ${field.name})`, lines, tabs);
+          sb += separator;
+        } else {
+          sb += printLine(`other.${field.name} == ${field.name}`, lines, tabs);
+          sb += separator;
+        }
       }
+
+      return sb;
+    };
+
+    if (printBlock().length < 76) {
+      sb += printBlock(0, 0);
+    } else {
+      sb += printBlock();
     }
+
     sb += printLine('}', 1, 1);
     return sb;
   }
 
   private hashCode(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
-    const keys = Array.from(this.fields.keys());
     const fields = Array.from(this.fields.values());
-    const isOneValue = keys.length === 1;
+    const isOneValue = this.fields.size === 1;
     const oneValueBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
