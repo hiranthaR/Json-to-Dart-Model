@@ -64,8 +64,8 @@ export const printLine = (print: string, lines = 0, tabs = 0): string => {
  * @param {Input} input the user input.
  * @returns string as "?" if null safety enabled. Otherwise empty string.
  */
-const questionMark = (input: Input): string => {
-  return input.nullSafety ? "?" : "";
+const questionMark = (input: Input, nullabe: boolean): string => {
+  return input.nullSafety && nullabe ? "?" : "";
 };
 
 /**
@@ -199,7 +199,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
       // List of List Classes (List<List.......<Class>>)
       // This will generate deeply nested infinity list depending on how many lists are in the lists.
       const result = filterListType(type);
-      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input)})`);
+      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input, typeDef.nullable)})`);
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
         const tabs = longTab + index;
@@ -274,12 +274,13 @@ const toJsonClass = (
         // This will generate infiniti maps depending on how many lists are in the lists.
         // By default this line starts with keyword List, slice will remove it.
         if (nullSafety) {
+          const isNull = typeDef.nullable;
           sb += printLine(`'${typeDef.jsonKey}': ${thisKey}?`);
           sb += Array.from(result).map(_ => printLine('.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
-            sb += printLine(`.map((e) => ${toIsoString("e", true)})`);
+            sb += printLine(`.map((e) => ${toIsoString("e", isNull)})`);
           } else {
-            sb += printLine(`.map((e) => ${buildToJsonClass("e", true)})`);
+            sb += printLine(`.map((e) => ${buildToJsonClass("e", isNull)})`);
           }
           sb += Array.from(result).map(_ => printLine('.toList())')).slice(0, -1).join('');
           sb += printLine('.toList(),');
@@ -296,10 +297,11 @@ const toJsonClass = (
         }
       } else {
         if (nullSafety) {
+          const isNull = typeDef.nullable;
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString("e", true)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString("e", isNull)}).toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass("e", true)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass("e", isNull)}).toList(),`;
           }
         } else {
           if (typeDef.isDate) {
@@ -311,10 +313,11 @@ const toJsonClass = (
       }
     } else {
       // Class
+      const isNull = nullSafety && !typeDef.nullable;
       if (typeDef.isDate) {
-        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey)},`;
+        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNull)},`;
       } else {
-        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey)},`;
+        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNull)},`;
       }
     }
   }
@@ -335,7 +338,7 @@ export function jsonParseValue(
       if (typeDef.type?.match("dynamic") && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
       } else {
-        formatedValue = `${jsonValue} as ${typeDef.type}` + questionMark(input);
+        formatedValue = `${jsonValue} as ${typeDef.type}` + questionMark(input, typeDef.nullable);
       }
     }
   } else {
@@ -549,14 +552,16 @@ export class ClassDefinition {
     return this.fields.get(key);
   }
 
-  private addType(typeDef: TypeDefinition, input: Input) {
+  private addType(typeDef: TypeDefinition, input: Input, nullable?: boolean) {
     const isDynamic = typeDef.type?.match("dynamic") && !typeDef.isList;
+    const isNullable = nullable ?? typeDef.nullable;
+
     if (input.freezed && input.nullSafety && isDynamic) {
       return "Object?";
     } else {
       return isDynamic
         ? typeDef.type
-        : typeDef.type + questionMark(input);
+        : typeDef.type + questionMark(input, isNullable);
     }
   }
 
@@ -609,7 +614,7 @@ export class ClassDefinition {
       const required = requiredValue(typeDef.required, input.nullSafety);
       sb += printLine(jsonKey + required + defaultVal, 1, 2);
       if (typeDef.isDate && typeDef.defaultValue && !typeDef.isList) {
-        sb += printLine(`${this.addType(typeDef, input)} ${optional},`);
+        sb += printLine(`${this.addType(typeDef, input, input.nullSafety)} ${optional},`);
       } else {
         sb += printLine(`${this.addType(typeDef, input)} ${fieldName},`);
       }
@@ -632,7 +637,7 @@ export class ClassDefinition {
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine(`@override`, 2, 1);
-      sb += printLine(`List<Object${questionMark(input)}> get props => [`, 1, 1);
+      sb += printLine(`List<Object${questionMark(input, true)}> get props => [`, 1, 1);
       for (let i = 0; i < fields.length; i++) {
         const separator = fields.length - 1 === i ? '];' : ', ';
         const f = fields[i];
@@ -645,7 +650,7 @@ export class ClassDefinition {
     const blockBody = (): string => {
       let sb = '';
       sb += printLine(`@override`, 2, 1);
-      sb += printLine(`List<Object${questionMark(input)}> get props {`, 1, 1);
+      sb += printLine(`List<Object${questionMark(input, true)}> get props {`, 1, 1);
       sb += printLine('return [', 1, 2);
       for (let i = 0; i < fields.length; i++) {
         const f = fields[i];
@@ -955,7 +960,7 @@ export class ClassDefinition {
     sb += printLine(`${this.name} copyWith({`, 2, 2);
     // Constructor objects.
     for (const value of values) {
-      sb += printLine(`${this.addType(value, input)} ${value.name},`, 1, 2);
+      sb += printLine(`${this.addType(value, input, true)} ${value.name},`, 1, 2);
     }
     sb += printLine("}) {", 1, 1);
     sb += printLine(`return ${this.name}(`, 1, 2);

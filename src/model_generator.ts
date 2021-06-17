@@ -186,12 +186,13 @@ export class ModelGenerator {
         }
     }
 
+    /** Returns class definition equal to the dependency. */
     private async sortByDependency(dependency: Dependency): Promise<ClassDefinition | undefined> {
         let classDef;
+        const path = dependency.typeDef.importName;
+        const value = dependency.typeDef.value;
+        // TODO: fix anotations keys
         classDef = this.allClasses.find((c) => {
-            const path = dependency.typeDef.importName;
-            const value = dependency.typeDef.value;
-
             if (path === null) {
                 return false;
             };
@@ -204,6 +205,7 @@ export class ModelGenerator {
         return classDef;
     }
 
+    /** Returns one definition by all dependencies */
     private getDuplicatesByDependency(
         dependency: Dependency,
         callbackfn: (classDefinition: ClassDefinition, dependency: Dependency, index: number) => void
@@ -221,7 +223,7 @@ export class ModelGenerator {
 
     private updateDependecies(key: ClassDefinition, dependency: Dependency) {
         for (const c of this.allClasses) {
-            for (let d of c.dependencies) {
+            for (const d of c.dependencies) {
                 const path = dependency.typeDef.importName;
                 const value = dependency.typeDef.value;
                 const prefix = this.allClassMapping.get(key)?.typeDef.prefix + '_';
@@ -240,15 +242,15 @@ export class ModelGenerator {
                 if (classDef !== undefined) {
                     if (this.duplicates.includes(classDef)) {
                         this.getDuplicatesByDependency(dependency, (c, d, i) => {
+                            const paths = this.allClasses.map((cd) => cd.path);
+
                             if (!this.allClassMapping.has(c)) {
                                 this.allClassMapping.set(c, d);
                             }
 
-                            if (this.allClasses.map((v) => v.path).indexOf(c.path) !== i) {
-                                // Update all all existing dependencies.
+                            if (paths.indexOf(c.path) !== i) {
+                                // Update all existing dependencies.
                                 this.updateDependecies(c, d);
-                                // Update file path.
-                                //c.updatePath(c.path + this.allClassMapping.get(c)?.typeDef.prefix);
                             }
                         });
                     } else {

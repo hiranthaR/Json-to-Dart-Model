@@ -80,6 +80,10 @@ interface TypeDefinitionInterface {
    * @returns string value.
    */
   filteredKey(key: string): string;
+  /**
+   * Indicates or object is `null`,
+   */
+  nullable: boolean;
 }
 
 /**
@@ -99,6 +103,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
   isList = false;
   required = false;
   defaultValue = false;
+  nullable = true;
 
   constructor(
     importName: string | null,
@@ -147,6 +152,10 @@ export class TypeDefinition implements TypeDefinitionInterface {
     }
     if (key.match(/r@/gi)) {
       this.required = this.defaultValue ? false : true;
+    }
+
+    if (this.defaultValue || this.required) {
+      this.nullable = false;
     }
 
     this.jsonKey = key.replace(search, replace);
