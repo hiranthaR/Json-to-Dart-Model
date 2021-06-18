@@ -186,18 +186,21 @@ export class ModelGenerator {
         }
     }
 
-    /** Returns class definition equal to the dependency. */
+    /** Returns class definition equal to the dependency.
+     * 
+     * * Duplicate definitions will be overridden and identical
+     *   which later will be removed as duplicate key in the `allClassMapping`
+     */
     private async sortByDependency(dependency: Dependency): Promise<ClassDefinition | undefined> {
         let classDef;
         const path = dependency.typeDef.importName;
-        const value = dependency.typeDef.value;
-        // TODO: fix anotations keys
+        const field = dependency.typeDef;
         classDef = this.allClasses.find((c) => {
             if (path === null) {
                 return false;
             };
 
-            return c.hasPath(path) && c.hasValue(value);
+            return c.hasPath(path) && c.hasField(field);
         });
         if (classDef === undefined) {
             console.log(`ModelGenerator: sortByDependency => found undefined object`);
@@ -205,8 +208,8 @@ export class ModelGenerator {
         return classDef;
     }
 
-    /** Returns one definition by all dependencies */
-    private getDuplicatesByDependency(
+    /** Returns definition by dependencies and ready to produce. */
+    private getDefinitionByDependency(
         dependency: Dependency,
         callbackfn: (classDefinition: ClassDefinition, dependency: Dependency, index: number) => void
     ) {
@@ -236,14 +239,15 @@ export class ModelGenerator {
     }
 
     private async handleDuplicates() {
+        const paths = this.allClasses.map((cd) => cd.path);
+
         for await (const definition of this.allClasses) {
             for (const dependency of definition.dependencies) {
                 const classDef = await this.sortByDependency(dependency);
                 if (classDef !== undefined) {
                     if (this.duplicates.includes(classDef)) {
-                        this.getDuplicatesByDependency(dependency, (c, d, i) => {
-                            const paths = this.allClasses.map((cd) => cd.path);
-
+                        // Convert definitions back.
+                        this.getDefinitionByDependency(dependency, (c, d, i) => {
                             if (!this.allClassMapping.has(c)) {
                                 this.allClassMapping.set(c, d);
                             }
