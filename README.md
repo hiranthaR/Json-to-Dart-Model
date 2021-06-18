@@ -62,14 +62,14 @@
 
 <space><space>
 
-Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**. If you are an API service provider, you can build a `models.jsonc` file for your users to convert JSON to Dart language with a few clicks.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**.
 
 > **Note:** when you use `Freezed` or `Json Serializable` then `Json to Dart Model` generates only types and everything that happens after, then `Json Serializable` takes care of the rest and is responsible for generated code.
 
 <!-- HOW IT WORKS -->
 ## How it Works
 
-`Dart to Json Model Generator` creates your JSON object into separate files and thanks to this if similar structures are detected generator will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way, you can keep your code cleaner and more readable. The pathname in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with the index for infinity renaming.`
+`Dart to Json Model Generator` creates your JSON object into separate files and thanks to this if similar structures are detected generator will create them into different files and merge them with path (`import`) no matter how named your objects are. In this way, you can keep your code cleaner and more readable. The pathname in the first will be renamed with the class name added as a prefix to show from which class the objects are. If the names continue to be duplicated then will be marked with the index for infinity renaming.
 
 - Avoid using file base class names as JSON keys to avoid conflicts and unwanted change of structure names. Note: converting from file `Json to Dart Model` will help to avoid it.
 - Properties named with funky names (like "!breaks", "|breaks", etc) will produce syntax errors.
@@ -187,9 +187,25 @@ It is possible to mark `JSON` values as default or required. Everything that do 
 ```jsonc
 {
   "r@id": 1,
-  "d@title": "Json To Dart Model",
+  "d@title": "Json To Dart Model"
 }
 ```
+
+Result:
+
+```dart
+class Example {
+  int id;
+  String title;
+
+  Example({@required this.id, this.title = 'Json To Dart Model'});
+  
+  // The rest...
+}
+```
+
+This also works with Freezed and JSON Serializable, also initializes non-constant values like `DateTime` if marked as default.
+
 > ***Note:*** what happens if I use multiple annotations `"r@d@key"` then the generator will prioritize the default value and generate value as the default since only named parameters without a default value can be with required.
 
 <!-- SPEED UP CONVERTING -->
@@ -278,24 +294,20 @@ class Todos extends Equatable {
     this.completed,
   });
 
-  factory Todos.fromJson(Map<String, dynamic> json) {
-    return Todos(
-      userId: json['userId'] as int,
-      id: json['id'] as int,
-      title: json['title'] as String,
-      completed: json['completed'] as bool,
-    );
-  }
+  factory Todos.fromJson(Map<String, dynamic> json) => Todos(
+        userId: json['userId'] as int,
+        id: json['id'] as int,
+        title: json['title'] as String,
+        completed: json['completed'] as bool,
+      );
 
-  Map<String, dynamic> toJson() {
-    return {
-      'userId': userId,
-      'id': id,
-      'title': title,
-      'completed': completed,
-    };
-  }
-
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'id': id,
+        'title': title,
+        'completed': completed,
+      };
+  
   // Here will be more methods after your customization.
   // toString();
   // copyWith();
