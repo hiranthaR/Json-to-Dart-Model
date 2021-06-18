@@ -1,5 +1,5 @@
 import { ASTNode } from "json-to-ast";
-import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, snakeCase } from "./helper";
+import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, pascalCase, snakeCase } from "./helper";
 import * as _ from "lodash";
 
 interface TypeDefinitionInterface {
@@ -80,6 +80,10 @@ interface TypeDefinitionInterface {
    * @returns string value.
    */
   filteredKey(key: string): string;
+  /**
+   * Indicates or object is `null`,
+   */
+  nullable: boolean;
 }
 
 /**
@@ -99,6 +103,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
   isList = false;
   required = false;
   defaultValue = false;
+  nullable = true;
 
   constructor(
     importName: string | null,
@@ -149,6 +154,10 @@ export class TypeDefinition implements TypeDefinitionInterface {
       this.required = this.defaultValue ? false : true;
     }
 
+    if (this.defaultValue || this.required) {
+      this.nullable = false;
+    }
+
     this.jsonKey = key.replace(search, replace);
 
     return this.jsonKey;
@@ -162,7 +171,15 @@ export class TypeDefinition implements TypeDefinitionInterface {
     if (!this.isPrimitive) {
       this._importName = snakeCase(name);
     } else {
-      throw new Error(`TypeDefinition: Primitive objects cannot be imported and cannot be updated`);
+      throw new Error(`TypeDefinition: import can't be added to a primitive object.`);
+    }
+  }
+
+  updateObjectType(name: string) {
+    if (!this.isPrimitive) {
+      this.type = pascalCase(name);
+    } else {
+      throw new Error(`TypeDefinition: primitive objects can't be updated.`);
     }
   }
 

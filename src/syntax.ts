@@ -1,4 +1,4 @@
-import { fixFieldName, camelCase, pascalCase, snakeCase, filterListType } from "./helper";
+import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./helper";
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
 import * as _ from "lodash";
@@ -41,16 +41,20 @@ export class WithWarning<T> {
 
 /**
  * Prints a string to a line.
- * @param print string that will be printed.
- * @param newLine force to the next line.
- * @param tabs how many tabs will be added.
+ * @param {string} print string that will be printed.
+ * @param {number} lines how many lines will be added.
+ * @param {number} tabs how many tabs will be added.
  */
-export const printLine = (print: string, newLine = false, tabs = 0): string => {
+export const printLine = (print: string, lines = 0, tabs = 0): string => {
   var sb = '';
-  sb += newLine ? '\n' : '';
+
+  for (let i = 0; i < lines; i++) {
+    sb += '\n';
+  }
   for (let i = 0; i < tabs; i++) {
     sb += '\t';
   }
+
   sb += print;
   return sb;
 };
@@ -60,8 +64,8 @@ export const printLine = (print: string, newLine = false, tabs = 0): string => {
  * @param {Input} input the user input.
  * @returns string as "?" if null safety enabled. Otherwise empty string.
  */
-const questionMark = (input: Input): string => {
-  return input.nullSafety ? "?" : "";
+const questionMark = (input: Input, nullabe: boolean): string => {
+  return input.nullSafety && nullabe ? "?" : "";
 };
 
 /**
@@ -120,20 +124,20 @@ const defaultDateTime = (
       const optional = 'optional' + pascalCase(typeDef.name);
       const expressionBody = (): string => {
         let body = '';
-        body += printLine(`DateTime get ${typeDef.name} => ${optional}`, true, 1);
+        body += printLine(`DateTime get ${typeDef.name} => ${optional}`, 1, 1);
         body += printLine(` ?? ${parseDateTime(`'${typeDef.value}'`, true)};`);
         return body;
       };
       const blockBody = (): string => {
         let body = '';
-        body += printLine(`DateTime get ${typeDef.name} {`, true, 1);
-        body += printLine(`return ${optional} ?? ${parseDateTime(`'${typeDef.value}'`, true,)};`, true, 2);
-        body += printLine('}', true, 1);
+        body += printLine(`DateTime get ${typeDef.name} {`, 1, 1);
+        body += printLine(`return ${optional} ?? ${parseDateTime(`'${typeDef.value}'`, true,)};`, 1, 2);
+        body += printLine('}', 1, 1);
         return body;
       };
       sb += '\n';
       if (!nullSafety) {
-        sb += printLine('@late', true, 1);
+        sb += printLine('@late', 1, 1);
         sb += expressionBody();
       } else {
         sb += expressionBody().length > 78 ? blockBody() : expressionBody();
@@ -183,6 +187,11 @@ export const joinAsClass = (key: string, value: string): string => {
 const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): string => {
   const jsonValue = valueFromJson(key);
   const type = typeDef.type;
+  // IMPORTANT. To keep the formatting correct.
+  // By using block body. Default tabs are longTab = 5; shortTab = 3; 
+  // By using expresion body. Default tabs are longTab = 6; shortTab = 4; 
+  const longTab = 6;
+  const shortTab = 4;
   let formatedValue = '';
   if (type !== null && !typeDef.isPrimitive || type !== null && typeDef.isDate) {
     if (typeDef.isList) {
@@ -190,58 +199,58 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
       // List of List Classes (List<List.......<Class>>)
       // This will generate deeply nested infinity list depending on how many lists are in the lists.
       const result = filterListType(type);
-      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input)})`);
+      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input, typeDef.nullable)})`);
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
-        const tabs = 5 + index;
+        const tabs = longTab + index;
         if (input.nullSafety) {
           if (i === 0) {
-            formatedValue += printLine(`?.map((e) => (e as List<dynamic>)`, true, tabs);
+            formatedValue += printLine(`?.map((e) => (e as List<dynamic>)`, 1, tabs);
           } else {
-            formatedValue += printLine(`.map((e) => (e as List<dynamic>)`, true, tabs);
+            formatedValue += printLine(`.map((e) => (e as List<dynamic>)`, 1, tabs);
           }
         } else {
-          formatedValue += printLine(`?.map((e) => (e as List<dynamic>)`, true, tabs);
+          formatedValue += printLine(`?.map((e) => (e as List<dynamic>)`, 1, tabs);
         }
       }
       if (input.nullSafety) {
-        const tabs = 3 + 2 * result.length;
+        const tabs = shortTab + 2 * result.length;
         if (result.length > 1) {
           if (typeDef.isDate) {
-            formatedValue += printLine(`.map((e) => ${parseDateTime("e")})`, true, tabs);
+            formatedValue += printLine(`.map((e) => ${parseDateTime("e")})`, 1, tabs);
           } else {
-            formatedValue += printLine(`.map((e) => ${buildParseClass(key, "e")})`, true, tabs);
+            formatedValue += printLine(`.map((e) => ${buildParseClass(key, "e")})`, 1, tabs);
           }
         } else {
           if (typeDef.isDate) {
-            formatedValue += printLine(`?.map((e) => ${parseDateTime("e")})`, true, tabs);
+            formatedValue += printLine(`?.map((e) => ${parseDateTime("e")})`, 1, tabs);
           } else {
-            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, "e")})`, true, tabs);
+            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, "e")})`, 1, tabs);
           }
         }
       } else {
-        formatedValue += printLine(`?.map((e) => e == null`, true, 3 + 2 * result.length);
-        formatedValue += printLine(`? null`, true, 5 + 2 * result.length);
+        formatedValue += printLine(`?.map((e) => e == null`, 1, shortTab + 2 * result.length);
+        formatedValue += printLine(`? null`, 1, longTab + 2 * result.length);
         if (typeDef.isDate) {
-          formatedValue += printLine(`: ${parseDateTime("e")})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${parseDateTime("e")})`, 1, longTab + 2 * result.length);
         } else {
-          formatedValue += printLine(`: ${buildParseClass(key, "e")})`, true, 5 + 2 * result.length);
+          formatedValue += printLine(`: ${buildParseClass(key, "e")})`, 1, longTab + 2 * result.length);
         }
       }
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
-        const tabs = 3 + 2 * result.length - index;
-        formatedValue += printLine(input.nullSafety ? `.toList())` : `?.toList())`, true, tabs);
+        const tabs = shortTab + 2 * result.length - index;
+        formatedValue += printLine(input.nullSafety ? `.toList())` : `?.toList())`, 1, tabs);
       }
-      formatedValue += printLine(input.nullSafety ? `.toList()` : `?.toList()`, true, 5);
+      formatedValue += printLine(input.nullSafety ? `.toList()` : `?.toList()`, 1, longTab);
     } else {
       // Class
       formatedValue += printLine(`${jsonValue} == null`);
-      formatedValue += printLine(`? null`, true, 5);
+      formatedValue += printLine(`? null`, 1, longTab);
       if (typeDef.isDate) {
-        formatedValue += printLine(`: ${parseDateTime(jsonValue)}`, true, 5);
+        formatedValue += printLine(`: ${parseDateTime(jsonValue)}`, 1, longTab);
       } else {
-        formatedValue += printLine(`: ${buildParseClass(key, jsonValue)}`, true, 5);
+        formatedValue += printLine(`: ${buildParseClass(key, jsonValue)}`, 1, longTab);
       }
     }
   }
@@ -265,12 +274,13 @@ const toJsonClass = (
         // This will generate infiniti maps depending on how many lists are in the lists.
         // By default this line starts with keyword List, slice will remove it.
         if (nullSafety) {
+          const isNull = typeDef.nullable;
           sb += printLine(`'${typeDef.jsonKey}': ${thisKey}?`);
           sb += Array.from(result).map(_ => printLine('.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
-            sb += printLine(`.map((e) => ${toIsoString("e", true)})`);
+            sb += printLine(`.map((e) => ${toIsoString("e", isNull)})`);
           } else {
-            sb += printLine(`.map((e) => ${buildToJsonClass("e", true)})`);
+            sb += printLine(`.map((e) => ${buildToJsonClass("e", isNull)})`);
           }
           sb += Array.from(result).map(_ => printLine('.toList())')).slice(0, -1).join('');
           sb += printLine('.toList(),');
@@ -287,10 +297,11 @@ const toJsonClass = (
         }
       } else {
         if (nullSafety) {
+          const isNull = typeDef.nullable;
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString("e", true)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString("e", isNull)}).toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass("e", true)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass("e", isNull)}).toList(),`;
           }
         } else {
           if (typeDef.isDate) {
@@ -302,10 +313,11 @@ const toJsonClass = (
       }
     } else {
       // Class
+      const isNull = nullSafety && !typeDef.nullable;
       if (typeDef.isDate) {
-        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey)},`;
+        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNull)},`;
       } else {
-        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey)},`;
+        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNull)},`;
       }
     }
   }
@@ -326,7 +338,7 @@ export function jsonParseValue(
       if (typeDef.type?.match("dynamic") && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
       } else {
-        formatedValue = `${jsonValue} as ${typeDef.type}` + questionMark(input);
+        formatedValue = `${jsonValue} as ${typeDef.type}` + questionMark(input, typeDef.nullable);
       }
     }
   } else {
@@ -403,7 +415,7 @@ export class ClassDefinition {
   fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
 
   constructor(name: string, privateFields = false) {
-    this._name = pascalCase(name).replace(/_/g, "");
+    this._name = pascalCase(name);
     this._path = snakeCase(name);
     this._privateFields = privateFields;
   }
@@ -411,6 +423,14 @@ export class ClassDefinition {
   /** A class name. */
   get name() {
     return this._name;
+  }
+
+  /**
+   * Update class name.
+   * @param name a class name.
+   */
+  updateName(name: string) {
+    this._name = pascalCase(name);
   }
 
   /** A class that converted back to the value 
@@ -429,11 +449,16 @@ export class ClassDefinition {
 
   /**
    * Check if has value.
+   * From the nested array will compare array object.
    * @param other value to compare.
    * @returns true if has value.
    */
   hasValue(other: any): boolean {
-    return _.isEqual(this.value, other);
+    if (Array.isArray(other)) {
+      return _.isEqual(this.value, getNestedObject(other));
+    } else {
+      return _.isEqual(this.value, other);
+    }
   }
 
   /**
@@ -443,6 +468,21 @@ export class ClassDefinition {
    */
   hasPath(path: string): boolean {
     return this._path === path;
+  }
+
+  /**
+   * Check if a field has identical keys and equal by type.
+   * From the nested array will compare array object.
+   * * For checking the exact value, use `hasValue` instead.
+   * @param other value to compare.
+   * @returns boolean.
+   */
+  hasEqualField(other: any): boolean {
+    if (Array.isArray(other)) {
+      return equalByType(this.value, getNestedObject(other));
+    } else {
+      return equalByType(this.value, other);
+    }
   }
 
   /**
@@ -512,14 +552,16 @@ export class ClassDefinition {
     return this.fields.get(key);
   }
 
-  private addType(typeDef: TypeDefinition, input: Input) {
+  private addType(typeDef: TypeDefinition, input: Input, nullable?: boolean) {
     const isDynamic = typeDef.type?.match("dynamic") && !typeDef.isList;
+    const isNullable = nullable ?? typeDef.nullable;
+
     if (input.freezed && input.nullSafety && isDynamic) {
       return "Object?";
     } else {
       return isDynamic
         ? typeDef.type
-        : typeDef.type + questionMark(input);
+        : typeDef.type + questionMark(input, isNullable);
     }
   }
 
@@ -550,57 +592,79 @@ export class ClassDefinition {
 
   /**
    * Advanced abstract class with immutable values and objects.
-   * @param freezed class should be printed or not.
+   * @param {Input} input user input.
    */
   private freezedField(input: Input): string {
     var sb = "";
-    const nonConstatValue = Array.from(this.fields).some((f) => {
-      return f[1].isDate && !f[1].isList && f[1].defaultValue;
+    const nonConstatValue = Array.from(this.fields.values()).some((f) => {
+      return f.isDate && !f.isList && f.defaultValue;
     });
     const privatConstructor = input.nullSafety && nonConstatValue
-      ? printLine(`\n${this.name}._();`, true, 1)
+      ? printLine(`${this.name}._();`, 2, 1)
       : '';
     sb += printLine("@freezed");
-    sb += printLine(`${input.nullSafety ? "" : "abstract "}class ${this.name} with `, true);
+    sb += printLine(`${input.nullSafety ? "" : "abstract "}class ${this.name} with `, 1);
     sb += printLine(`_$${this.name} {`);
-    sb += printLine(`factory ${this.name}({`, true, 1);
+    sb += printLine(`factory ${this.name}({`, 1, 1);
     for (var [name, typeDef] of this.fields) {
       const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
       const jsonKey = `@JsonKey(name: '${name}') `;
       const defaultVal = defaultValue(typeDef, input.nullSafety, true);
       const required = requiredValue(typeDef.required, input.nullSafety);
-      sb += printLine(jsonKey + required + defaultVal, true, 2);
+      sb += printLine(jsonKey + required + defaultVal, 1, 2);
       if (typeDef.isDate && typeDef.defaultValue && !typeDef.isList) {
-        sb += printLine(`${this.addType(typeDef, input)} ${optional},`);
+        sb += printLine(`${this.addType(typeDef, input, input.nullSafety)} ${optional},`);
       } else {
         sb += printLine(`${this.addType(typeDef, input)} ${fieldName},`);
       }
     };
-    sb += printLine(`}) = _${this.name};`, true, 1);
+    sb += printLine(`}) = _${this.name};`, 1, 1);
     sb += privatConstructor;
     sb += printLine(`${this.codeGenJsonParseFunc(true)}`);
     sb += defaultDateTime(this.fields, true, input.nullSafety);
-    sb += printLine("}", true);
+    sb += printLine("}", 1);
     return sb;
   }
 
   /**
    * Returns a list of props that equatable needs to work properly.
-   * @param {Input} input the user input.
+   * @param {Input} input user input.
    */
   private equatablePropList(input: Input): string {
-    var expressionBody = `\n\n\t@override\n\tList<Object${questionMark(input)}> get props => [`
-      + `${this.getFields((f) => `${f.getName(this._privateFields)}`).join(', ')}];`.replace(' ]', ']');
-    var blockBody = `\n\n\t@override\n\tList<Object${questionMark(input)}> get props {\n\t\treturn [\n\t\t\t`
-      + `${this.getFields((f) => `${f.getName(this._privateFields)}`).join(',\n\t\t\t')},\n\t\t];\n\t}`;
-    var isShort = expressionBody.length < 87;
+    if (!input.equatable) { return ''; }
+    const fields = Array.from(this.fields.values());
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine(`@override`, 2, 1);
+      sb += printLine(`List<Object${questionMark(input, true)}> get props => [`, 1, 1);
+      for (let i = 0; i < fields.length; i++) {
+        const separator = fields.length - 1 === i ? '];' : ', ';
+        const f = fields[i];
+        sb += `${f.getName(this._privateFields)}`;
+        sb += separator;
+      }
+      return sb;
+    };
 
-    if (!input.equatable) {
-      return '';
-    } else {
-      return isShort ? expressionBody : blockBody;
-    }
+    const blockBody = (): string => {
+      let sb = '';
+      sb += printLine(`@override`, 2, 1);
+      sb += printLine(`List<Object${questionMark(input, true)}> get props {`, 1, 1);
+      sb += printLine('return [', 1, 2);
+      for (let i = 0; i < fields.length; i++) {
+        const f = fields[i];
+        sb += printLine(`${f.getName(this._privateFields)},`, 1, 4);
+      }
+      sb += printLine('];', 1, 2);
+      sb += printLine('}', 1, 1);
+      return sb;
+    };
+
+    var isShort = expressionBody().length < 87;
+
+    return isShort ? expressionBody() : blockBody();
+
   }
 
   /**
@@ -608,9 +672,9 @@ export class ClassDefinition {
    * @returns string block.
    */
   private stringify(): string {
-    var sb = '\n';
-    sb += printLine('@override', true, 1);
-    sb += printLine('bool get stringify => true;', true, 1);
+    var sb = '';
+    sb += printLine('@override', 2, 1);
+    sb += printLine('bool get stringify => true;', 1, 1);
     return sb;
   }
 
@@ -632,14 +696,14 @@ export class ClassDefinition {
 
   /**
    * All imports from the Dart library.
-   * @param input should print the keyword or not.
+   * @param {Input} input user input.
    */
   private importsFromDart(input: Input): string {
     if (!input.equality || input.equatable || input.freezed) {
       return "";
     }
     var imports = "";
-    var len = Array.from(this.fields).length;
+    var len = this.fields.size;
     // If less two hashcode values do not need import dart:ui.
     if (len > 1) {
       imports += "import 'dart:ui';\n";
@@ -725,7 +789,7 @@ export class ClassDefinition {
 
   private defaultPrivateConstructor(input: Input): string {
     var sb = "";
-    sb += `\t${this._name}({`;
+    sb += `\t${this.name}({`;
     var i = 0;
     var len = Array.from(this.fields.keys()).length - 1;
     this.getFields((f) => {
@@ -748,52 +812,97 @@ export class ClassDefinition {
   }
 
   private defaultConstructor(input: Input): string {
-    var sb = "";
-    const matchDefaultDate = (f: [string, TypeDefinition]) => {
-      return f[1].isDate && !f[1].isList && f[1].defaultValue;
+    let constructor = '';
+    const values = Array.from(this.fields.values());
+    const defaultDate = defaultDateTime(this.fields);
+    const isDefaultDate = defaultDate.length > 0;
+    const areConstant = (typeDef: TypeDefinition) => {
+      return typeDef.isDate && !typeDef.isList && typeDef.defaultValue;
     };
-    const nonConstantValue = Array.from(this.fields).some(matchDefaultDate);
-    sb += `\t${nonConstantValue ? "" : this.constKeyword(input.isImmutable)}${this.name}({`;
-    const len = Array.from(this.fields).length;
-    const isShort = len < 3;
-    this.getFields((f) => {
-      const fieldName = f.getName(this._privateFields);
-      const thisKeyword = f.isDate && f.defaultValue && !f.isList
-        ? ""
-        : `this.${fieldName}`;
-      const expression = requiredValue(f.required, input.nullSafety)
-        + `${thisKeyword}${defaultValue(f, input.nullSafety)}`;
-      sb += isShort ? expression : printLine(`${expression},`, true, 2);
-      if (isShort) {
-        sb += ", ";
-      }
-    });
-    sb += isShort
-      ? `})${defaultDateTime(this.fields)};`
-      : `\n\t})${defaultDateTime(this.fields)};`;
-    return isShort ? sb.replace(", });", "});") : sb;
+    const hasConstant = values.some(areConstant);
+    const expression = (lines: number, tabs: number): string => {
+      let sb = "";
+      sb += `\t`;
+      sb += hasConstant ? '' : this.constKeyword(input.isImmutable);
+      sb += `${this.name}({`;
+      values.forEach((f) => {
+        const name = f.getName(this._privateFields);
+        const isDefaultDate = f.isDate && f.defaultValue && !f.isList;
+        const thisKeyword = isDefaultDate ? '' : `this.${name}`;
+        const required = requiredValue(f.required, input.nullSafety);
+        const defaultVal = defaultValue(f, input.nullSafety);
+        const field = required + thisKeyword + defaultVal;
+        sb += printLine(`${field}, `, lines, tabs);
+      });
+      sb += printLine('});', lines, tabs >= 1 ? 1 : 0);
+      return sb;
+    };
+    const isShort = expression(0, 0).length < 78;
+    if (isShort && !isDefaultDate) {
+      // Expression body.
+      constructor = expression(0, 0).replace(", });", "});");
+    } else if (isDefaultDate) {
+      // Force print block body for better format.
+      // Block body with initialized non-constant values.
+      constructor = expression(1, 2).replace("});", "})");
+      constructor += printLine(`${defaultDate};`, 0, 1);
+    } else {
+      // Block body.
+      constructor = expression(1, 2);
+    }
+
+    return constructor;
   }
 
   private jsonParseFunc(input: Input): string {
-    var sb = "\n\n";
-    sb += `\tfactory ${this.name}`;
-    sb += `.fromJson(Map<String, dynamic> json) {\n\t\treturn ${this.name}(\n`;
-    sb += this.getFields((f, k) => {
-      return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
-    }).join('\n');
-    sb += "\n\t\t);\n\t}";
-    return sb;
+    const blockBody = (): string => {
+      let sb = '';
+      sb += printLine(`factory ${this.name}`, 2, 1);
+      sb += printLine('.fromJson(Map<String, dynamic> json) {');
+      sb += printLine(`return ${this.name}(\n`, 1, 2);
+      sb += this.getFields((f, k) => {
+        return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+      }).join('\n');
+      sb += printLine(");", 1, 2);
+      sb += printLine("}", 1, 1);
+      return sb;
+    };
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine(`factory ${this.name}`, 2, 1);
+      sb += printLine('.fromJson(Map<String, dynamic> json) => ');
+      sb += printLine(`${this.name}(\n`);
+      sb += this.getFields((f, k) => {
+        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+      }).join('\n');
+      sb += printLine(");", 1, 3);
+      return sb;
+    };
+    return expressionBody();
   }
 
   private toJsonFunc(input: Input): string {
-    var sb = "";
-    sb += "\tMap<String, dynamic> toJson() {\n\t\treturn {\n";
-    this.getFields((f) => {
-      sb += `\t\t\t${toJsonExpression(f, this._privateFields, input.nullSafety)}\n`;
-    });
-    sb += "\t\t};\n";
-    sb += "\t}";
-    return sb;
+    const blocBody = (): string => {
+      let sb = "";
+      sb += printLine("Map<String, dynamic> toJson() {", 0, 1);
+      sb += printLine("return {", 1, 2);
+      this.getFields((f) => {
+        sb += printLine(`${toJsonExpression(f, this._privateFields, input.nullSafety)}`, 1, 3);
+      });
+      sb += printLine("};", 0, 2);
+      sb += printLine("}", 1, 1);
+      return sb;
+    };
+    const expressionBody = (): string => {
+      var sb = "";
+      sb += printLine("Map<String, dynamic> toJson() => {", 0, 1);
+      this.getFields((f) => {
+        sb += printLine(`${toJsonExpression(f, this._privateFields, input.nullSafety)}`, 1, 4);
+      });
+      sb += printLine("};", 1, 3);
+      return sb;
+    };
+    return expressionBody();
   }
 
   /**
@@ -801,39 +910,66 @@ export class ClassDefinition {
    * @param freezed force to generate expression body (required for freezed generator).
    */
   private codeGenJsonParseFunc(freezed: boolean = false): string {
-    var expressionBody = `\n\n\tfactory ${this.name}.fromJson(Map<String, dynamic> json) => _$${this.name}FromJson(json);`;
-    var blockBody = `\n\n\tfactory ${this.name}.fromJson(Map<String, dynamic> json) {\n\t\treturn _$${this.name}FromJson(json);\n\t}`;
-    return expressionBody.length > 78 && !freezed ? blockBody : expressionBody;
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine(`factory ${this.name}.`, 2, 1);
+      sb += 'fromJson(Map<String, dynamic> json) => ';
+      sb += `_$${this.name}FromJson(json);`;
+      return sb;
+    };
+    const blockBody = (): string => {
+      let sb = '';
+      sb += printLine(`factory ${this.name}.`, 2, 1);
+      sb += 'fromJson(Map<String, dynamic> json) {';
+      sb += printLine(`return _$${this.name}FromJson(json);`, 1, 2);
+      sb += printLine('}', 1, 1);
+      return sb;
+    };
+    return expressionBody().length > 78 && !freezed
+      ? blockBody()
+      : expressionBody();
   }
 
   private codeGenToJsonFunc(): string {
-    var expressionBody = `\tMap<String, dynamic> toJson() => _$${this.name}ToJson(this);`;
-    var blockBody = `\tMap<String, dynamic> toJson() {\n\t\treturn _$${this.name}ToJson(this);\n\t}`;
-    return expressionBody.length > 78 ? blockBody : expressionBody;
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine('Map<String, dynamic> toJson() => _$', 0, 1);
+      sb += `${this.name}ToJson(this);`;
+      return sb;
+    };
+    const blockBody = () => {
+      let sb = '';
+      sb += printLine('Map<String, dynamic> toJson() {', 0, 1);
+      sb += printLine(`return _$${this.name}ToJson(this);`, 1, 2);
+      sb += printLine('}', 1, 1);
+      return sb;
+    };
+    return expressionBody().length > 78
+      ? blockBody()
+      : expressionBody();
   }
 
   /**
    * Generate copyWith(); mehtod for easier work with immutable classes.
-   * @param copyWith method should be generated or not.
+   * @param {Input} input user input.
    */
   private copyWithMethod(input: Input): string {
     if (!input.copyWith) { return ''; }
+    const values = Array.from(this.fields.values());
     var sb = "";
-    sb += printLine(`\n\n\t${this.name} copyWith({`, false, 1);
+    sb += printLine(`${this.name} copyWith({`, 2, 2);
     // Constructor objects.
-    for (let [_, value] of this.fields) {
-      var fieldName = value.getName(this._privateFields);
-      sb += printLine(`${this.addType(value, input)} ${fieldName},`, true, 2);
+    for (const value of values) {
+      sb += printLine(`${this.addType(value, input, true)} ${value.name},`, 1, 2);
     }
-    sb += printLine("}) {", true, 1);
-    sb += printLine(`return ${this.name}(`, true, 2);
+    sb += printLine("}) {", 1, 1);
+    sb += printLine(`return ${this.name}(`, 1, 2);
     // Return constructor.
-    for (let [_, value] of this.fields) {
-      var fieldName = value.getName(this._privateFields);
-      sb += printLine(`${fieldName}: ${fieldName} ?? this.${fieldName},`, true, 3);
+    for (const value of values) {
+      sb += printLine(`${value.name}: ${value.name} ?? this.${value.name},`, 1, 3);
     }
-    sb += printLine(");", true, 2);
-    sb += printLine("}", true, 1);
+    sb += printLine(");", 1, 2);
+    sb += printLine("}", 1, 1);
     return sb;
   }
 
@@ -843,54 +979,121 @@ export class ClassDefinition {
    */
   private toStringMethod(toString: boolean = false): string {
     if (!toString) { return ''; }
-    var fieldName = (name: string): string => `${name}: $${name}`;
-    var expressionBody = `\n\n\t@override\n\tString toString() => `
-      + `'${this.name}(${this.getFields((f) => fieldName(f.name)).join(', ')})';`.replace(' \'', '\'');
-    var blockBody = `\n\n\t@override\n\tString toString() {\n\t\treturn '`
-      + `${this.name}(${this.getFields((f) => fieldName(f.name)).join(', ')})';\n\t}`;
-    var isShort = expressionBody.length < 76;
-    return isShort ? expressionBody : blockBody;
+    const values = Array.from(this.fields.values());
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine('@override', 2, 1);
+      sb += printLine('String toString() => ', 1, 1);
+      sb += `'${this.name}(`;
+      for (let i = 0; i < values.length; i++) {
+        const isEnd = values.length - 1 === i;
+        const name = values[i].name;
+        const separator = isEnd ? ')\';' : ', ';
+        sb += `${name}: $${name}`;
+        sb += separator;
+      }
+      return sb;
+    };
+
+    const blockBody = (): string => {
+      let sb = '';
+      sb += printLine('@override', 2, 1);
+      sb += printLine('String toString() {', 1, 1);
+      sb += printLine(`return '${this.name}(`, 1, 2);
+      for (let i = 0; i < values.length; i++) {
+        const isEnd = values.length - 1 === i;
+        const name = values[i].name;
+        const separator = isEnd ? ')\';' : ', ';
+        sb += `${name}: $${name}`;
+        sb += separator;
+      }
+      sb += printLine('}', 1, 1);
+      return sb;
+    };
+    var isShort = expressionBody().length < 90;
+    return isShort ? expressionBody() : blockBody();
   }
 
   /**
    * Equality Operator to compare different instances of `Objects`.
-   * @param equality method should be generated or not.
+   * @param {Input} input user input.
    */
   private equalityOperator(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
     const fields = Array.from(this.fields.values());
-    let sb = '\n';
-    sb += printLine('@override', true, 1);
-    sb += printLine('bool operator ==(Object other) {', true, 1);
-    sb += printLine('if (identical(other, this)) return true;', true, 2);
-    sb += printLine(`return other is ${this.name} &&\n\t\t\t`, true, 2);
-    for (let i = 0; i < fields.length; i++) {
-      const field = fields[i];
-      const operator = fields.length - 1 === i ? ';' : ' &&\n\t\t\t\t';
-      if (field.isList) {
-        sb += `listEquals(other.${field.name}, ${field.name})` + operator;
-      } else {
-        sb += `other.${field.name} == ${field.name}` + operator;
+    let sb = '';
+    sb += printLine('@override', 2, 1);
+    sb += printLine('bool operator ==(Object other) {', 1, 1);
+    sb += printLine('if (identical(other, this)) return true;', 1, 2);
+    const printBlock = (lines: number = 1, tabs: number = 4): string => {
+      let sb;
+      sb = printLine(`return other is ${this.name} && `, 1, 2);
+
+      for (let i = 0; i < fields.length; i++) {
+        const isEnd = fields.length - 1 === i;
+        const field = fields[i];
+        const separator = isEnd ? ';' : ' &&';
+        if (field.isList) {
+          sb += printLine(`listEquals(other.${field.name}, ${field.name})`, lines, tabs);
+          sb += separator;
+        } else {
+          sb += printLine(`other.${field.name} == ${field.name}`, lines, tabs);
+          sb += separator;
+        }
       }
+
+      return sb;
+    };
+
+    if (printBlock().length < 76) {
+      sb += printBlock(0, 0);
+    } else {
+      sb += printBlock();
     }
-    sb += printLine('}', true, 1);
+
+    sb += printLine('}', 1, 1);
     return sb;
   }
 
   private hashCode(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
-    var keys = Array.from(this.fields.keys());
-    var len = keys.length;
-    var oneValueBody = `\n\n\t@override\n\tint get hashCode => `
-      + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)}`)}`
-      + `.hashCode;`;
-    var expressionBody = `\n\n\t@override\n\tint get hashCode => hashValues(`
-      + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)}`).join(', ')});`.replace(' ,);', ');');
-    var blockBody = `\n\n\t@override\n\tint get hashCode {\n\t\treturn hashValues(\n\t\t\t`
-      + `${keys.map((name) => `${fixFieldName(name, this._name, this._privateFields)},`).join('\n\t\t\t')}\n\t\t);\n\t}`;
-    var isShort = expressionBody.length < 87;
-    var expression = len === 1 ? oneValueBody : expressionBody;
-    return isShort ? expression : blockBody;
+    const fields = Array.from(this.fields.values());
+    const isOneValue = this.fields.size === 1;
+    const oneValueBody = (): string => {
+      let sb = '';
+      sb += printLine('@override', 2, 1);
+      sb += printLine('int get hashCode => ', 1, 1);
+      sb += fields[0].name;
+      sb += '.hashCode;';
+      return sb;
+    };
+    const expressionBody = (): string => {
+      let sb = '';
+      sb += printLine('@override', 2, 1);
+      sb += printLine('int get hashCode => hashValues(', 1, 1);
+      fields.forEach((f, i, arr) => {
+        const isEnd = arr.length - 1 === i;
+        const separator = isEnd ? ');' : ', ';
+        sb += `${f.name}`;
+        sb += separator;
+      });
+      return sb;
+    };
+    const blockBody = (): string => {
+      let sb = '';
+      sb += printLine('@override', 2, 1);
+      sb += printLine('int get hashCode {', 1, 1);
+      sb += printLine('return hashValues(', 1, 2);
+      fields.forEach((f) => {
+        sb += printLine(`${f.name},`, 1, 3);
+      });
+      sb += printLine(');', 1, 2);
+      sb += printLine('}', 1, 1);
+      return sb;
+    };
+    const isShort = expressionBody().length < 91;
+    const expression = isOneValue ? oneValueBody() : expressionBody();
+    return isShort ? expression : blockBody();
   }
 
   toCodeGenString(input: Input): string {

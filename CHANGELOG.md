@@ -2,6 +2,26 @@
 
 ## [Released]
 
+## [3.2.0] - 2021-06-18
+
+### Added
+   - Expression body for `fromJson` and `toJson`. In most cases it has a nicer format.
+   - More `DateTime` format support.
+   
+     ```
+     // Supported date formats. 
+     2008-09-15T15:53:00
+     2007-03-01T13:00:00Z
+     2015-10-05T21:46:54-1500
+     2015-10-05T21:46:54+07:00
+     2020-02-06T14:00:00+00:00
+     ```
+
+### Fixed
+   - Bugfix for merging class definitions.
+   - More accurate marking of null safety indication.
+   - Bugfix for annotation  marking.
+
 ## [3.1.5] - 2021-04-30
 
 ### Added

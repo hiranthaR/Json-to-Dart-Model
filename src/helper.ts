@@ -51,10 +51,7 @@ const keywords = ["String", "int", "bool", "num", "double", "dynamic", "DateTime
  * ```
  */
 export function filterListType(typeName: string): string[] {
-    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
-    const _onlyList = (value: string) => value === "List";
-    const result = split.filter(_onlyList);
-    return result;
+    return typeName.match(/\bList\b/g) ?? [];
 };
 
 /**
@@ -65,22 +62,18 @@ export function filterListType(typeName: string): string[] {
  */
 export const isPrimitiveType = (typeName: string): boolean => {
     const identical = typeName === typeName.trim() ? true : false;
-    const arrowToLeft = typeName.split("").filter((e) => e === "<");
-    const leftArrows = arrowToLeft.map(
-        (_, __, arr) => typeName.split("")[arr.length * 5 - 1]
-    );
-    const arrowToRight = typeName.split("").filter((e) => e === ">");
-    const rightArrows = typeName.split("").splice(-arrowToRight.length);
-    const split = typeName.replace(/</g, ",").replace(/>/g, ",").split(",");
-    const _ignoreEmpty = (value: string) => value !== "";
-    const values = split.filter(_ignoreEmpty);
-    const lists = values.filter((e) => e === "List");
+    const lists = typeName.match(/List/g) ?? [];
+    const values = typeName.split(/<|>|\ /g).filter((v) => v !== "");
+    const toLeft = typeName.match(/</g) ?? [];
+    const leftArrows = toLeft.map((_, i) => typeName.split("")[(i + 1) * 5 - 1]);
+    const toRight = typeName.match(/>/g) ?? [];
+    const rightArrows = typeName.split("").splice(-toRight.length);
     const validListSyntax =
         leftArrows.every((e) => e === "<") &&
         rightArrows.every((e) => e === ">") &&
-        arrowToRight.length === arrowToLeft.length &&
-        lists.length === arrowToRight.length &&
-        lists.length === arrowToLeft.length;
+        toRight.length === toLeft.length &&
+        lists.length === toRight.length &&
+        lists.length === toLeft.length;
     const validValue = values.every((e) => ["List", ...keywords].includes(e));
     const validSyntax = lists.length
         ? validListSyntax && validValue
@@ -94,15 +87,28 @@ export const isPrimitiveType = (typeName: string): boolean => {
 
 export const isList = (text: string): boolean => text.startsWith("List<");
 export const camelCase = (text: string): string => changeCase.camelCase(text);
-export const pascalCase = (text: string): string => changeCase.pascalCase(text);
+export const pascalCase = (text: string): string => {
+    return changeCase.pascalCase(text).replace(/_/g, '');
+};
 export const snakeCase = (text: string): string => changeCase.snakeCase(text);
 export const snakeToCamel = (text: string) => text.replace(
     /([-_][a-z])/g,
     (group) => group.toUpperCase().replace('-', '').replace('_', '')
 );
 
+/**
+ * Supported date formats.
+ * 
+ * * 2008-09-15T15:53:00
+ * * 2007-03-01T13:00:00Z
+ * * 2015-10-05T21:46:54-1500
+ * * 2015-10-05T21:46:54+07:00
+ * * 2020-02-06T14:00:00+00:00
+ * @param {string} date formated date string.
+ * @returns true if include supported formats.
+ */
 export function isDate(date: string): boolean {
-    const datePattern = /^(?:[1-9]\d{3}-(?:(?:0[1-9]|1[0-2])-(?:0[1-9]|1\d|2[0-8])|(?:0[13-9]|1[0-2])-(?:29|30)|(?:0[13578]|1[02])-31)|(?:[1-9]\d(?:0[48]|[2468][048]|[13579][26])|(?:[2468][048]|[13579][26])00)-02-29)T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:Z|[+-][01]\d:[0-5]\d)/g;
+    const datePattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(Z|[\+-]\d{2}:?\d{2})?$/gm;
     return datePattern.exec(date) !== null ? true : false;
 }
 
@@ -124,6 +130,42 @@ export function fixFieldName(name: string, prefix: string, isPrivate = false): s
 
     return isPrivate ? `_${fieldName}` : fieldName;
 }
+
+/**
+ * If the objects have identical keys and the same type returns true.
+ * 
+ * Otherwise returns false.
+ * @param object the object to compare.
+ * @param other the  other object to compare.
+ * @returns boolean
+ */
+export const equalByType = (object: any, other: any): boolean => {
+    const x = Object.keys(object).sort();
+    const y = Object.keys(other).sort();
+
+    if (x.length !== y.length) { return false; }
+
+    if (x.join() !== y.join()) { return false; }
+
+    for (const p in object) {
+        const a = object[p];
+        const b = other[p];
+
+        if (Array.isArray(a) && Array.isArray(b)) {
+            if (Array.from(a).length !== Array.from(b).length) {
+                return false;
+            }
+            if (getListTypeName(a) !== getListTypeName(b)) {
+                return false;
+            }
+        }
+        if (getTypeName(a) !== getTypeName(b)) {
+            return false;
+        }
+    }
+
+    return true;
+};
 
 export function getTypeName(obj: any): string {
     var type = typeof obj;
@@ -250,14 +292,14 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
 }
 
 /**  
- * Get object from the array.
+ * Get the object from the deeply nested array.
  * @param {any} obj - A object param.
  * @return {any} Return a any object.
  */
-export const getObject = (obj: any): any => {
+export const getNestedObject = (obj: any): any => {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
-            return getObject(obj[i]);
+            return getNestedObject(obj[i]);
         }
     } else {
         return obj;
@@ -268,7 +310,7 @@ export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithW
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(getObject(list[i])));
+        var toMerge = new Map(Object.entries(getNestedObject(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));
