@@ -113,6 +113,35 @@ export function isDate(date: string): boolean {
 }
 
 /**
+ * A function that cleans all annotations added by user to JSON key.
+ * @param {string} key a key to be processed.
+ * @returns string value.
+ */
+export const cleanKey = (key: string): string => {
+    const search = /([^]@)/gi;
+    const replace = "";
+    return key.replace(search, replace);
+};
+
+/**
+ * Renames class name if it starts with the number.
+ * Otherwise, the current key returns.
+ * @param {string} key the key to be processed.
+ * @returns string value
+ */
+export const handleKey = (key: string): string => {
+    const firstDigit = /^\d/g;
+    const clean = cleanKey(key);
+
+    if (!clean.match(firstDigit)) {
+        return key;
+    } else {
+        const newKey = 'this_' + clean;
+        return key.replace(clean, newKey);
+    }
+};
+
+/**
  * Returns value name. If it reserved by the system will be mixed with class name.
  * @param name value name.
  * @param prefix class name used to recreate reserved names.

@@ -695,28 +695,6 @@ export class ClassDefinition {
   }
 
   /**
-   * All imports from the Dart library.
-   * @param {Input} input user input.
-   */
-  private importsFromDart(input: Input): string {
-    if (!input.equality || input.equatable || input.freezed) {
-      return "";
-    }
-    var imports = "";
-    var len = this.fields.size;
-    // If less two hashcode values do not need import dart:ui.
-    if (len > 1) {
-      imports += "import 'dart:ui';\n";
-    }
-
-    if (imports.length === 0) {
-      return imports;
-    } else {
-      return imports += "\n";
-    }
-  };
-
-  /**
    * All imports from the packages library.
    * @param {Input} input the input from the user.
    */
@@ -1058,23 +1036,14 @@ export class ClassDefinition {
   private hashCode(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
     const fields = Array.from(this.fields.values());
-    const isOneValue = this.fields.size === 1;
-    const oneValueBody = (): string => {
-      let sb = '';
-      sb += printLine('@override', 2, 1);
-      sb += printLine('int get hashCode => ', 1, 1);
-      sb += fields[0].name;
-      sb += '.hashCode;';
-      return sb;
-    };
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
-      sb += printLine('int get hashCode => hashValues(', 1, 1);
+      sb += printLine('int get hashCode => ', 1, 1);
       fields.forEach((f, i, arr) => {
         const isEnd = arr.length - 1 === i;
-        const separator = isEnd ? ');' : ', ';
-        sb += `${f.name}`;
+        const separator = isEnd ? ';' : ' ^ ';
+        sb += `${f.name}.hashCode`;
         sb += separator;
       });
       return sb;
@@ -1082,25 +1051,22 @@ export class ClassDefinition {
     const blockBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
-      sb += printLine('int get hashCode {', 1, 1);
-      sb += printLine('return hashValues(', 1, 2);
-      fields.forEach((f) => {
-        sb += printLine(`${f.name},`, 1, 3);
+      sb += printLine('int get hashCode =>', 1, 1);
+      fields.forEach((f, i, arr) => {
+        const isEnd = arr.length - 1 === i;
+        const separator = isEnd ? ';' : ' ^';
+        sb += printLine(`${f.name}.hashCode` + separator, 1, 3);
       });
-      sb += printLine(');', 1, 2);
-      sb += printLine('}', 1, 1);
       return sb;
     };
     const isShort = expressionBody().length < 91;
-    const expression = isOneValue ? oneValueBody() : expressionBody();
-    return isShort ? expression : blockBody();
+    return isShort ? expressionBody() : blockBody();
   }
 
   toCodeGenString(input: Input): string {
     var field = "";
 
     if (input.freezed) {
-      field += `${this.importsFromDart(input)}`;
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
       field += `${this.importsForParts(input)}`;
@@ -1108,7 +1074,6 @@ export class ClassDefinition {
       return field;
     } else {
       if (this._privateFields) {
-        field += `${this.importsFromDart(input)}`;
         field += `${this.importsFromPackage(input)}`;
         field += `${this.importList()}`;
         field += `${this.importsForParts(input)}`;
@@ -1131,7 +1096,6 @@ export class ClassDefinition {
         field += `${this.equatablePropList(input)}\n}\n`;
         return field;
       } else {
-        field += `${this.importsFromDart(input)}`;
         field += `${this.importsFromPackage(input)}`;
         field += `${this.importList()}`;
         field += `${this.importsForParts(input)}`;
@@ -1159,7 +1123,6 @@ export class ClassDefinition {
   toString(input: Input): string {
     var field = "";
     if (this._privateFields) {
-      field += `${this.importsFromDart(input)}`;
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
       field += `${this.importsForParts(input)}`;
@@ -1182,7 +1145,6 @@ export class ClassDefinition {
       field += `${this.equatablePropList(input)}\n}\n`;
       return field;
     } else {
-      field += `${this.importsFromDart(input)}`;
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
       field += `${this.importsForParts(input)}`;

@@ -1,5 +1,5 @@
 import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, Dependency, } from "./syntax";
-import { navigateNode, mergeObjectList, pascalCase, fixFieldName } from "./helper";
+import { navigateNode, mergeObjectList, pascalCase, fixFieldName, cleanKey } from "./helper";
 import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
@@ -13,17 +13,6 @@ class DartCode extends WithWarning<string> {
     }
     getCode() { return this.result; }
 }
-
-/**
- * A function that cleans all annotations added by user to JSON key.
- * @param {string} key a key to be processed.
- * @returns string value.
- */
-const cleanKey = (key: string): string => {
-    const search = /([^]@)/gi;
-    const replace = "";
-    return key.replace(search, replace);
-};
 
 export class Hint {
     path: string;

@@ -338,7 +338,7 @@ bool operator ==(Object other) {
 }
 
 @override
-int get hashCode => hashValues(userId, id, title, completed);
+int get hashCode => userId.hashCode ^ id.hashCode ^ title.hashCode ^ completed.hashCode;
 ```
 
 <!-- TO STRING METHOD -->
