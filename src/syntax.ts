@@ -998,7 +998,9 @@ export class ClassDefinition {
    */
   private equalityOperator(input: Input): string {
     if (!input.equality || input.equatable) { return ''; }
-    const fields = Array.from(this.fields.values());
+    const fields = Array.from(this.fields.values()).sort((a, b) => {
+      return a.isList === b.isList ? 0 : a ? -1 : 1;
+    });
     let sb = '';
     sb += printLine('@override', 2, 1);
     sb += printLine('bool operator ==(Object other) {', 1, 1);
