@@ -2,6 +2,14 @@
 
 ## [Released]
 
+## [3.2.1] - 2021-06-23
+
+### Fixed
+   - Removed Dart UI import for hashCode.
+   - To improve better stability and flexibility configuration from the file `models.jsonc` was moved to the `Settings/Extensions/JSON To Dart Model`
+   - Equality operator now sort lists first.
+   - Null-Safety enabled as default. To disable it go to the `Settings/Extensions/JSON To Dart Model/Null Safety`
+
 ## [3.2.0] - 2021-06-18
 
 ### Added

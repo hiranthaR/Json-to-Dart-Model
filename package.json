@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -92,54 +92,54 @@
     ],
     "configuration": [
       {
-        "title": "Json To Dart Model",
+        "title": "JSON To Dart Model",
         "properties": {
-          "jsonToDart.freezed.enable": {
+          "jsonToDart.freezed": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Generates Freezed classes (Required `Freezed` package). ***Note:*** if it's enabled, everything will be ignored because Freezed supports all options."
           },
-          "jsonToDart.serializable.enable": {
+          "jsonToDart.serializable": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Enable Json Serializable builder to generate `to/from` JSON code for a class (Required Json Serializable package)."
           },
-          "jsonToDart.equatable.enable": {
+          "jsonToDart.equatable": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Enable Equatable support (Required `Equatable` package). ***Note:*** if it's enabled, equality operator and immutability will be ignored."
           },
-          "jsonToDart.immutable.enable": {
+          "jsonToDart.immutable": {
             "type": "boolean",
             "default": false,
             "description": "Generate immutable classes."
           },
-          "jsonToDart.toString.enable": {
+          "jsonToDart.toString": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Add `toString` method to improve the debugging experience."
           },
-          "jsonToDart.copyWith.enable": {
+          "jsonToDart.copyWith": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Add `copyWith` method (Recommended with immutable classes)."
           },
-          "jsonToDart.equality.enable": {
+          "jsonToDart.equality": {
             "type": "boolean",
             "default": false,
             "description": "Add equality operator."
           },
-          "jsonToDart.nullSafety.enable": {
+          "jsonToDart.nullSafety": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Indicate that a variable can have the value `null`. Required in the new Dart language from version **2.12.0** and become as default for Dart language."
+            "markdownDescription": "Indicate that a variable can have the value `null`. Null-Safety is default from version **2.12.0** in the Dart language."
           },
-          "jsonToDart.primaryConfiguration.enable": {
+          "jsonToDart.primaryConfiguration": {
             "type": "boolean",
             "default": false,
-            "description": "Activate as primary global configuration."
+            "description": "Activate as primary global configuration. Json To Dart Model will use this setup everywhere and not ask you for inputs."
           },
-          "jsonToDart.fastMode.enable": {
+          "jsonToDart.fastMode": {
             "type": "boolean",
             "default": false,
             "markdownDescription": "Disable ask for confirmation to start the conversion from the file `models.jsonc`."

@@ -64,7 +64,7 @@
 
 Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**.
 
-> **Note:** when you use `Freezed` or `Json Serializable` then `Json to Dart Model` generates only types and everything that happens after, then `Json Serializable` takes care of the rest and is responsible for generated code.
+> **Note:** when you use `Freezed` or `Json Serializable` then `Json to Dart Model` generates only types and everything that happens after, then `Dart Build System builders` takes care of the rest and is responsible for generated code.
 
 <!-- HOW IT WORKS -->
 ## How it Works
@@ -98,83 +98,23 @@ To customize your classes is very easy. If you want fast to create a simple clas
 #### Convert from file
 - Convert all JSON objects from the file.
 
-`Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. You can share this file with your friends and help them create better code. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. After adding the file open it to read detailed instructions on how it works.
+`Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. To configure options for output, go to the `Settings/Extensions/JSON To Dart Model`
 
-Create file manually. Add a new file to your app directory `my_app/models.jsonc` and add a configuration object.
+**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. ***Note that you add base class names to each object with key***  `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc` file should look like this:
 
 ```jsonc
 [
-  {
-    // Generates Freezed classes.
-    // If it's true, everything below will be ignored because Freezed supports them all.
-    "freezed": false,
-    // Enable Json Serializable builder.
-    "serializable": false,
-    // Enable Equatable support.
-    // If it's true, equality operator and immutability will be ignored.
-    "equatable": false,
-    // Generate immutable classes.
-    "immutable": false,
-    // Add toString method to improve the debugging experience.
-    "toString": false,
-    // Add copyWith method (Recommended with immutable classes).
-    "copyWith": false,
-    // Add equality operator.
-    "equality": false,
-    // Indicate that a variable can have the value null.
-    "nullSafety": false,
-    // Default target directory.
-    "targetDirectory": "/lib/models",
-    // Activate as primary global configuration.
-    "primaryConfiguration": false,
-    // Disable ask for confirmation to start the conversion.
-    "fastMode": false
-  }
+	{
+		"__className": "UserPosts", // <- The base class name of the object.
+		"userId": 1,
+		"id": 1, // To mark as required value, change "id" to "d@id".
+		"title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
+		"body": "Json to Dart advanced..."
+	}
 ]
-```
-
-Put all JSON objects to this list below configuration object separated by commas. Configuration object must be first in the list. ***Note that you add base class names to each object with key***  `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Your JSON object should look like this:
-
-```jsonc
-{
-  "__className": "UserPost", // <- The base class name of the object.
-  "userId": 1,
-  "id": 1,
-  "title": "Json To Dart Model",
-  "body": "Json to Dart advanced..."
-},
 ```
 
 After adding the object and convert to Dart classes just run a command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class, just delete the class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
-
-Your final result should look like this:
-
-```json
-[
-  {
-    "freezed": false,
-    "serializable": false,
-    "equatable": false,
-    "immutable": false,
-    "toString": false,
-    "copyWith": false,
-    "equality": false,
-    "nullSafety": false,
-    "targetDirectory": "/lib/models",
-    "primaryConfiguration": false,
-    "fastMode": false
-  },
-  {
-    "__className": "UserPost",
-    "userId": 1,
-    "id": 1,
-    "title": "Json To Dart Model",
-    "body": "Json to Dart advanced..."
-  }
-]
-```
-
-> TIP: this may look too advanced but will give you the best results with this generator. Because the Json to Dart Model has more data sources to compare it to provide more secure and cleaner code.
 
 <!-- ANNOTATIONS -->
 ## Annotations
