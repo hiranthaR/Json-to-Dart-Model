@@ -321,7 +321,7 @@ Todos copyWith({
 <!-- NULL SAFETY -->
 ## Null Safety
 
-Null-Safety is enabled as default and it will indicate that a variable may have the value null. Required in the new Dart language from version 2.12... To disable it, go to the `Settings/Extensions/JSON To Dart Model`
+Null-Safety is enabled as default and it will indicate that a variable may have the value `null`. Required in the new Dart language from version 2.12.0. To disable it, go to the `Settings/Extensions/JSON To Dart Model`
 
 > **Note:** make sure your packages also support Dart null safety.
 
