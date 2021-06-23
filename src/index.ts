@@ -20,7 +20,6 @@ import * as fs from "fs";
 import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
-import cp = require("child_process");
 import { getUserInput, Input } from "./input";
 import { Models } from "./models_file";
 import { Settings } from "./settings";
@@ -90,6 +89,23 @@ function runGenerator() {
   );
 }
 
+export function getConfiguration(): Input {
+  const config = workspace.getConfiguration('jsonToDart');
+  let input = new Input();
+  input.freezed = config.get<boolean>('freezed') ?? false;
+  input.serializable = config.get<boolean>('serializable') ?? false;
+  input.equatable = config.get<boolean>('equatable') ?? false;
+  input.immutable = config.get<boolean>('immutable') ?? false;
+  input.equality = config.get<boolean>('equality') ?? false;
+  input.toString = config.get<boolean>('toString') ?? false;
+  input.copyWith = config.get<boolean>('copyWith') ?? false;
+  input.fastMode = config.get<boolean>('fastMode') ?? false;
+  input.nullSafety = config.get<boolean>('nullSafety') ?? true;
+  input.primaryConfiguration = config.get<boolean>('primaryConfiguration') ?? false;
+  input.targetDirectory = config.get<string>('targetDirectory.path') ?? "/lib/models";
+  return input;
+}
+
 async function transformFromFile() {
   const jsonc = require('jsonc').safe;
   const runFromFile = true;
@@ -104,9 +120,10 @@ async function transformFromFile() {
       // All json objects from the models.jsonc.
       const objects: any[] = result;
       // User configuration.
-      const input = await models.getConfiguration(true);
+      const input = getConfiguration();
 
-      if (input === undefined) {
+      if (Object.keys(objects[0]).every((key) => Object.keys(input).includes(key))) {
+        window.showInformationMessage('Configuration from the file models.jsonc was moved to the Settings/Extensions/JSON To Dart Model. - Configure a new option in the settings and remove the configuration item from the file models.jsonc to avoid this warning.');
         return;
       }
 
@@ -116,7 +133,7 @@ async function transformFromFile() {
       if (duplicates.length) {
         for (const name of duplicates) {
           if (name === undefined) {
-            window.showWarningMessage(`Some json objects do not have a class name`);
+            window.showWarningMessage('Some JSON objects do not have a class name');
             return;
           }
           window.showWarningMessage(`Rename any of the duplicate class ${name} to continue`);
@@ -127,19 +144,25 @@ async function transformFromFile() {
       const fastMode = input.fastMode ?? false;
       const confirm = !fastMode ? await models.getConfirmation() : fastMode;
 
-      if (confirm && objects.length === 1) {
+      if (confirm && !objects.length) {
         window.showInformationMessage('models.jsonc file is empty');
+        return;
       }
 
-      if (confirm && objects.length > 1) {
+      if (confirm && objects.length) {
         // Start converting.
-        for await (const object of objects.slice(1)) {
+        for await (const object of objects) {
           // Class name key.
           const key = '__className';
           // Separate class names from objects.
           const { [key]: className, ...jsonObject } = object;
           // Conver back to json.
           const json = JSON.stringify(jsonObject);
+          // Check if the class name is not missing.
+          if (className === undefined) {
+            window.showWarningMessage('Some JSON objects do not have a class name');
+            return;
+          }
           // Set settings.
           const settings = new Settings(
             className,
@@ -152,7 +175,7 @@ async function transformFromFile() {
         }
         window.showInformationMessage('Models successfully added');
         // Format directories
-        for await (const object of objects.slice(1)) {
+        for await (const object of objects) {
           // Class name key.
           const key = '__className';
           // Separate class names from objects.
@@ -170,7 +193,7 @@ async function transformFromFile() {
 }
 
 async function transformFromSelection(uri: Uri) {
-  const primaryInput = await new Models().getConfiguration();
+  const primaryInput = getConfiguration();
   const className = await promptForBaseClassName();
   let input: Input;
 
@@ -218,7 +241,7 @@ async function transformFromSelection(uri: Uri) {
 }
 
 async function transformFromSelectionToCodeGen(uri: Uri) {
-  const primaryInput = await new Models().getConfiguration();
+  const primaryInput = getConfiguration();
   const className = await promptForBaseClassName();
   let input: Input;
 
@@ -266,7 +289,7 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
 }
 
 async function transformFromClipboard(uri: Uri) {
-  const primaryInput = await new Models().getConfiguration();
+  const primaryInput = getConfiguration();
   const className = await promptForBaseClassName();
   let input: Input;
 
@@ -314,7 +337,7 @@ async function transformFromClipboard(uri: Uri) {
 }
 
 async function transformFromClipboardToCodeGen(uri: Uri) {
-  const primaryInput = await new Models().getConfiguration();
+  const primaryInput = getConfiguration();
   const className = await promptForBaseClassName();
   let input: Input;
   if (_.isNil(className) || className.trim() === "") {
@@ -369,16 +392,17 @@ function promptForBaseClassName(): Thenable<string | undefined> {
 }
 
 async function promptForTargetDirectory(): Promise<string | undefined> {
+  const rootPath = workspace.workspaceFolders![0].uri.path;
   const options: OpenDialogOptions = {
     canSelectMany: false,
     openLabel: "Select a folder to create the Models",
     canSelectFolders: true,
-    defaultUri: Uri.parse(workspace.rootPath?.replace(/\\/g, "/") + "/lib/"),
+    defaultUri: Uri.parse(rootPath?.replace(/\\/g, "/") + "/lib/"),
   };
 
   return window.showOpenDialog(options).then((uri) => {
     if (_.isNil(uri) || _.isEmpty(uri)) {
-      return workspace.rootPath?.replace(/\\/g, "/") + "/lib/";
+      return rootPath?.replace(/\\/g, "/") + "/lib/";
     }
     return uri[0].fsPath;
   });
@@ -395,13 +419,14 @@ async function generateClass(settings: Settings) {
 function createDirectory(targetDirectory: string): Promise<void> {
   return new Promise((resolve, reject) => {
     mkdirp(targetDirectory)
-      .then((value) => resolve())
+      .then((_) => resolve())
       .catch((error) => reject(error));
   });
 }
 
 async function addCodeGenerationLibraries() {
-  let folderPath = workspace.rootPath;
+  let folderPath = workspace.workspaceFolders![0].uri.path;
+
   const targetPath = `${folderPath}/pubspec.yaml`;
 
   if (fs.existsSync(targetPath)) {
