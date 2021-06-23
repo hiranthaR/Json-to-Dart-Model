@@ -1,4 +1,5 @@
 import { window } from "vscode";
+import { getConfiguration } from "./index";
 
 interface InputInterface {
     freezed: boolean;
@@ -10,7 +11,7 @@ interface InputInterface {
     serializable: boolean;
     nullSafety: boolean;
     /**
-     * Required root path. 
+     * Required root path. [workspace.workspaceFolders![0].uri.path] 
      */
     targetDirectory: string;
     primaryConfiguration: boolean;
@@ -28,24 +29,10 @@ export class Input implements InputInterface {
     copyWith: boolean = false;
     equality: boolean = false;
     serializable: boolean = false;
-    nullSafety: boolean = false;
+    nullSafety: boolean = true;
     targetDirectory: string = '/lib/models';
     primaryConfiguration: boolean = false;
     fastMode: boolean = false;
-
-    constructor(obj: any = {}) {
-        this.freezed = obj.freezed;
-        this.equatable = obj.equatable;
-        this.immutable = obj.immutable;
-        this.toString = obj.toString;
-        this.copyWith = obj.copyWith;
-        this.equality = obj.equality;
-        this.serializable = obj.serializable;
-        this.nullSafety = obj.nullSafety;
-        this.targetDirectory = obj.targetDirectory;
-        this.primaryConfiguration = obj.primaryConfiguration;
-        this.fastMode = obj.fastMode;
-    }
 
     get isImmutable(): boolean {
         return this.equatable || this.immutable ? true : false;
@@ -68,7 +55,7 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
     if (generate) {
         input.freezed = await askForFreezed();
         if (input.freezed) {
-            input.nullSafety = await askForNullSafety();
+            input.nullSafety = getConfiguration().nullSafety;
         }
     }
     // Freezed supports all the methods and you do not have to ask the user about the rest.
@@ -80,7 +67,7 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
         }
         input.toString = await askForToStringMethod();
         input.copyWith = await askForCopyWithMethod();
-        input.nullSafety = await askForNullSafety();
+        input.nullSafety = getConfiguration().nullSafety;
     }
     return input;
 }
@@ -200,26 +187,6 @@ async function askForEqualityOperator(): Promise<boolean> {
             { label: "Yes" },
         ],
         { placeHolder: "Implement equality operator `==`? To compare different instances of `Objects`." }
-    );
-
-    switch (selection?.label) {
-        case "Yes":
-            return true;
-        default:
-            return false;
-    }
-}
-
-async function askForNullSafety(): Promise<boolean> {
-    const selection = await window.showQuickPick(
-        [
-            {
-                label: "No",
-                picked: true,
-            },
-            { label: "Yes" },
-        ],
-        { placeHolder: "Enable support for Dart null safety?" }
     );
 
     switch (selection?.label) {
