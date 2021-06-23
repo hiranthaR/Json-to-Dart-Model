@@ -77,7 +77,7 @@ Given a JSON string, this library will generate all the necessary Dart classes t
 <!-- CUSTOMIZE -->
 ## Customize
 
-To customize your classes is very easy. If you want fast to create a simple class then just click enter continue to skip all methods. Otherwise, build your own. To generate Freezed class and Json Serializable choose Code Generation.
+To customize your classes is very easy. If you want fast to create a simple class then just click enter continue to skip all methods. Otherwise, build your own. To generate Freezed class and Json Serializable choose Code Generation. Of course, you can set up your configuration in the `Settings/Extensions/JSON To Dart Model`
 
 <!-- HOW TO CUSTOMIZE GIF -->
 <p align="center">
