@@ -151,9 +151,7 @@ This also works with Freezed and JSON Serializable, also initializes non-constan
 <!-- SPEED UP CONVERTING -->
 ## Speed Up Converting
 
-If you work a lot with JSON files and get tired every time customize your models in the command palette. Then you can set the primary configuration to `true`. And `Json to Dart Model` will use `models.jsonc` configuration everywhere and never ask you about input. Just choose any command from the `selection` or `clipboard` and pick the directory. Set fast mode to `true` for faster converting to the default directory. 
-
-> Note: if `models.jsonc` **_configuration_** or some **_key_** does not exist then you will be asked for manual input.
+If you work a lot with JSON files and get tired every time customize your models in the command palette. Then you can go to the `Settings/Extensions/JSON To Dart Model` and set the primary configuration to `true`. And Json to Dart Model will use settings configuration everywhere and never ask you about input. Just choose any command from the selection or clipboard and pick the directory. Set fast mode to `true` for faster converting to the default directory.
 
 <!-- JSON SERIALIZABLE -->
 ## JSON Serializable
@@ -323,9 +321,9 @@ Todos copyWith({
 <!-- NULL SAFETY -->
 ## Null Safety
 
-If `null safety` enabled it will indicate that a variable may have the value `null`. Required in the new Dart language from version 2.12...
+Null-Safety is enabled as default and it will indicate that a variable may have the value null. Required in the new Dart language from version 2.12... To disable it, go to the `Settings/Extensions/JSON To Dart Model`
 
-> **Note:** Before enabling null safety make sure your packages also support Dart null safety.
+> **Note:** make sure your packages also support Dart null safety.
 
 <!-- SERIALIZING JSON USING CODE GENERATION LIBRARIES -->
 ## Serializing JSON Using Code Generation Libraries
