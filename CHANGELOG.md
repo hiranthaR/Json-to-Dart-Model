@@ -2,7 +2,7 @@
 
 ## [Released]
 
-## [3.2.1] - 2021-06-23
+## [3.2.3] - 2021-06-23
 
 ### Fixed
    - Removed Dart UI import for hashCode.

@@ -104,13 +104,13 @@ To customize your classes is very easy. If you want fast to create a simple clas
 
 ```jsonc
 [
-	{
-		"__className": "UserPosts", // <- The base class name of the object.
-		"userId": 1,
-		"id": 1, // To mark as required value, change "id" to "d@id".
-		"title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
-		"body": "Json to Dart advanced..."
-	}
+  {
+  	"__className": "UserPosts", // <- The base class name of the object.
+    "userId": 1,
+    "id": 1, // To mark as required value, change "id" to "d@id".
+    "title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
+    "body": "Json to Dart advanced..."
+  }
 ]
 ```
 
@@ -321,7 +321,7 @@ Todos copyWith({
 <!-- NULL SAFETY -->
 ## Null Safety
 
-Null-Safety is enabled as default and it will indicate that a variable may have the value `null`. Required in the new Dart language from version 2.12.0. To disable it, go to the `Settings/Extensions/JSON To Dart Model`
+Null-Safety is enabled as default and it will indicate that a variable may have the value `null`. Required in the new Dart language from version **2.12.0**. To disable it, go to the `Settings/Extensions/JSON To Dart Model`
 
 > **Note:** make sure your packages also support Dart null safety.
 
