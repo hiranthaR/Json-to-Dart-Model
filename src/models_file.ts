@@ -73,8 +73,17 @@ export class Models {
         return window.showInformationMessage(
             'Start building JSON models?\n\nBuilds from file models.jsonc',
             { modal: true },
-            ...["Start"]).then((action) => {
-                return action === "Start" ? true : false;
+            ...["Start", "Don't ask again"]).then((action) => {
+                switch (action) {
+                    case "Don't ask again":
+                        const config = workspace.getConfiguration('jsonToDart');
+                        config.update('fastMode', true, true);
+                        return true;
+                    case "Start":
+                        return true;
+                    default:
+                        return false;
+                }
             });
     }
 }
