@@ -105,9 +105,9 @@ To customize your classes is very easy. If you want fast to create a simple clas
 ```jsonc
 [
   {
-  	"__className": "UserPosts", // <- The base class name of the object.
+    "__className": "UserPosts", // <- The base class name of the object.
     "userId": 1,
-    "id": 1, // To mark as required value, change "id" to "d@id".
+    "id": 1, // To mark as required value, change "id" to "r@id".
     "title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
     "body": "Json to Dart advanced..."
   }

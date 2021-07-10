@@ -39,7 +39,7 @@ export class Models {
         sb += printLine('{', 1, 1);
         sb += printLine('"__className": "UserPost", // <- The base class name of the object.', 1, 2);
         sb += printLine('"userId": 1,', 1, 2);
-        sb += printLine('"id": 1, // To mark as required value, change "id" to "d@id".', 1, 2);
+        sb += printLine('"id": 1, // To mark as required value, change "id" to "r@id".', 1, 2);
         sb += printLine('"title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".', 1, 2);
         sb += printLine('"body": "Json to Dart advanced..."', 1, 2);
         sb += printLine('}\n', 1, 1);
@@ -73,8 +73,17 @@ export class Models {
         return window.showInformationMessage(
             'Start building JSON models?\n\nBuilds from file models.jsonc',
             { modal: true },
-            ...["Start"]).then((action) => {
-                return action === "Start" ? true : false;
+            ...["Start", "Don't ask again"]).then((action) => {
+                switch (action) {
+                    case "Don't ask again":
+                        const config = workspace.getConfiguration('jsonToDart');
+                        config.update('fastMode', true, true);
+                        return true;
+                    case "Start":
+                        return true;
+                    default:
+                        return false;
+                }
             });
     }
 }

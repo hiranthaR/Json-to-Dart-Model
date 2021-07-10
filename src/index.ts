@@ -81,7 +81,7 @@ async function dartFormat(directory: string, lastDirectory: string) {
 /**
  * Run "build_runner build".
  */
-function runGenerator() {
+function runBuildRunner() {
   let terminal = window.createTerminal("pub get");
   terminal.show();
   terminal.sendText(
@@ -101,6 +101,7 @@ export function getConfiguration(): Input {
   input.copyWith = config.get<boolean>('copyWith') ?? false;
   input.fastMode = config.get<boolean>('fastMode') ?? false;
   input.nullSafety = config.get<boolean>('nullSafety') ?? true;
+  input.runBuilder = config.get<boolean>('runBuilder') ?? true;
   input.primaryConfiguration = config.get<boolean>('primaryConfiguration') ?? false;
   input.targetDirectory = config.get<string>('targetDirectory.path') ?? "/lib/models";
   return input;
@@ -182,8 +183,8 @@ async function transformFromFile() {
           const { [key]: className } = object;
           await dartFormat(targetDirectory, className);
         }
-        if (input.generate) {
-          runGenerator();
+        if (input.generate && input.runBuilder) {
+          runBuildRunner();
         }
       }
     }
@@ -233,8 +234,8 @@ async function transformFromSelection(uri: Uri) {
         input
       ))).then((_) => {
         dartFormat(<string>targetDirectory, "models");
-        if (input.generate) {
-          runGenerator();
+        if (input.generate && input.runBuilder) {
+          runBuildRunner();
         }
       })
     .catch(handleError);
@@ -282,8 +283,8 @@ async function transformFromSelectionToCodeGen(uri: Uri) {
       )))
     .then((_) => {
       dartFormat(<string>targetDirectory, "models");
-      if (input.generate) {
-        runGenerator();
+      if (input.generate && input.runBuilder) {
+        runBuildRunner();
       }
     }).catch(handleError);
 }
@@ -329,8 +330,8 @@ async function transformFromClipboard(uri: Uri) {
         input
       ))).then((_) => {
         dartFormat(<string>targetDirectory, "models");
-        if (input.generate) {
-          runGenerator();
+        if (input.generate && input.runBuilder) {
+          runBuildRunner();
         }
       })
     .catch(handleError);
@@ -377,8 +378,8 @@ async function transformFromClipboardToCodeGen(uri: Uri) {
       )))
     .then((a) => {
       dartFormat(<string>targetDirectory, "models");
-      if (input.generate) {
-        runGenerator();
+      if (input.generate && input.runBuilder) {
+        runBuildRunner();
       }
     }).catch(handleError);
 }
