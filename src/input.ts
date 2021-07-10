@@ -14,6 +14,7 @@ interface InputInterface {
      * Required root path. [workspace.workspaceFolders![0].uri.path] 
      */
     targetDirectory: string;
+    runBuilder: boolean;
     primaryConfiguration: boolean;
     fastMode: boolean;
 }
@@ -31,6 +32,7 @@ export class Input implements InputInterface {
     serializable: boolean = false;
     nullSafety: boolean = true;
     targetDirectory: string = '/lib/models';
+    runBuilder: boolean = true;
     primaryConfiguration: boolean = false;
     fastMode: boolean = false;
 
@@ -51,6 +53,7 @@ export async function getUserInput(generate: boolean = false): Promise<Input> {
     let input = new Input();
 
     input.serializable = generate;
+    input.runBuilder = getConfiguration().runBuilder;
 
     if (generate) {
         input.freezed = await askForFreezed();

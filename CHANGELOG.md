@@ -2,6 +2,13 @@
 
 ## [Released]
 
+## [3.2.5] - 2021-07-10
+
+### Fixed
+   - Added option to disable run build runner.
+   - Added button don't ask again for confirmation, when generating from the `models.json` file.
+   - Bug fix.
+
 ## [3.2.3] - 2021-06-23
 
 ### Fixed

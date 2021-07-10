@@ -232,6 +232,9 @@ export class ModelGenerator {
 
         for await (const definition of this.allClasses) {
             for (const dependency of definition.dependencies) {
+                if (definition.name.toLowerCase() === this._rootClassName.toLowerCase()) {
+                    this.allClassMapping.set(definition, dependency);
+                }
                 const classDef = await this.sortByDependency(dependency);
                 if (classDef !== undefined) {
                     if (this.duplicates.includes(classDef)) {
