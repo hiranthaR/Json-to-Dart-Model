@@ -1,4 +1,6 @@
-import { window } from "vscode";
+import * as _ from "lodash";
+
+import { InputBoxOptions, OpenDialogOptions, Uri, window, workspace } from "vscode";
 import { getConfiguration } from "./index";
 
 interface InputInterface {
@@ -49,35 +51,35 @@ export class Input implements InputInterface {
  * UI elements to show messages, selections, and asking for user input.
  * @generate indicates whether selected code generator.
  */
-export async function getUserInput(generate: boolean = false): Promise<Input> {
+export const getUserInput = async (generate: boolean = false): Promise<Input> => {
     let input = new Input();
 
     input.serializable = generate;
     input.runBuilder = getConfiguration().runBuilder;
 
     if (generate) {
-        input.freezed = await askForFreezed();
+        input.freezed = await promptForFreezed();
         if (input.freezed) {
             input.nullSafety = getConfiguration().nullSafety;
         }
     }
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
-        input.equatable = await askForEquatableCompatibility();
+        input.equatable = await promptForEquatableCompatibility();
         if (!input.equatable) {
-            input.immutable = await askForImmutableClass();
-            input.equality = await askForEqualityOperator();
+            input.immutable = await promptForImmutableClass();
+            input.equality = await promptForEqualityOperator();
         }
-        input.toString = await askForToStringMethod();
-        input.copyWith = await askForCopyWithMethod();
+        input.toString = await promptForToStringMethod();
+        input.copyWith = await promptForCopyWithMethod();
         input.nullSafety = getConfiguration().nullSafety;
     }
     return input;
-}
+};
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.
  */
-async function askForFreezed(): Promise<boolean> {
+async function promptForFreezed(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -100,7 +102,7 @@ async function askForFreezed(): Promise<boolean> {
 /**
  * An abstract class that helps to implement equality without needing to explicitly override == and hashCode.
  */
-async function askForEquatableCompatibility(): Promise<boolean> {
+async function promptForEquatableCompatibility(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -120,7 +122,7 @@ async function askForEquatableCompatibility(): Promise<boolean> {
     }
 }
 
-async function askForCopyWithMethod(): Promise<boolean> {
+async function promptForCopyWithMethod(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -140,7 +142,7 @@ async function askForCopyWithMethod(): Promise<boolean> {
     }
 }
 
-async function askForImmutableClass(): Promise<boolean> {
+async function promptForImmutableClass(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -160,7 +162,7 @@ async function askForImmutableClass(): Promise<boolean> {
     }
 }
 
-async function askForToStringMethod(): Promise<boolean> {
+async function promptForToStringMethod(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -180,7 +182,7 @@ async function askForToStringMethod(): Promise<boolean> {
     }
 }
 
-async function askForEqualityOperator(): Promise<boolean> {
+async function promptForEqualityOperator(): Promise<boolean> {
     const selection = await window.showQuickPick(
         [
             {
@@ -199,3 +201,28 @@ async function askForEqualityOperator(): Promise<boolean> {
             return false;
     }
 }
+
+export const promptForBaseClassName = (): Thenable<string | undefined> => {
+    const classNamePromptOptions: InputBoxOptions = {
+        prompt: "Base Class Name",
+        placeHolder: "User",
+    };
+    return window.showInputBox(classNamePromptOptions);
+};
+
+export const promptForTargetDirectory = async (): Promise<string | undefined> => {
+    const rootPath = workspace.workspaceFolders![0].uri.path;
+    const options: OpenDialogOptions = {
+        canSelectMany: false,
+        openLabel: "Select a folder to create the Models",
+        canSelectFolders: true,
+        defaultUri: Uri.parse(rootPath?.replace(/\\/g, "/") + "/lib/"),
+    };
+
+    return window.showOpenDialog(options).then((uri) => {
+        if (_.isNil(uri) || _.isEmpty(uri)) {
+            return rootPath?.replace(/\\/g, "/") + "/lib/";
+        }
+        return uri[0].fsPath;
+    });
+};

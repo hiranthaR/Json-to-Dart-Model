@@ -39,35 +39,58 @@
     "commands": [
       {
         "command": "jsonToDart.fromFile",
-        "title": "Build Models",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: Build Models"
       },
       {
         "command": "jsonToDart.fromSelection",
-        "title": "Convert From Selection",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Selection"
       },
       {
         "command": "jsonToDart.fromClipboard",
-        "title": "Convert From ClipBoard",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From ClipBoard"
       },
       {
         "command": "jsonToDart.addCodeGenerationLibraries",
-        "title": "Add Code Generation Libraries To pubspec.yaml",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: Add Code Generation Libraries To pubspec.yaml"
       },
       {
         "command": "jsonToDart.fromClipboardToCodeGen",
-        "title": "Convert From Clipboard To Code Generation Supported Classes",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Clipboard to Code Generation Classes"
       },
       {
         "command": "jsonToDart.fromSelectionToCodeGen",
-        "title": "Convert From Selection To Code Generation Supported Classes",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Selection to Code Generation Classes"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "jsonToDart.fromClipboard",
+          "group": "jsonToDart",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "jsonToDart.fromClipboardToCodeGen",
+          "group": "jsonToDart",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "jsonToDart.fromFile",
+          "group": "jsonToDart",
+          "when": "resourceFilename == models.jsonc"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "jsonToDart.fromSelection",
+          "when": "editorHasSelection && editorLangId == json || editorHasSelection && editorLangId == jsonc"
+        },
+        {
+          "command": "jsonToDart.fromSelectionToCodeGen",
+          "when": "editorHasSelection && editorLangId == json || editorHasSelection && editorLangId == jsonc"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "jsonToDart.fromFile",
