@@ -2,10 +2,10 @@ import * as _ from "lodash";
 import * as fs from "fs";
 
 import { Uri, window } from "vscode";
-import { dartFormat, generateClass, getConfiguration, runBuildRunner, } from "../index";
+import { runDartFormat, generateClass, getConfiguration, runBuildRunner, } from "../index";
 import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory, } from "../input";
 import { getClipboardText, handleError, validateLength } from "../lib";
-import { ISettings, PathType, Settings } from "../settings";
+import { PathType, Settings } from "../settings";
 
 export const transformFromClipboard = async (uri: Uri) => {
     const primaryInput = getConfiguration();
@@ -39,7 +39,7 @@ export const transformFromClipboard = async (uri: Uri) => {
 
     const json: string = await getClipboardText().then(validateLength).catch(handleError);
 
-    const config: ISettings = {
+    const config: Settings = {
         className: className,
         targetDirectory: <string>targetDirectory,
         object: json,
@@ -50,7 +50,7 @@ export const transformFromClipboard = async (uri: Uri) => {
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        dartFormat(
+        runDartFormat(
             <string>targetDirectory,
             settings.pathType === PathType.Raw ? "" : "models"
         );

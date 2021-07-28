@@ -1,8 +1,8 @@
 import { window } from "vscode";
-import { dartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
+import { runDartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
 import { handleError } from "../lib";
 import { Models } from "../models_file";
-import { ISettings, PathType, Settings } from "../settings";
+import { PathType, Settings } from "../settings";
 
 export const transformFromFile = async () => {
     const jsonc = require('jsonc').safe;
@@ -62,7 +62,7 @@ export const transformFromFile = async () => {
                         return;
                     }
                     // Settings config.
-                    let config: ISettings = {
+                    let config: Settings = {
                         className: className,
                         targetDirectory: <string>targetDirectory,
                         object: json,
@@ -81,7 +81,7 @@ export const transformFromFile = async () => {
                     const key = '__className';
                     // Separate class names from objects.
                     const { [key]: className } = object;
-                    dartFormat(targetDirectory, className);
+                    runDartFormat(targetDirectory, className);
                 }
                 if (input.generate && input.runBuilder) {
                     runBuildRunner();

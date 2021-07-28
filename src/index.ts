@@ -12,7 +12,7 @@ import {
   transformFromSelectionToCodeGen,
 } from "./commands";
 import { Input } from "./input";
-import { ISettings, Settings } from "./settings";
+import { Settings } from "./settings";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -53,11 +53,11 @@ export function activate(context: ExtensionContext) {
  * lib test
  * ```
  */
-export const dartFormat = (directory: string, lastDirectory: string) => {
+export const runDartFormat = (directory: string, lastDirectory: string) => {
   const startIndex = directory.indexOf("lib/");
   const formatDirectory = directory.substring(startIndex).split("/").join(" ");
   const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
-  let terminal = window.createTerminal("dart format bin");
+  const terminal = window.createTerminal({ name: "dart format bin", hideFromUser: true });
   terminal.sendText("dart format bin " + fileDirectory);
 };
 

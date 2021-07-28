@@ -2,10 +2,10 @@ import * as _ from "lodash";
 import * as fs from "fs";
 
 import { Uri, window } from "vscode";
-import { dartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
+import { runDartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
 import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory, } from "../input";
 import { getSelectedText, handleError, validateLength } from "../lib";
-import { PathType, ISettings, Settings } from "../settings";
+import { PathType, Settings } from "../settings";
 
 export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     const primaryInput = getConfiguration();
@@ -37,7 +37,7 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
 
     const json: string = await getSelectedText().then(validateLength).catch(handleError);
 
-    const config: ISettings = {
+    const config: Settings = {
         className: className,
         targetDirectory: <string>targetDirectory,
         object: json,
@@ -48,7 +48,7 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        dartFormat(<string>targetDirectory, "models");
+        runDartFormat(<string>targetDirectory, "models");
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }
