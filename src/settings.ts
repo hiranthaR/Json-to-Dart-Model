@@ -1,6 +1,22 @@
 import { snakeCase } from "./helper";
 import { Input } from "./input";
 
+/** The indicates how the path was taken. */
+export enum PathType {
+    /** 
+     *  The path type from the default options as from the settings or from the file `models.jsonc`.
+     */
+    Default,
+    /** 
+     * The path to the `models` folder from user input.
+     */
+    Standard,
+    /** 
+     * The raw path directly from the context.
+     */
+    Raw,
+}
+
 export interface ISettings {
     /**
      * Root class name.
@@ -19,9 +35,9 @@ export interface ISettings {
      */
     input: Input;
     /**
-     * Indicates that settings are from the file directory.
+     * The path input method type.
      */
-    isFromFile: boolean;
+    pathType: PathType;
 }
 
 export class Settings implements ISettings {
@@ -29,24 +45,23 @@ export class Settings implements ISettings {
     targetDirectory: string;
     object: string;
     input: Input;
-    isFromFile: boolean;
+    pathType: PathType;
 
-    constructor(
-        className: string,
-        targetDirectory: string,
-        object: string,
-        input: Input,
-        isFromFile: boolean = false,
-    ) {
-        this.className = className;
-        this.targetDirectory = targetDirectory;
-        this.object = object;
-        this.input = input;
-        this.isFromFile = isFromFile;
-        if (isFromFile) {
-            this.targetDirectory = `${targetDirectory}/${snakeCase(className)}`;
-        } else {
-            this.targetDirectory = `${targetDirectory}/models`;
+    constructor(settings: ISettings) {
+        this.className = settings.className;
+        this.object = settings.object;
+        this.input = settings.input;
+        this.pathType = settings.pathType;
+
+        switch (settings.pathType) {
+            case PathType.Default:
+                this.targetDirectory = settings.targetDirectory + `/${snakeCase(settings.className)}`;
+                break;
+            case PathType.Standard:
+                this.targetDirectory = settings.targetDirectory + `/models`;
+                break;
+            default:
+                this.targetDirectory = settings.targetDirectory;
         }
     }
 }

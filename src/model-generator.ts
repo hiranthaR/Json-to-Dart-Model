@@ -1,10 +1,11 @@
+import parse = require("json-to-ast");
+import * as _ from "lodash";
+
 import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, Dependency, } from "./syntax";
 import { navigateNode, mergeObjectList, pascalCase, fixFieldName, cleanKey } from "./helper";
 import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
-import parse = require("json-to-ast");
-import * as _ from "lodash";
 import { ISettings } from "./settings";
 
 class DartCode extends WithWarning<string> {
@@ -232,6 +233,9 @@ export class ModelGenerator {
 
         for await (const definition of this.allClasses) {
             for (const dependency of definition.dependencies) {
+                if (definition.name.toLowerCase() === this._rootClassName.toLowerCase()) {
+                    this.allClassMapping.set(definition, dependency);
+                }
                 const classDef = await this.sortByDependency(dependency);
                 if (classDef !== undefined) {
                     if (this.duplicates.includes(classDef)) {
