@@ -32,6 +32,7 @@
         <li><a href="#convert-from-file">Convert from file</a></li>
         <li><a href="#annotations">Annotations</a></li>
         <li><a href="#speed-up-converting">Speed up converting</a></li>
+        <li><a href="#context-actions">Context actions</a></li>
       </ul>
     <li>
       <a href="#the-syntax">The Syntax</a>
@@ -87,20 +88,29 @@ To customize your classes is very easy. If you want fast to create a simple clas
 <!-- FEATURES -->
 ## Features
 
-#### Convert from clipboard to manual model classes
+### Convert from clipboard to manual model classes
+
 - Convert JSON you copied into dart model classes.
-#### Convert from selection to manual model classes
+
+### Convert from selection to manual model classes
+
 - Convert JSON you selected into dart model classes.
-#### Convert from clipboard to code generation libraries supported model classes
+
+### Convert from clipboard to code generation libraries supported model classes
+
 - Convert JSON you copied into code generation libraries supported model classes. A terminal session runs after conversion to generate the rest parts.
-#### Convert from selection to code generation libraries supported model classes
+
+### Convert from selection to code generation libraries supported model classes
+
 - Convert JSON you selected into code generation libraries supported model classes. A terminal session runs after conversion to generate the rest parts.
-#### Convert from file
+
+### Convert from file
+
 - Convert all JSON objects from the file.
 
 `Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. To configure options for output, go to the `Settings/Extensions/JSON To Dart Model`
 
-**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. ***Note that you add base class names to each object with key***  `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc` file should look like this:
+**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. **Note that you add base class names to each object with key** `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc` file should look like this:
 
 ```jsonc
 [
@@ -115,6 +125,15 @@ To customize your classes is very easy. If you want fast to create a simple clas
 ```
 
 After adding the object and convert to Dart classes just run a command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class, just delete the class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
+
+<!-- CONTEXT ACTIONS -->
+## Context Actions
+
+Convert JSON from the right mouse button context menu.
+
+ - Select any folder and run the available method to start conversion.
+ - Select the JSON code inside the file `**.json` or `**.jsonc`, click the right mouse button, and run the available method to start conversion.
+ - Click the right mouse button on the `models.jsonc` file, and run the available method to start conversion.
 
 <!-- ANNOTATIONS -->
 ## Annotations
@@ -146,7 +165,7 @@ class Example {
 
 This also works with Freezed and JSON Serializable, also initializes non-constant values like `DateTime` if marked as default.
 
-> ***Note:*** what happens if I use multiple annotations `"r@d@key"` then the generator will prioritize the default value and generate value as the default since only named parameters without a default value can be with required.
+> **Note:** what happens if I use multiple annotations `"r@d@key"` then the generator will prioritize the default value and generate value as the default since only named parameters without a default value can be with required.
 
 <!-- SPEED UP CONVERTING -->
 ## Speed Up Converting
@@ -255,9 +274,7 @@ class Todos extends Equatable {
 }
 ```
 
-To add Equatable support you just have to select `Yes` when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check-in your Dart models.
-
-![Equality check menu](<./readme_assets/Captura%20de%20Pantalla%202020-08-12%20a%20la(s)%206.01.10%20p.m..png> "Equality check menu")
+To add Equatable support you just have to select `Equatable` equality support when the process of parsing your JSON to Code has started and the extension will take care of setting up the advanced code equality check-in your Dart models.
 
 <!-- EQUALITY OPERATOR -->
 ## Equality Operator
@@ -291,7 +308,7 @@ String toString() {
 }
 ```
 
-Equatable can implement [toString](https://github.com/felangel/equatable/blob/master/README.md#tostring-implementation) method including all the given props. If Equatable support is enabled then will implement Equatable `toString` implementation.
+Equatable can implement [toString](https://github.com/felangel/equatable/blob/master/README.md#tostring-implementation) method including all the given props. If you want that behaviour, just have to select `Stringify` method when the process of parsing your JSON to Code has started.
 
 ```dart
 @override
@@ -321,7 +338,7 @@ Todos copyWith({
 <!-- NULL SAFETY -->
 ## Null Safety
 
-Null-Safety is enabled as default and it will indicate that a variable may have the value `null`. Required in the new Dart language from version **2.12.0**. To disable it, go to the `Settings/Extensions/JSON To Dart Model`
+Null-Safety is enabled as default and it will indicate that a variable may have the value `null`. Required in the new Dart language from version **2.12.0**. To disable it, go to the `Settings/Extensions/JSON To Dart Model`.
 
 > **Note:** make sure your packages also support Dart null safety.
 
@@ -344,6 +361,8 @@ If you'd like to use Code Generation Libraries from Flutter, first of all, I sug
 4. Press `Ctrl + shift + P` (Linux and Mac) or `Ctrl + P` (Windows) and search for `Build Models` and hit enter.
 
 5. Using short cuts.
+
+6. Convert from the right mouse button context.
 
 <!-- KEY BINDINGS -->
 ## Key Bindings
