@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
-import { ExtensionContext, commands, window, workspace } from "vscode";
+import { ExtensionContext, commands, window } from "vscode";
 import { handleError, createClass, appendPubspecDependencies } from "./lib";
 import {
   transformFromClipboard,
@@ -11,8 +11,8 @@ import {
   transformFromSelection,
   transformFromSelectionToCodeGen,
 } from "./commands";
-import { Input } from "./input";
 import { Settings } from "./settings";
+import { getWorkspaceRoot } from "./utils";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -72,24 +72,6 @@ export const runBuildRunner = () => {
   );
 };
 
-export function getConfiguration(): Input {
-  const config = workspace.getConfiguration('jsonToDart');
-  let input = new Input();
-  input.freezed = config.get<boolean>('freezed') ?? false;
-  input.serializable = config.get<boolean>('serializable') ?? false;
-  input.equatable = config.get<boolean>('equatable') ?? false;
-  input.immutable = config.get<boolean>('immutable') ?? false;
-  input.equality = config.get<boolean>('equality') ?? false;
-  input.toString = config.get<boolean>('toString') ?? false;
-  input.copyWith = config.get<boolean>('copyWith') ?? false;
-  input.fastMode = config.get<boolean>('fastMode') ?? false;
-  input.nullSafety = config.get<boolean>('nullSafety') ?? true;
-  input.runBuilder = config.get<boolean>('runBuilder') ?? true;
-  input.primaryConfiguration = config.get<boolean>('primaryConfiguration') ?? false;
-  input.targetDirectory = config.get<string>('targetDirectory.path') ?? "/lib/models";
-  return input;
-}
-
 export const generateClass = async (settings: Settings) => {
   const classDirectoryPath = `${settings.targetDirectory}`;
   if (!fs.existsSync(classDirectoryPath)) {
@@ -107,9 +89,9 @@ function createDirectory(targetDirectory: string): Promise<void> {
 }
 
 async function addCodeGenerationLibraries() {
-  let folderPath = workspace.workspaceFolders![0].uri.path;
+  let workspaceRoot = getWorkspaceRoot();
 
-  const targetPath = `${folderPath}/pubspec.yaml`;
+  const targetPath = `${workspaceRoot}/pubspec.yaml`;
 
   if (fs.existsSync(targetPath)) {
     appendPubspecDependencies(targetPath)

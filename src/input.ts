@@ -1,16 +1,34 @@
 import * as _ from "lodash";
 
-import { InputBoxOptions, OpenDialogOptions, Uri, window, workspace } from "vscode";
-import { getConfiguration } from "./index";
+import { InputBoxOptions, OpenDialogOptions, Uri, window } from "vscode";
+import { getConfiguration, getWorkspaceRoot } from "./utils";
 
-interface InputInterface {
-    freezed: boolean;
-    equatable: boolean;
+/** To string method type */
+export enum StringMethod {
+    Default = "Default",
+    Auto = "Auto",
+    Stringify = "Stringify",
+    Dart = "Dart",
+}
+/** Equality method type */
+export enum Equality {
+    Default = "Default",
+    Equatable = "Equatable",
+    Dart = "Dart",
+}
+/** Supported code generators */
+export enum CodeGenerator {
+    Default = "Default",
+    JSON = "JSON",
+    Freezed = "Freezed",
+}
+
+interface InputProperties {
+    codeGenerator: CodeGenerator;
     immutable: boolean;
-    toString: boolean;
+    toString: StringMethod;
     copyWith: boolean;
-    equality: boolean;
-    serializable: boolean;
+    equality: Equality;
     nullSafety: boolean;
     /**
      * Required root path. [workspace.workspaceFolders![0].uri.path] 
@@ -24,14 +42,12 @@ interface InputInterface {
 /**
  * The class which provide all user inputs.
  */
-export class Input implements InputInterface {
-    freezed: boolean = false;
-    equatable: boolean = false;
+export class Input implements InputProperties {
+    codeGenerator: CodeGenerator = CodeGenerator.Default;
     immutable: boolean = false;
-    toString: boolean = false;
+    toString: StringMethod = StringMethod.Default;
     copyWith: boolean = false;
-    equality: boolean = false;
-    serializable: boolean = false;
+    equality: Equality = Equality.Default;
     nullSafety: boolean = true;
     targetDirectory: string = '/lib/models';
     runBuilder: boolean = true;
@@ -39,11 +55,31 @@ export class Input implements InputInterface {
     fastMode: boolean = false;
 
     get isImmutable(): boolean {
-        return this.equatable || this.immutable ? true : false;
+        return this.equality === "Equatable" || this.immutable;
     }
 
     get generate(): boolean {
-        return this.freezed || this.serializable ? true : false;
+        return this.freezed || this.serializable;
+    }
+
+    get equatable(): boolean {
+        return this.equality === "Equatable";
+    }
+
+    get freezed(): boolean {
+        return this.codeGenerator === CodeGenerator.Freezed;
+    }
+
+    get serializable(): boolean {
+        return this.codeGenerator === CodeGenerator.JSON;
+    }
+
+    get isAutoOrStringify(): boolean {
+        return this.equatable && this.toString === "Auto" || this.equatable && this.toString === "Stringify";
+    }
+
+    get isAutoOrToStringMethod(): boolean {
+        return !this.equatable && this.toString === "Auto" || !this.equatable && this.toString === "Dart";
     }
 }
 
@@ -52,73 +88,53 @@ export class Input implements InputInterface {
  * @generate indicates whether selected code generator.
  */
 export const getUserInput = async (generate: boolean = false): Promise<Input> => {
+    const config = getConfiguration();
     let input = new Input();
 
-    input.serializable = generate;
-    input.runBuilder = getConfiguration().runBuilder;
+    input.runBuilder = config.runBuilder;
 
     if (generate) {
-        input.freezed = await promptForFreezed();
+        input.codeGenerator = await promptForCodeGenerator();
         if (input.freezed) {
-            input.nullSafety = getConfiguration().nullSafety;
+            input.nullSafety = config.nullSafety;
         }
     }
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
-        input.equatable = await promptForEquatableCompatibility();
-        if (!input.equatable) {
+        input.equality = await promptForEqualityOperator();
+        if (input.equality !== "Equatable") {
             input.immutable = await promptForImmutableClass();
-            input.equality = await promptForEqualityOperator();
         }
-        input.toString = await promptForToStringMethod();
+        const isEquatable = input.equality === "Equatable";
+        input.toString = await promptForToStringMethod(isEquatable);
         input.copyWith = await promptForCopyWithMethod();
-        input.nullSafety = getConfiguration().nullSafety;
+        input.nullSafety = config.nullSafety;
     }
     return input;
 };
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.
  */
-async function promptForFreezed(): Promise<boolean> {
+async function promptForCodeGenerator(): Promise<CodeGenerator> {
     const selection = await window.showQuickPick(
         [
             {
-                label: "No",
+                label: "JSON Serializable",
                 picked: true,
             },
-            { label: "Yes" },
+            {
+                label: "Freezed",
+                picked: true,
+            },
         ],
         { placeHolder: "Generate advanced immutable classes? (Freezed)" }
     );
 
     switch (selection?.label) {
-        case "Yes":
-            return true;
+        case "Freezed":
+            return CodeGenerator.Freezed;
         default:
-            return false;
-    }
-}
-
-/**
- * An abstract class that helps to implement equality without needing to explicitly override == and hashCode.
- */
-async function promptForEquatableCompatibility(): Promise<boolean> {
-    const selection = await window.showQuickPick(
-        [
-            {
-                label: "No",
-                picked: true,
-            },
-            { label: "Yes" },
-        ],
-        { placeHolder: "Enable support for advanced equality check? (Equatable)" }
-    );
-
-    switch (selection?.label) {
-        case "Yes":
-            return true;
-        default:
-            return false;
+            return CodeGenerator.JSON;
     }
 }
 
@@ -131,7 +147,7 @@ async function promptForCopyWithMethod(): Promise<boolean> {
             },
             { label: "Yes" },
         ],
-        { placeHolder: "Implement `copyWith()` method? (Recommended with immutable classes)" }
+        { placeHolder: "Implement `copyWith()` method?" }
     );
 
     switch (selection?.label) {
@@ -162,43 +178,76 @@ async function promptForImmutableClass(): Promise<boolean> {
     }
 }
 
-async function promptForToStringMethod(): Promise<boolean> {
+async function promptForToStringMethod(isEquatableEnabled: boolean = false): Promise<StringMethod> {
+    const withEquatable = [
+        {
+            label: "No",
+            picked: true,
+        },
+        {
+            label: "Dart",
+            picked: true,
+        },
+        {
+            label: "Stringify",
+            picked: true,
+        },
+    ];
+    const withoutEquatable = [
+        {
+            label: "No",
+            picked: true,
+        },
+        {
+            label: "Yes",
+            picked: true,
+        },
+    ];
+    const selectionEntries = isEquatableEnabled ? withEquatable : withoutEquatable;
+
     const selection = await window.showQuickPick(
-        [
-            {
-                label: "No",
-                picked: true,
-            },
-            { label: "Yes" },
-        ],
-        { placeHolder: "Implement `toString()` in your classes? To improve the debugging experience." }
+        selectionEntries,
+        { placeHolder: "Implement `toString()` method?" }
     );
 
     switch (selection?.label) {
         case "Yes":
-            return true;
+            return StringMethod.Dart;
+        case "Dart":
+            return StringMethod.Dart;
+        case "Stringify":
+            return StringMethod.Stringify;
         default:
-            return false;
+            return StringMethod.Default;
     }
 }
 
-async function promptForEqualityOperator(): Promise<boolean> {
+async function promptForEqualityOperator(): Promise<Equality> {
     const selection = await window.showQuickPick(
         [
             {
                 label: "No",
                 picked: true,
             },
-            { label: "Yes" },
+            {
+                label: "Dart",
+                picked: true,
+            },
+            {
+                label: "Equatable",
+                picked: true,
+            },
         ],
-        { placeHolder: "Implement equality operator `==`? To compare different instances of `Objects`." }
+        { placeHolder: "Implement equality operator?" }
     );
 
     switch (selection?.label) {
-        case "Yes":
-            return true;
+        case "Dart":
+            return Equality.Dart;
+        case "Equatable":
+            return Equality.Equatable;
         default:
-            return false;
+            return Equality.Default;
     }
 }
 
@@ -211,17 +260,17 @@ export const promptForBaseClassName = (): Thenable<string | undefined> => {
 };
 
 export const promptForTargetDirectory = async (): Promise<string | undefined> => {
-    const rootPath = workspace.workspaceFolders![0].uri.path;
+    const workspaceRoot = getWorkspaceRoot();
     const options: OpenDialogOptions = {
         canSelectMany: false,
         openLabel: "Select a folder to create the Models",
         canSelectFolders: true,
-        defaultUri: Uri.parse(rootPath?.replace(/\\/g, "/") + "/lib/"),
+        defaultUri: Uri.parse(workspaceRoot?.replace(/\\/g, "/") + "/lib/"),
     };
 
     return window.showOpenDialog(options).then((uri) => {
         if (_.isNil(uri) || _.isEmpty(uri)) {
-            return rootPath?.replace(/\\/g, "/") + "/lib/";
+            return workspaceRoot?.replace(/\\/g, "/") + "/lib/";
         }
         return uri[0].fsPath;
     });

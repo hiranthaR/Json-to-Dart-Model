@@ -1,7 +1,7 @@
 import * as copyPaste from "copy-paste";
 import { ViewColumn, window } from "vscode";
 import * as fs from "fs";
-import { ModelGenerator } from "./model_generator";
+import { ModelGenerator } from "./model-generator";
 import { ClassDefinition } from "./syntax";
 import { pascalCase } from "./helper";
 import { Settings } from "./settings";

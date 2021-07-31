@@ -2,10 +2,11 @@ import * as _ from "lodash";
 import * as fs from "fs";
 
 import { Uri, window } from "vscode";
-import { runDartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
+import { runDartFormat, generateClass, runBuildRunner } from "../index";
 import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory } from "../input";
 import { getSelectedText, handleError, validateLength } from "../lib";
 import { PathType, Settings } from "../settings";
+import { getConfiguration } from "../utils";
 
 export const transformFromSelection = async (uri: Uri) => {
     const primaryInput = getConfiguration();

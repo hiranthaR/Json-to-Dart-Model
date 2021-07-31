@@ -1,8 +1,35 @@
 import { window } from "vscode";
-import { runDartFormat, generateClass, getConfiguration, runBuildRunner } from "../index";
+import { runDartFormat, generateClass, runBuildRunner } from "../index";
 import { handleError } from "../lib";
-import { Models } from "../models_file";
+import { Models } from "../models-file";
 import { PathType, Settings } from "../settings";
+import { getConfiguration } from "../utils";
+
+/** Used to warn users about changes. */
+const deprecatedSettingsProperties: string[] = [
+    'freezed',
+    'equatable',
+    'immutable',
+    'toString',
+    'copyWith',
+    'equality',
+    'serializable',
+    'nullSafety',
+    'targetDirectory',
+    'primaryConfiguration',
+    'fastMode',
+];
+
+/**
+ * Checks if `models.jsonc` file have configuration object which has been moved to the VS Code settings.
+ * @param {Object} object that contains the deprecated properties.
+ * @returns `true` if contains old settings object keys.
+ */
+const isDeprecatedSettings = (object: Object): boolean => {
+    return Object.keys(object).every((prop) => {
+        return deprecatedSettingsProperties.includes(prop);
+    });
+};
 
 export const transformFromFile = async () => {
     const jsonc = require('jsonc').safe;
@@ -25,8 +52,8 @@ export const transformFromFile = async () => {
                 return;
             }
 
-            if (Object.keys(objects[0]).every((key) => Object.keys(input).includes(key))) {
-                window.showInformationMessage('Configuration from the file models.jsonc was moved to the Settings/Extensions/JSON To Dart Model. - Configure a new option in the settings and remove the configuration item from the file models.jsonc to avoid this warning.');
+            if (isDeprecatedSettings(objects[0])) {
+                window.showInformationMessage('Configuration from the file models.jsonc was moved to the Settings/Extensions/JSON To Dart Model. Configure a new option in the settings and remove the configuration item from the file models.jsonc to avoid this warning.');
                 return;
             }
 
