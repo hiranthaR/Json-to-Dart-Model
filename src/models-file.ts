@@ -1,12 +1,13 @@
 import { window, workspace } from "vscode";
 import { printLine } from "./syntax";
 import * as fs from "fs";
+import { getWorkspaceRoot } from "./utils";
 
 export class Models {
     private fileName: string = "/models.jsonc";
 
     get directory() {
-        return workspace.workspaceFolders![0].uri.path;
+        return getWorkspaceRoot();
     }
 
     get file(): string {

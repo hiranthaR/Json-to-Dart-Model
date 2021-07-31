@@ -1,10 +1,11 @@
+import parse = require("json-to-ast");
+import * as _ from "lodash";
+
 import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, Dependency, } from "./syntax";
 import { navigateNode, mergeObjectList, pascalCase, fixFieldName, cleanKey } from "./helper";
 import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
 import { ASTNode } from "json-to-ast";
 import { isArray, parseJson } from "./lib";
-import parse = require("json-to-ast");
-import * as _ from "lodash";
 import { ISettings } from "./settings";
 
 class DartCode extends WithWarning<string> {

@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.2.5",
+  "version": "3.2.7",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -39,35 +39,58 @@
     "commands": [
       {
         "command": "jsonToDart.fromFile",
-        "title": "Build Models",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: Build Models"
       },
       {
         "command": "jsonToDart.fromSelection",
-        "title": "Convert From Selection",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Selection"
       },
       {
         "command": "jsonToDart.fromClipboard",
-        "title": "Convert From ClipBoard",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From ClipBoard"
       },
       {
         "command": "jsonToDart.addCodeGenerationLibraries",
-        "title": "Add Code Generation Libraries To pubspec.yaml",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: Add Code Generation Libraries To pubspec.yaml"
       },
       {
         "command": "jsonToDart.fromClipboardToCodeGen",
-        "title": "Convert From Clipboard To Code Generation Supported Classes",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Clipboard to Code Generation Classes"
       },
       {
         "command": "jsonToDart.fromSelectionToCodeGen",
-        "title": "Convert From Selection To Code Generation Supported Classes",
-        "category": "Json to Dart"
+        "title": "JSON to Dart: From Selection to Code Generation Classes"
       }
     ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "jsonToDart.fromClipboard",
+          "group": "jsonToDartGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "jsonToDart.fromClipboardToCodeGen",
+          "group": "jsonToDartGroup@1",
+          "when": "explorerResourceIsFolder"
+        },
+        {
+          "command": "jsonToDart.fromFile",
+          "group": "jsonToDartGroup@1",
+          "when": "resourceFilename == models.jsonc"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "jsonToDart.fromSelection",
+          "when": "editorHasSelection && editorLangId == json || editorHasSelection && editorLangId == jsonc"
+        },
+        {
+          "command": "jsonToDart.fromSelectionToCodeGen",
+          "when": "editorHasSelection && editorLangId == json || editorHasSelection && editorLangId == jsonc"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "jsonToDart.fromFile",
@@ -94,20 +117,20 @@
       {
         "title": "JSON To Dart Model",
         "properties": {
-          "jsonToDart.freezed": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Generates Freezed classes (Required `Freezed` package). ***Note:*** if it's enabled, everything will be ignored because Freezed supports all options."
-          },
-          "jsonToDart.serializable": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Enable Json Serializable builder to generate `to/from` JSON code for a class (Required Json Serializable package)."
-          },
-          "jsonToDart.equatable": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Enable Equatable support (Required `Equatable` package). ***Note:*** if it's enabled, equality operator and immutability will be ignored."
+          "jsonToDart.codeGenerator": {
+            "type": "string",
+            "default": "Default",
+            "enum": [
+              "Default",
+              "JSON",
+              "Freezed"
+            ],
+            "enumDescriptions": [
+              "By default, the code-generator is disabled.",
+              "Always generate using JSON Serializable code generator.",
+              "Always generate using Freezed code generator."
+            ],
+            "markdownDescription": "Supported code-generators `Freezed` and `Json Serializable`.\n> **Note:** to use one of them you must have all required dependencies."
           },
           "jsonToDart.immutable": {
             "type": "boolean",
@@ -115,19 +138,39 @@
             "description": "Generate immutable classes."
           },
           "jsonToDart.toString": {
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Add `toString` method to improve the debugging experience."
+            "type": "string",
+            "default": "Default",
+            "enum": [
+              "Default",
+              "Auto",
+              "Dart"
+            ],
+            "enumDescriptions": [
+              "By default, nothing is implemented.",
+              "Automatically implement Stringify method if Equatable is enabled, otherwise the default Dart toString method will be implemented.",
+              "Always implement the default Dart toString method."
+            ],
+            "markdownDescription": "Implement `toString` method to improve the debugging experience."
           },
           "jsonToDart.copyWith": {
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Add `copyWith` method (Recommended with immutable classes)."
+            "markdownDescription": "Implement `copyWith` method (Recommended with immutable classes)."
           },
           "jsonToDart.equality": {
-            "type": "boolean",
-            "default": false,
-            "description": "Add equality operator."
+            "type": "string",
+            "default": "Default",
+            "enum": [
+              "Default",
+              "Dart",
+              "Equatable"
+            ],
+            "enumDescriptions": [
+              "By default, nothing is implemented.",
+              "Always implement default Dart operator.",
+              "Always implement Equatable support (required Equatable package)."
+            ],
+            "markdownDescription": "Implement equality operator to compare different instances of `Objects`."
           },
           "jsonToDart.nullSafety": {
             "type": "boolean",

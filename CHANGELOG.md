@@ -2,6 +2,12 @@
 
 ## [Released]
 
+## [3.2.7] - 2021-07-31
+
+### Added
+   - Added actions from the right mouse button context menu.
+   - Improved setting quality.
+
 ## [3.2.5] - 2021-07-10
 
 ### Fixed

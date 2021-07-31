@@ -669,9 +669,11 @@ export class ClassDefinition {
 
   /**
    * Equatable toString method including all the given props.
+   * @param {boolean} print the string to be printed or no.
    * @returns string block.
    */
-  private stringify(): string {
+  private stringify(print: boolean = false): string {
+    if (!print) { return ''; }
     var sb = '';
     sb += printLine('@override', 2, 1);
     sb += printLine('bool get stringify => true;', 1, 1);
@@ -701,7 +703,7 @@ export class ClassDefinition {
   private importsFromPackage(input: Input): string {
     var imports = "";
     const required = Array.from(this.fields.values()).some((f) => f.required && !input.nullSafety);
-    const listEquality = Array.from(this.fields.values()).some((f) => f.isList && input.equality);
+    const listEquality = Array.from(this.fields.values()).some((f) => f.isList && input.equality === "Dart");
     // Sorted alphabetically for effective dart style.
     imports += input.equatable && !input.freezed
       ? "import 'package:equatable/equatable.dart';\n"
@@ -952,11 +954,12 @@ export class ClassDefinition {
   }
 
   /**
-   * Generate toString(); mehtod to improve the debugging experience..
+   * `toString()` method in Dart language.
+   * @param {boolean} print the string to be printed or no.
    * @param toString method should be generated or not.
    */
-  private toStringMethod(toString: boolean = false): string {
-    if (!toString) { return ''; }
+  private toStringMethod(print: boolean = false): string {
+    if (!print) { return ''; }
     const values = Array.from(this.fields.values());
     const expressionBody = (): string => {
       let sb = '';
@@ -997,7 +1000,7 @@ export class ClassDefinition {
    * @param {Input} input user input.
    */
   private equalityOperator(input: Input): string {
-    if (!input.equality || input.equatable) { return ''; }
+    if (input.equality !== "Dart") { return ''; }
     const fields = Array.from(this.fields.values()).sort((a, b) => {
       return a.isList === b.isList ? 0 : a ? -1 : 1;
     });
@@ -1036,7 +1039,7 @@ export class ClassDefinition {
   }
 
   private hashCode(input: Input): string {
-    if (!input.equality || input.equatable) { return ''; }
+    if (input.equality !== "Dart") { return ''; }
     const fields = Array.from(this.fields.values());
     const expressionBody = (): string => {
       let sb = '';
@@ -1083,18 +1086,14 @@ export class ClassDefinition {
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''}; {\n`;
         field += `${this.fieldListCodeGen(input)}\n\n`;
         field += `${this.defaultPrivateConstructor(input)}`;
-        if (!input.equatable) {
-          field += `${this.toStringMethod(input.toString)}`;
-        }
+        field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
         field += `${this.gettersSetters(input)}\n\n`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
         field += `${this.codeGenToJsonFunc()}`;
         field += `${this.copyWithMethod(input)}`;
         field += `${this.equalityOperator(input)}`;
         field += `${this.hashCode(input)}`;
-        if (input.equatable && input.toString) {
-          field += `${this.stringify()}`;
-        }
+        field += `${this.stringify(input.isAutoOrStringify)}`;
         field += `${this.equatablePropList(input)}\n}\n`;
         return field;
       } else {
@@ -1105,17 +1104,13 @@ export class ClassDefinition {
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
         field += `${this.fieldListCodeGen(input)}\n\n`;
         field += `${this.defaultConstructor(input)}`;
-        if (!input.equatable) {
-          field += `${this.toStringMethod(input.toString)}`;
-        }
+        field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
         field += `${this.codeGenToJsonFunc()}`;
         field += `${this.copyWithMethod(input)}`;
         field += `${this.equalityOperator(input)}`;
         field += `${this.hashCode(input)}`;
-        if (input.equatable && input.toString) {
-          field += `${this.stringify()}`;
-        }
+        field += `${this.stringify(input.isAutoOrStringify)}`;
         field += `${this.equatablePropList(input)}\n}\n`;
         return field;
       }
@@ -1132,18 +1127,14 @@ export class ClassDefinition {
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this.fieldList(input)}\n\n`;
       field += `${this.defaultPrivateConstructor(input)}`;
-      if (!input.equatable) {
-        field += `${this.toStringMethod(input.toString)}`;
-      }
+      field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
       field += `${this.gettersSetters(input)}\n\n`;
       field += `${this.jsonParseFunc(input)}\n\n`;
       field += `${this.toJsonFunc(input)}`;
       field += `${this.copyWithMethod(input)}`;
       field += `${this.equalityOperator(input)}`;
       field += `${this.hashCode(input)}`;
-      if (input.equatable && input.toString) {
-        field += `${this.stringify()}`;
-      }
+      field += `${this.stringify(input.isAutoOrStringify)}`;
       field += `${this.equatablePropList(input)}\n}\n`;
       return field;
     } else {
@@ -1154,17 +1145,13 @@ export class ClassDefinition {
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       field += `${this.fieldList(input)}\n\n`;
       field += `${this.defaultConstructor(input)}`;
-      if (!input.equatable) {
-        field += `${this.toStringMethod(input.toString)}`;
-      }
+      field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
       field += `${this.jsonParseFunc(input)}\n\n`;
       field += `${this.toJsonFunc(input)}`;
       field += `${this.copyWithMethod(input)}`;
       field += `${this.equalityOperator(input)}`;
       field += `${this.hashCode(input)}`;
-      if (input.equatable && input.toString) {
-        field += `${this.stringify()}`;
-      }
+      field += `${this.stringify(input.isAutoOrStringify)}`;
       field += `${this.equatablePropList(input)}\n}\n`;
       return field;
     }
