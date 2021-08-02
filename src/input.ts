@@ -120,14 +120,16 @@ async function promptForCodeGenerator(): Promise<CodeGenerator> {
         [
             {
                 label: "JSON Serializable",
+                description: "Generator",
                 picked: true,
             },
             {
                 label: "Freezed",
+                description: "Generator",
                 picked: true,
             },
         ],
-        { placeHolder: "Generate advanced immutable classes? (Freezed)" }
+        { placeHolder: "Select code generator" }
     );
 
     switch (selection?.label) {
@@ -186,10 +188,12 @@ async function promptForToStringMethod(isEquatableEnabled: boolean = false): Pro
         },
         {
             label: "Dart",
+            description: "toString method",
             picked: true,
         },
         {
             label: "Stringify",
+            description: "Method of Equatable",
             picked: true,
         },
     ];
@@ -231,10 +235,12 @@ async function promptForEqualityOperator(): Promise<Equality> {
             },
             {
                 label: "Dart",
+                description: "Equality operator",
                 picked: true,
             },
             {
                 label: "Equatable",
+                description: "Equality operator",
                 picked: true,
             },
         ],
