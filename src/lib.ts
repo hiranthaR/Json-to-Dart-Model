@@ -15,7 +15,9 @@ export function getClipboardText() {
 }
 
 export function handleError(error: Error) {
-  window.showErrorMessage(error.message);
+  let separateWithSpace = (v: string) => v === v.toUpperCase() ? ` ${v}` : v;
+  let name = error.name.split('').map(separateWithSpace).join('').trim();
+  window.showErrorMessage(`${name}: ${error.message}`);
 }
 
 export function pasteToMarker(content: string) {

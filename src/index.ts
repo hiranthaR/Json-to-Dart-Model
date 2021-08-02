@@ -66,10 +66,10 @@ export const runDartFormat = (directory: string, lastDirectory: string) => {
  */
 export const runBuildRunner = () => {
   let terminal = window.createTerminal("pub get");
-  terminal.show();
   terminal.sendText(
     "flutter pub run build_runner build --delete-conflicting-outputs"
   );
+  terminal.show(true);
 };
 
 export const generateClass = async (settings: Settings) => {
