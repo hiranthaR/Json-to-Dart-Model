@@ -94,7 +94,7 @@ async function addCodeGenerationLibraries() {
   const targetPath = `${workspaceRoot}/pubspec.yaml`;
 
   if (fs.existsSync(targetPath)) {
-    appendPubspecDependencies(targetPath)
+    await appendPubspecDependencies(targetPath)
       .then((_) => window.showInformationMessage("Dependencies added!"))
       .catch(handleError);
   } else {

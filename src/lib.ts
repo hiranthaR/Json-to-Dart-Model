@@ -141,7 +141,7 @@ export async function appendDependencies(
   var keyword = "sdk: flutter";
 
   if (pubspec.includes(dependency)) {
-    return Promise.reject(new Error("Dependcies already exist!"));
+    return Promise.reject(new Error("Dependencies already exist!"));
   }
 
   var index = pubspec.indexOf(
@@ -150,8 +150,7 @@ export async function appendDependencies(
   );
   if (index > 0) {
     pubspec =
-      pubspec.substring(0, index + keyword.length) +
-      dependency +
+      pubspec.substring(0, index + keyword.length) + dependency +
       pubspec.substring(index + keyword.length, pubspec.length);
   }
   return new Promise(async (resolve, reject) => {
@@ -166,14 +165,16 @@ export async function appendDependencies(
 }
 
 export async function appendPubspecDependencies(targetPath: string) {
-  const dependency = "\n  json_annotation:";
-  const dependency2 = "\n equatable:";
+  const dependency1 = "\n  json_annotation:";
+  const dependency2 = "\n  equatable:";
+  const dependency3 = "\n  freezed:";
   const devDependency1 = "\n  build_runner:";
   const devDependency2 = "\n  json_serializable:";
 
   return Promise.all([
-    await appendDependencies(targetPath, dependency, false),
+    await appendDependencies(targetPath, dependency1, false),
     await appendDependencies(targetPath, dependency2, false),
+    await appendDependencies(targetPath, dependency3, false),
     await appendDependencies(targetPath, devDependency1, true),
     await appendDependencies(targetPath, devDependency2, true),
   ]);
