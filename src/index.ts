@@ -3,8 +3,9 @@ import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
 import { ExtensionContext, commands, window } from "vscode";
-import { handleError, createClass, appendPubspecDependencies } from "./lib";
+import { createClass } from "./lib";
 import {
+  addCodeGenerationLibraries,
   transformFromClipboard,
   transformFromClipboardToCodeGen,
   transformFromFile,
@@ -12,7 +13,6 @@ import {
   transformFromSelectionToCodeGen,
 } from "./commands";
 import { Settings } from "./settings";
-import { getWorkspaceRoot } from "./utils";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -86,18 +86,4 @@ function createDirectory(targetDirectory: string): Promise<void> {
       .then((_) => resolve())
       .catch((error) => reject(error));
   });
-}
-
-async function addCodeGenerationLibraries() {
-  let workspaceRoot = getWorkspaceRoot();
-
-  const targetPath = `${workspaceRoot}/pubspec.yaml`;
-
-  if (fs.existsSync(targetPath)) {
-    await appendPubspecDependencies(targetPath)
-      .then((_) => window.showInformationMessage("Dependencies added!"))
-      .catch(handleError);
-  } else {
-    window.showErrorMessage("pubspec.yaml does't exist :/");
-  }
 }

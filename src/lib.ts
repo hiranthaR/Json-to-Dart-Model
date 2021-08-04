@@ -1,6 +1,7 @@
 import * as copyPaste from "copy-paste";
-import { ViewColumn, window } from "vscode";
 import * as fs from "fs";
+
+import { ViewColumn, window } from "vscode";
 import { ModelGenerator } from "./model-generator";
 import { ClassDefinition } from "./syntax";
 import { pascalCase } from "./helper";
@@ -130,52 +131,4 @@ export async function createClass(settings: Settings) {
       );
     });
   });
-}
-
-export async function appendDependencies(
-  targetPath: string,
-  dependency: string,
-  dev: boolean
-): Promise<string> {
-  var pubspec = fs.readFileSync(targetPath, "utf8");
-  var keyword = "sdk: flutter";
-
-  if (pubspec.includes(dependency)) {
-    return Promise.reject(new Error("Dependencies already exist!"));
-  }
-
-  var index = pubspec.indexOf(
-    keyword,
-    dev ? 1 + pubspec.indexOf(keyword) : pubspec.indexOf(keyword)
-  );
-  if (index > 0) {
-    pubspec =
-      pubspec.substring(0, index + keyword.length) + dependency +
-      pubspec.substring(index + keyword.length, pubspec.length);
-  }
-  return new Promise(async (resolve, reject) => {
-    fs.writeFile(targetPath, pubspec.toString(), "utf8", (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve;
-    });
-  });
-}
-
-export async function appendPubspecDependencies(targetPath: string) {
-  const dependency1 = "\n  json_annotation:";
-  const dependency2 = "\n  equatable:";
-  const dependency3 = "\n  freezed:";
-  const devDependency1 = "\n  build_runner:";
-  const devDependency2 = "\n  json_serializable:";
-
-  return Promise.all([
-    await appendDependencies(targetPath, dependency1, false),
-    await appendDependencies(targetPath, dependency2, false),
-    await appendDependencies(targetPath, dependency3, false),
-    await appendDependencies(targetPath, devDependency1, true),
-    await appendDependencies(targetPath, devDependency2, true),
-  ]);
 }

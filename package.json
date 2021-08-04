@@ -51,7 +51,7 @@
       },
       {
         "command": "jsonToDart.addCodeGenerationLibraries",
-        "title": "JSON to Dart: Add Code Generation Libraries To pubspec.yaml"
+        "title": "JSON to Dart: Add Code Generation Libraries"
       },
       {
         "command": "jsonToDart.fromClipboardToCodeGen",
@@ -78,6 +78,11 @@
           "command": "jsonToDart.fromFile",
           "group": "jsonToDartGroup@1",
           "when": "resourceFilename == models.jsonc"
+        },
+        {
+          "command": "jsonToDart.addCodeGenerationLibraries",
+          "group": "jsonToDartGroup@1",
+          "when": "resourceFilename == pubspec.yaml"
         }
       ],
       "editor/context": [
@@ -88,6 +93,10 @@
         {
           "command": "jsonToDart.fromSelectionToCodeGen",
           "when": "editorHasSelection && editorLangId == json || editorHasSelection && editorLangId == jsonc"
+        },
+        {
+          "command": "jsonToDart.addCodeGenerationLibraries",
+          "when": "editorLangId == yaml"
         }
       ]
     },
