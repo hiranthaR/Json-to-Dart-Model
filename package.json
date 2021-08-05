@@ -22,6 +22,13 @@
     "Other"
   ],
   "activationEvents": [
+    "onLanguage:dart",
+    "workspaceContains:pubspec.yaml",
+    "workspaceContains:*/pubspec.yaml",
+    "workspaceContains:*/*/pubspec.yaml",
+    "workspaceContains:*.dart",
+    "workspaceContains:*/*.dart",
+    "workspaceContains:*/*/*.dart",
     "onCommand:jsonToDart.fromFile",
     "onCommand:jsonToDart.fromSelection",
     "onCommand:jsonToDart.fromClipboard",

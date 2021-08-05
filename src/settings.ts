@@ -1,4 +1,4 @@
-import { snakeCase } from "./helper";
+import { snakeCase } from "./utils";
 import { Input } from "./input";
 
 /** The indicates how the path was taken. */

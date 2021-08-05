@@ -1,7 +1,9 @@
-import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./helper";
+import * as _ from "lodash";
+
+import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./utils";
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
-import * as _ from "lodash";
+
 
 export const emptyListWarn = "list is empty";
 export const ambiguousListWarn = "list is ambiguous";

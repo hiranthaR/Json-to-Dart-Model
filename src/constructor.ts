@@ -1,5 +1,13 @@
 import { ASTNode } from "json-to-ast";
-import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, pascalCase, snakeCase } from "./helper";
+import {
+  getListSubtype,
+  getTypeName,
+  isASTLiteralDouble,
+  isList,
+  isPrimitiveType,
+  pascalCase,
+  snakeCase
+} from "./utils";
 import * as _ from "lodash";
 
 interface TypeDefinitionInterface {

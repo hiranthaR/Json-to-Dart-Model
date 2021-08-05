@@ -1,9 +1,9 @@
 import { window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
+import { Input } from "../input";
 import { handleError } from "../lib";
 import { Models } from "../models-file";
 import { PathType, Settings } from "../settings";
-import { getConfiguration } from "../utils";
 
 /** Used to warn users about changes. */
 const deprecatedSettingsProperties: string[] = [
@@ -45,7 +45,7 @@ export const transformFromFile = async () => {
             // All json objects from the models.jsonc.
             const objects: any[] = result;
             // User configuration.
-            const input = getConfiguration();
+            const input = new Input();
 
             if (!objects.length) {
                 window.showInformationMessage('models.jsonc file is empty');

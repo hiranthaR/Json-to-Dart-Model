@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { ViewColumn, window } from "vscode";
 import { ModelGenerator } from "./model-generator";
 import { ClassDefinition } from "./syntax";
-import { pascalCase } from "./helper";
+import { pascalCase } from "./utils";
 import { Settings } from "./settings";
 
 export function getClipboardText() {

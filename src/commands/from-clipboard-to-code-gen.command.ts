@@ -3,15 +3,15 @@ import * as fs from "fs";
 
 import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
-import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory, } from "../input";
+import { getUserInput, Input } from "../input";
 import { getClipboardText, handleError, validateLength } from "../lib";
 import { PathType, Settings } from "../settings";
-import { getConfiguration } from "../utils";
+import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromClipboardToCodeGen = async (uri: Uri) => {
-    const primaryInput = getConfiguration();
+    let input = new Input();
     const className = await promptForBaseClassName();
-    let input: Input;
+
     let pathType: PathType = PathType.Standard;
 
     if (_.isNil(className) || className.trim() === "") {
@@ -19,9 +19,7 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
         return;
     }
 
-    if (primaryInput && primaryInput.primaryConfiguration) {
-        input = primaryInput;
-    } else {
+    if (!input.primaryConfiguration) {
         input = await getUserInput(true);
     }
 

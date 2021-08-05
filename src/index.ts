@@ -58,6 +58,7 @@ export const runDartFormat = (directory: string, lastDirectory: string) => {
   const formatDirectory = directory.substring(startIndex).split("/").join(" ");
   const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
   const terminal = window.createTerminal({ name: "dart format bin", hideFromUser: true });
+  console.debug("dart format bin " + fileDirectory);
   terminal.sendText("dart format bin " + fileDirectory);
 };
 

@@ -3,25 +3,22 @@ import * as fs from "fs";
 
 import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner, } from "../index";
-import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory, } from "../input";
+import { getUserInput, Input } from "../input";
 import { getClipboardText, handleError, validateLength } from "../lib";
 import { PathType, Settings } from "../settings";
-import { getConfiguration } from "../utils";
+import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromClipboard = async (uri: Uri) => {
-    const primaryInput = getConfiguration();
     const className = await promptForBaseClassName();
+    let input = new Input();
     let pathType: PathType = PathType.Standard;
-    let input: Input;
 
     if (_.isNil(className) || className.trim() === "") {
         window.showErrorMessage("The class name must not be empty");
         return;
     }
 
-    if (primaryInput && primaryInput.primaryConfiguration) {
-        input = primaryInput;
-    } else {
+    if (!input.primaryConfiguration) {
         input = await getUserInput();
     }
 
