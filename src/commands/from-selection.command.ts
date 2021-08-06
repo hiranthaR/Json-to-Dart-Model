@@ -3,24 +3,21 @@ import * as fs from "fs";
 
 import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
-import { getUserInput, Input, promptForBaseClassName, promptForTargetDirectory } from "../input";
+import { getUserInput, Input } from "../input";
 import { getSelectedText, handleError, validateLength } from "../lib";
-import { PathType, Settings } from "../settings";
-import { getConfiguration } from "../utils";
+import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
+import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromSelection = async (uri: Uri) => {
-    const primaryInput = getConfiguration();
     const className = await promptForBaseClassName();
-    let input: Input;
+    let input = new Input();
 
     if (_.isNil(className) || className.trim() === "") {
         window.showErrorMessage("The class name must not be empty");
         return;
     }
 
-    if (primaryInput && primaryInput.primaryConfiguration) {
-        input = primaryInput;
-    } else {
+    if (!input.primaryConfiguration) {
         input = await getUserInput();
     }
 
@@ -39,11 +36,11 @@ export const transformFromSelection = async (uri: Uri) => {
     const json: string = await getSelectedText().then(validateLength).catch(handleError);
 
     const config: Settings = {
-        className: className,
+        model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
         input: input,
-        pathType: PathType.Standard,
+        targetDirectoryType: TargetDirectoryType.Standard,
     };
     // Create new settings.
     const settings = new Settings(config);

@@ -1,7 +1,10 @@
-import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./helper";
+import * as _ from "lodash";
+
+import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNestedObject } from "./utils";
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
-import * as _ from "lodash";
+import { ClassNameModel } from "./settings";
+
 
 export const emptyListWarn = "list is empty";
 export const ambiguousListWarn = "list is ambiguous";
@@ -412,11 +415,12 @@ export class ClassDefinition {
   private _name: string;
   private _path: string;
   private _privateFields: boolean;
+  private nameEnhancement: string = '';
   fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
 
-  constructor(name: string, privateFields = false) {
-    this._name = pascalCase(name);
-    this._path = snakeCase(name);
+  constructor(className: string, privateFields = false) {
+    this._name = pascalCase(className);
+    this._path = snakeCase(className);
     this._privateFields = privateFields;
   }
 
@@ -431,6 +435,10 @@ export class ClassDefinition {
    */
   updateName(name: string) {
     this._name = pascalCase(name);
+  }
+
+  addNameEnhancement(name: string) {
+    this.nameEnhancement = name;
   }
 
   /** A class that converted back to the value 
@@ -727,8 +735,8 @@ export class ClassDefinition {
 
   private importsForParts(input: Input): string {
     var imports = "";
-    imports += input.freezed ? "part '" + this._path + ".freezed.dart';\n" : "";
-    imports += input.generate ? "part '" + this._path + ".g.dart';\n" : "";
+    imports += input.freezed ? "part '" + this._path + this.nameEnhancement + ".freezed.dart';\n" : "";
+    imports += input.generate ? "part '" + this._path + this.nameEnhancement + ".g.dart';\n" : "";
     if (imports.length === 0) {
       return imports;
     } else {
@@ -741,7 +749,7 @@ export class ClassDefinition {
     imports += this.getFields((f) => {
       var sb = "";
       if (f.importName !== null) {
-        sb = "import '" + f.importName + `.dart';\n`;
+        sb = "import '" + f.importName + this.nameEnhancement + ".dart';\n";
       }
       return sb;
     }).sort().join("");

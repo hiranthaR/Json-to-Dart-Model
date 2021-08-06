@@ -3,8 +3,9 @@ import * as _ from "lodash";
 import * as mkdirp from "mkdirp";
 
 import { ExtensionContext, commands, window } from "vscode";
-import { handleError, createClass, appendPubspecDependencies } from "./lib";
+import { createClass } from "./lib";
 import {
+  addCodeGenerationLibraries,
   transformFromClipboard,
   transformFromClipboardToCodeGen,
   transformFromFile,
@@ -12,7 +13,6 @@ import {
   transformFromSelectionToCodeGen,
 } from "./commands";
 import { Settings } from "./settings";
-import { getWorkspaceRoot } from "./utils";
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -58,6 +58,7 @@ export const runDartFormat = (directory: string, lastDirectory: string) => {
   const formatDirectory = directory.substring(startIndex).split("/").join(" ");
   const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
   const terminal = window.createTerminal({ name: "dart format bin", hideFromUser: true });
+  console.debug("dart format bin " + fileDirectory);
   terminal.sendText("dart format bin " + fileDirectory);
 };
 
@@ -73,9 +74,9 @@ export const runBuildRunner = () => {
 };
 
 export const generateClass = async (settings: Settings) => {
-  const classDirectoryPath = `${settings.targetDirectory}`;
-  if (!fs.existsSync(classDirectoryPath)) {
-    await createDirectory(classDirectoryPath);
+  const path = `${settings.targetDirectory}`;
+  if (!fs.existsSync(path)) {
+    await createDirectory(path);
   }
   await createClass(settings);
 };
@@ -86,18 +87,4 @@ function createDirectory(targetDirectory: string): Promise<void> {
       .then((_) => resolve())
       .catch((error) => reject(error));
   });
-}
-
-async function addCodeGenerationLibraries() {
-  let workspaceRoot = getWorkspaceRoot();
-
-  const targetPath = `${workspaceRoot}/pubspec.yaml`;
-
-  if (fs.existsSync(targetPath)) {
-    appendPubspecDependencies(targetPath)
-      .then((_) => window.showInformationMessage("Dependencies added!"))
-      .catch(handleError);
-  } else {
-    window.showErrorMessage("pubspec.yaml does't exist :/");
-  }
 }

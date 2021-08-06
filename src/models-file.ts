@@ -1,7 +1,9 @@
-import { window, workspace } from "vscode";
-import { printLine } from "./syntax";
 import * as fs from "fs";
+
+import { ConfigurationTarget, window } from "vscode";
+import { printLine } from "./syntax";
 import { getWorkspaceRoot } from "./utils";
+import { config } from "./configuration";
 
 export class Models {
     private fileName: string = "/models.jsonc";
@@ -77,8 +79,7 @@ export class Models {
             ...["Start", "Don't ask again"]).then((action) => {
                 switch (action) {
                     case "Don't ask again":
-                        const config = workspace.getConfiguration('jsonToDart');
-                        config.update('fastMode', true, true);
+                        config.setConfig<boolean>('fastMode', true, ConfigurationTarget.Global);
                         return true;
                     case "Start":
                         return true;

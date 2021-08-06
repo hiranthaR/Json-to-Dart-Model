@@ -1,8 +1,16 @@
 import { ASTNode } from "json-to-ast";
-import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, pascalCase, snakeCase } from "./helper";
+import {
+  getListSubtype,
+  getTypeName,
+  isASTLiteralDouble,
+  isList,
+  isPrimitiveType,
+  pascalCase,
+  snakeCase
+} from "./utils";
 import * as _ from "lodash";
 
-interface TypeDefinitionInterface {
+interface TypeDefinitionProperties {
   /**
    * Object patch name. Used for imports.
    *  * If the name is null, it means no need to print.
@@ -90,7 +98,7 @@ interface TypeDefinitionInterface {
  * A class that holds all the information about the object.
  * * Every type are formatted and ready for printing to string.
  */
-export class TypeDefinition implements TypeDefinitionInterface {
+export class TypeDefinition implements TypeDefinitionProperties {
   private _importName: string | null;
   jsonKey: string;
   prefix: string;
