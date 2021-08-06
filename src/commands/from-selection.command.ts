@@ -5,7 +5,7 @@ import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
 import { getUserInput, Input } from "../input";
 import { getSelectedText, handleError, validateLength } from "../lib";
-import { PathType, Settings } from "../settings";
+import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
 import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromSelection = async (uri: Uri) => {
@@ -36,11 +36,11 @@ export const transformFromSelection = async (uri: Uri) => {
     const json: string = await getSelectedText().then(validateLength).catch(handleError);
 
     const config: Settings = {
-        className: className,
+        model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
         input: input,
-        pathType: PathType.Standard,
+        targetDirectoryType: TargetDirectoryType.Standard,
     };
     // Create new settings.
     const settings = new Settings(config);

@@ -1,10 +1,31 @@
 import { snakeCase } from "./utils";
 import { Input } from "./input";
 
+/** Separates class names and enhancement names from syntax */
+export class ClassNameModel {
+    readonly className: string;
+    readonly nameEnhancement: string = '';
+
+    constructor(className: string) {
+        if (!className.match(/\W/gm)) {
+            this.className = className;
+        } else {
+            let split = className.split(/\W{1,}/gm);
+            let first = split.shift();
+            let last = '.' + split.join('.').split('.').map((e) => snakeCase(e)).join('.');
+            this.className = first ? first : className;
+            this.nameEnhancement = last;
+            if (last.match(/(\W|dart)+$/gm)) {
+                this.nameEnhancement = '.' + last.replace(/(\W|dart)+$/gm, '').split('.').map((e) => snakeCase(e)).join('.');
+            }
+        }
+    }
+}
+
 /** The indicates how the path was taken. */
-export enum PathType {
+export enum TargetDirectoryType {
     /** 
-     *  The path type from the default options as from the settings or from the file `models.jsonc`.
+     *  The path type from the default options as from the settings.
      */
     Default,
     /** 
@@ -19,9 +40,9 @@ export enum PathType {
 
 export interface ISettings {
     /**
-     * Root class name.
+     * Class definition model. Required root class name.
      */
-    className: string;
+    model: ClassNameModel;
     /**
      * File target directory.
      */
@@ -37,27 +58,27 @@ export interface ISettings {
     /**
      * The path input method type.
      */
-    pathType: PathType;
+    targetDirectoryType: TargetDirectoryType;
 }
 
 export class Settings implements ISettings {
-    className: string;
+    model: ClassNameModel;
     targetDirectory: string;
     object: string;
     input: Input;
-    pathType: PathType;
+    targetDirectoryType: TargetDirectoryType;
 
     constructor(settings: ISettings) {
-        this.className = settings.className;
+        this.model = settings.model;
         this.object = settings.object;
         this.input = settings.input;
-        this.pathType = settings.pathType;
+        this.targetDirectoryType = settings.targetDirectoryType;
 
-        switch (settings.pathType) {
-            case PathType.Default:
-                this.targetDirectory = settings.targetDirectory + `/${snakeCase(settings.className)}`;
+        switch (settings.targetDirectoryType) {
+            case TargetDirectoryType.Default:
+                this.targetDirectory = settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
                 break;
-            case PathType.Standard:
+            case TargetDirectoryType.Standard:
                 this.targetDirectory = settings.targetDirectory + `/models`;
                 break;
             default:

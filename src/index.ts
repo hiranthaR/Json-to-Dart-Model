@@ -74,9 +74,9 @@ export const runBuildRunner = () => {
 };
 
 export const generateClass = async (settings: Settings) => {
-  const classDirectoryPath = `${settings.targetDirectory}`;
-  if (!fs.existsSync(classDirectoryPath)) {
-    await createDirectory(classDirectoryPath);
+  const path = `${settings.targetDirectory}`;
+  if (!fs.existsSync(path)) {
+    await createDirectory(path);
   }
   await createClass(settings);
 };

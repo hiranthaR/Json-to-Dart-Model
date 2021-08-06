@@ -103,15 +103,14 @@ export function mapTsTypeToDartType(
 
 export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
-  var classes: Array<ClassDefinition> = await modelGenerator.generateDartClasses(
-    settings.object
-  );
+  var classes: Array<ClassDefinition> = await modelGenerator.generateDartClasses(settings.object);
 
   return new Promise<void>(async (resolve, reject) => {
     classes.map((c) => {
-      const targetPath = `${settings.targetDirectory}/${c.path}.dart`;
+      const enhancement = settings.model.nameEnhancement;
+      const targetPath = `${settings.targetDirectory}/${c.path}` + enhancement + '.dart';
       if (fs.existsSync(targetPath)) {
-        window.showInformationMessage(`${c.path}.dart already exists`);
+        window.showInformationMessage(`${c.path}` + enhancement + `.dart already exists`);
         return;
       }
 

@@ -5,13 +5,13 @@ import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner, } from "../index";
 import { getUserInput, Input } from "../input";
 import { getClipboardText, handleError, validateLength } from "../lib";
-import { PathType, Settings } from "../settings";
+import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
 import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromClipboard = async (uri: Uri) => {
     const className = await promptForBaseClassName();
     let input = new Input();
-    let pathType: PathType = PathType.Standard;
+    let targetDirectoryType: TargetDirectoryType = TargetDirectoryType.Standard;
 
     if (_.isNil(className) || className.trim() === "") {
         window.showErrorMessage("The class name must not be empty");
@@ -31,18 +31,18 @@ export const transformFromClipboard = async (uri: Uri) => {
             return;
         }
     } else {
-        pathType = PathType.Raw;
+        targetDirectoryType = TargetDirectoryType.Raw;
         targetDirectory = uri.fsPath;
     }
 
     const json: string = await getClipboardText().then(validateLength).catch(handleError);
 
     const config: Settings = {
-        className: className,
+        model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
         input: input,
-        pathType: pathType,
+        targetDirectoryType: targetDirectoryType,
     };
     // Create new settings.
     const settings = new Settings(config);
@@ -50,7 +50,7 @@ export const transformFromClipboard = async (uri: Uri) => {
     await generateClass(settings).then((_) => {
         runDartFormat(
             <string>targetDirectory,
-            settings.pathType === PathType.Raw ? "" : "models"
+            settings.targetDirectoryType === TargetDirectoryType.Raw ? "" : "models"
         );
         if (input.generate && input.runBuilder) {
             runBuildRunner();

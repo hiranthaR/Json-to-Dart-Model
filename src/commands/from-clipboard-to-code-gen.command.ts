@@ -5,14 +5,14 @@ import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
 import { getUserInput, Input } from "../input";
 import { getClipboardText, handleError, validateLength } from "../lib";
-import { PathType, Settings } from "../settings";
+import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
 import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
 
 export const transformFromClipboardToCodeGen = async (uri: Uri) => {
     let input = new Input();
     const className = await promptForBaseClassName();
 
-    let pathType: PathType = PathType.Standard;
+    let targetDirectoryType: TargetDirectoryType = TargetDirectoryType.Standard;
 
     if (_.isNil(className) || className.trim() === "") {
         window.showErrorMessage("The class name must not be empty");
@@ -32,18 +32,18 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
             return;
         }
     } else {
-        pathType = PathType.Raw;
+        targetDirectoryType = TargetDirectoryType.Raw;
         targetDirectory = uri.fsPath;
     }
 
     const json: string = await getClipboardText().then(validateLength).catch(handleError);
 
     const config: Settings = {
-        className: className,
+        model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
         input: input,
-        pathType: pathType,
+        targetDirectoryType: targetDirectoryType,
     };
     // Create new settings.
     const settings = new Settings(config);
