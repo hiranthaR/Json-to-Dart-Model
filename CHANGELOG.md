@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.0
+
+   - Improved implementation of code generation libraries to `pubspec.yaml` included and Freezed. All missing dependencies will be installed with one click.
+   - Added file name enhancement. Separate your class name with a dot and after the dot everything will be added as enhancement name.
+
 ## 3.2.8
 
    - Correction of certain descriptions.
