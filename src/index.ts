@@ -54,19 +54,21 @@ export function activate(context: ExtensionContext) {
  * ```
  */
 export const runDartFormat = (directory: string, lastDirectory: string) => {
-  const startIndex = directory.indexOf("lib/");
-  const formatDirectory = directory.substring(startIndex).split("/").join(" ");
+  const last = directory.split('/').pop();
+  if (!last) { return; }
+  const index = directory.indexOf("/lib") === -1 ? directory.indexOf(last) : directory.indexOf("/lib");
+  const formatDirectory = directory.substring(index).split("/").join(" ");
   const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
   const terminal = window.createTerminal({ name: "dart format bin", hideFromUser: true });
-  console.debug("dart format bin " + fileDirectory);
-  terminal.sendText("dart format bin " + fileDirectory);
+  console.debug("dart format" + fileDirectory);
+  terminal.sendText("dart format" + fileDirectory);
 };
 
 /**
  * Run "build_runner build".
  */
 export const runBuildRunner = () => {
-  let terminal = window.createTerminal("pub get");
+  let terminal = window.createTerminal({ name: "pub get", hideFromUser: false });
   terminal.sendText(
     "flutter pub run build_runner build --delete-conflicting-outputs"
   );

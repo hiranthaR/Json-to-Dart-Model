@@ -1,22 +1,23 @@
 import { snakeCase } from "./utils";
 import { Input } from "./input";
 
-/** Separates class names and enhancement names from syntax */
+/** Separates class names and enhancement names from the syntax */
 export class ClassNameModel {
-    readonly className: string;
     readonly nameEnhancement: string = '';
+    className: string;
 
     constructor(className: string) {
         if (!className.match(/\W/gm)) {
             this.className = className;
         } else {
             let split = className.split(/\W{1,}/gm);
-            let first = split.shift();
+            let first = split.shift() ?? className;
             let last = '.' + split.join('.').split('.').map((e) => snakeCase(e)).join('.');
-            this.className = first ? first : className;
-            this.nameEnhancement = last;
+            this.className = first;
             if (last.match(/(\W|dart)+$/gm)) {
                 this.nameEnhancement = '.' + last.replace(/(\W|dart)+$/gm, '').split('.').map((e) => snakeCase(e)).join('.');
+            } else {
+                this.nameEnhancement = last;
             }
         }
     }

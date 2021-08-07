@@ -2,7 +2,7 @@ import { window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
 import { Input } from "../input";
 import { handleError } from "../lib";
-import { Models } from "../models-file";
+import { models } from "../models-file";
 import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
 
 /** Used to warn users about changes. */
@@ -33,8 +33,6 @@ const isDeprecatedSettings = (object: Object): boolean => {
 
 export const transformFromFile = async () => {
     const jsonc = require('jsonc').safe;
-
-    const models = new Models();
 
     if (models.exist) {
         const data = models.data;
@@ -91,7 +89,7 @@ export const transformFromFile = async () => {
                     // Settings config.
                     let config: Settings = {
                         model: new ClassNameModel(className),
-                        targetDirectory: <string>targetDirectory,
+                        targetDirectory: targetDirectory,
                         object: json,
                         input: input,
                         targetDirectoryType: TargetDirectoryType.Default,
@@ -108,7 +106,8 @@ export const transformFromFile = async () => {
                     const key = '__className';
                     // Separate class names from objects.
                     const { [key]: className } = object;
-                    runDartFormat(targetDirectory, className);
+                    const model = new ClassNameModel(className as string);
+                    runDartFormat(targetDirectory, model.className);
                 }
                 if (input.generate && input.runBuilder) {
                     runBuildRunner();

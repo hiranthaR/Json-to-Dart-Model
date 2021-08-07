@@ -418,9 +418,10 @@ export class ClassDefinition {
   private nameEnhancement: string = '';
   fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
 
-  constructor(className: string, privateFields = false) {
-    this._name = pascalCase(className);
-    this._path = snakeCase(className);
+  constructor(model: ClassNameModel, privateFields = false) {
+    this._name = pascalCase(model.className);
+    this._path = snakeCase(model.className);
+    this.nameEnhancement = model.nameEnhancement;
     this._privateFields = privateFields;
   }
 
@@ -435,10 +436,6 @@ export class ClassDefinition {
    */
   updateName(name: string) {
     this._name = pascalCase(name);
-  }
-
-  addNameEnhancement(name: string) {
-    this.nameEnhancement = name;
   }
 
   /** A class that converted back to the value 

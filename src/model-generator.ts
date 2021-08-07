@@ -55,25 +55,33 @@ export class ModelGenerator {
         return this.hints.filter((h) => h.path === path)[0];
     }
 
-    private generateClassDefinition(
+    private generateClassDefinition(args: {
         className: string,
-        jsonRawDynamicData: any,
+        json: any,
         path: string,
         astNode: ASTNode,
-    ): Array<Warning> {
+    }): Array<Warning> {
         var warnings = new Array<Warning>();
-        if (isArray(jsonRawDynamicData)) {
+        if (isArray(args.json)) {
             // if first element is an array, start in the first element.
-            var node = navigateNode(astNode, '0');
-            this.generateClassDefinition(className, jsonRawDynamicData[0], path, node);
+            var node = navigateNode(args.astNode, '0');
+            this.generateClassDefinition({
+                className: args.className,
+                json: args.json[0],
+                path: args.path,
+                astNode: node,
+            });
         } else {
-            var jsonRawData: Map<any, any> = new Map(Object.entries(jsonRawDynamicData));
-            var classDefinition = new ClassDefinition(className, this.privateFields);
-            const _className = pascalCase(className);
+            var jsonRawData: Map<any, any> = new Map(Object.entries(args.json));
+            // Override the model class name with a new one.
+            this.settings.model.className = args.className;
+            // Create a new class definition by new parameters.
+            var classDefinition = new ClassDefinition(this.settings.model, this.privateFields);
+            const _className = pascalCase(args.className);
             jsonRawData.forEach((value, key) => {
                 var typeDef: TypeDefinition;
-                var hint = this.hintForPath(`${path}/${cleanKey(key)}`);
-                var node = navigateNode(astNode, cleanKey(key));
+                var hint = this.hintForPath(`${args.path}/${cleanKey(key)}`);
+                var node = navigateNode(args.astNode, cleanKey(key));
                 if (hint !== null && hint !== undefined) {
                     typeDef = new TypeDefinition(
                         null, key, _className, null, hint.type, value, false, node
@@ -84,7 +92,7 @@ export class ModelGenerator {
 
                 const name = typeDef.filteredKey(key);
 
-                typeDef.name = fixFieldName(name, className);
+                typeDef.name = fixFieldName(name, args.className);
                 typeDef.value = value;
                 typeDef.prefix = _className;
                 if (typeDef.type !== null) {
@@ -99,14 +107,14 @@ export class ModelGenerator {
                     }
                 }
                 if (typeDef.type === null) {
-                    warnings.push(newEmptyListWarn(`${path}/${name}`));
+                    warnings.push(newEmptyListWarn(`${args.path}/${name}`));
                 }
                 if (typeDef.isAmbiguous) {
-                    warnings.push(newAmbiguousListWarn(`${path}/${name}`));
+                    warnings.push(newAmbiguousListWarn(`${args.path}/${name}`));
                 }
                 classDefinition.addField(name, typeDef);
             });
-            classDefinition.addNameEnhancement(this.settings.model.nameEnhancement);
+            // Push new created class definition.
             this.allClasses.push(classDefinition);
             var dependencies = classDefinition.dependencies;
             dependencies.forEach((dependency) => {
@@ -119,7 +127,7 @@ export class ModelGenerator {
                         var toAnalyze;
                         if (!dependency.typeDef.isAmbiguous) {
                             var mergeWithWarning = mergeObjectList(
-                                dependency.typeDef.value, `${path}/${dependency.name}`
+                                dependency.typeDef.value, `${args.path}/${dependency.name}`
                             );
                             toAnalyze = mergeWithWarning.result;
                             mergeWithWarning.warnings.forEach((wrn) => warnings.push(wrn));
@@ -128,22 +136,22 @@ export class ModelGenerator {
                         }
                         const obj: any = {};
                         toAnalyze.forEach((value: any, key: any) => obj[key] = value);
-                        var node = navigateNode(astNode, dependency.name);
-                        warns = this.generateClassDefinition(
-                            dependency.className,
-                            obj,
-                            `${path}/${dependency.name}`,
-                            node,
-                        );
+                        var node = navigateNode(args.astNode, dependency.name);
+                        warns = this.generateClassDefinition({
+                            className: dependency.className,
+                            json: obj,
+                            path: `${args.path}/${dependency.name}`,
+                            astNode: node,
+                        });
                     }
                 } else {
-                    var node = navigateNode(astNode, dependency.name);
-                    warns = this.generateClassDefinition(
-                        dependency.className,
-                        jsonRawData.get(dependency.name),
-                        `${path}/${dependency.name}`,
-                        node,
-                    );
+                    var node = navigateNode(args.astNode, dependency.name);
+                    warns = this.generateClassDefinition({
+                        className: dependency.className,
+                        json: jsonRawData.get(dependency.name),
+                        path: `${args.path}/${dependency.name}`,
+                        astNode: node,
+                    });
                 }
                 if (warns!! !== null && warns!! !== undefined) {
                     warns!!.forEach(wrn => warnings.push(wrn));
@@ -282,9 +290,12 @@ export class ModelGenerator {
             loc: true,
             source: undefined
         });
-        var warnings: Array<Warning> = this.generateClassDefinition(
-            this.rootClassName, jsonRawData, "", astNode
-        );
+        var warnings: Array<Warning> = this.generateClassDefinition({
+            className: this.rootClassName,
+            json: jsonRawData,
+            path: "",
+            astNode: astNode,
+        });
         // After generating all classes, merge similar classes with paths.
         //
         // If duplicates are detected create a new path.
