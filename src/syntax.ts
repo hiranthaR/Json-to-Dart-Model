@@ -561,13 +561,10 @@ export class ClassDefinition {
     const isDynamic = typeDef.type?.match("dynamic") && !typeDef.isList;
     const isNullable = nullable ?? typeDef.nullable;
 
-    if (input.freezed && input.nullSafety && isDynamic) {
-      return "Object?";
-    } else {
-      return isDynamic
-        ? typeDef.type
-        : typeDef.type + questionMark(input, isNullable);
-    }
+    return isDynamic
+      ? typeDef.type
+      : typeDef.type + questionMark(input, isNullable);
+
   }
 
   private fieldList(input: Input): string {

@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.1
+
+   - Fixed an issue with `Freezed` where optional dynamic keys were not allowed.
+   - Fixed a bug with Dart Format.
+
 ## 3.3.0
 
    - Improved implementation of code generation libraries to `pubspec.yaml` included and Freezed. All missing dependencies will be installed with one click.
