@@ -4,6 +4,7 @@ import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNeste
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
 import { ClassNameModel } from "./settings";
+import { emptyClass } from "./syntax/empty-class.syntax";
 
 
 export const emptyListWarn = "list is empty";
@@ -1073,6 +1074,11 @@ export class ClassDefinition {
   toCodeGenString(input: Input): string {
     var field = "";
 
+    if (this.fields.size === 0) {
+      field = emptyClass(this.name);
+      return field;
+    }
+
     if (input.freezed) {
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
@@ -1131,6 +1137,12 @@ export class ClassDefinition {
 
   toString(input: Input): string {
     var field = "";
+
+    if (this.fields.size === 0) {
+      field = emptyClass(this.name);
+      return field;
+    }
+
     if (this._privateFields) {
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
