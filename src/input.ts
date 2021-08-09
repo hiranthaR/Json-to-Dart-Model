@@ -41,6 +41,7 @@ export interface InputProperties {
     runBuilder?: boolean;
     primaryConfiguration?: boolean;
     fastMode?: boolean;
+    sortConstructorsFirst?: boolean;
 }
 
 /**
@@ -57,6 +58,7 @@ export class Input implements InputProperties {
     runBuilder: boolean;
     primaryConfiguration: boolean;
     fastMode: boolean;
+    sortConstructorsFirst?: boolean;
 
     constructor(props?: InputProperties) {
         this.codeGenerator = props?.codeGenerator ?? config.codeGenerator;
@@ -69,6 +71,7 @@ export class Input implements InputProperties {
         this.runBuilder = props?.runBuilder ?? config.runBuilder;
         this.primaryConfiguration = props?.primaryConfiguration ?? config.primaryConfiguration;
         this.fastMode = props?.fastMode ?? config.fastMode;
+        this.sortConstructorsFirst = props?.sortConstructorsFirst ?? config.sortConstructorsFirst;
     }
 
     get isImmutable(): boolean {

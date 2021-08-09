@@ -49,7 +49,10 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        runDartFormat(<string>targetDirectory, "models");
+        runDartFormat(
+            <string>targetDirectory,
+            settings.targetDirectoryType === TargetDirectoryType.Raw ? "" : "models",
+        );
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }

@@ -31,6 +31,7 @@ class Configuration {
     get runBuilder() { return this.getConfig<boolean>('runBuilder', true); }
     get primaryConfiguration() { return this.getConfig<boolean>('primaryConfiguration', false); }
     get targetDirectory() { return this.getConfig<string>('targetDirectory.path', '/lib/models'); }
+    get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); };
 }
 
 export const config = new Configuration();

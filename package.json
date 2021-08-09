@@ -148,6 +148,11 @@
             ],
             "markdownDescription": "Supported code-generators `Freezed` and `Json Serializable`.\n> **Note:** to use one of them you must have all required dependencies."
           },
+          "jsonToDart.sortConstructorsFirst": {
+            "type": "boolean",
+            "default": false,
+            "description": "Sort constructor declarations before other members."
+          },
           "jsonToDart.immutable": {
             "type": "boolean",
             "default": false,
