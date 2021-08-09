@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import { Uri, window } from "vscode";
 import { runDartFormat, generateClass, runBuildRunner } from "../index";
-import { getUserInput, Input } from "../input";
+import { CodeGenerator, getUserInput, Input } from "../input";
 import { getSelectedText, handleError, validateLength } from "../lib";
 import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
 import { promptForBaseClassName, promptForTargetDirectory } from "../shared/user-prompts";
@@ -35,15 +35,18 @@ export const transformFromSelection = async (uri: Uri) => {
 
     const json: string = await getSelectedText().then(validateLength).catch(handleError);
 
-    const config: Settings = {
+    const settings: Settings = {
         model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
         input: input,
         targetDirectoryType: TargetDirectoryType.Standard,
     };
-    // Create new settings.
-    const settings = new Settings(config);
+
+    if (!input.primaryConfiguration) {
+        // Disable run builder from the not code generation function.
+        settings.input.codeGenerator = CodeGenerator.Default;
+    }
 
     await generateClass(settings).then((_) => {
         runDartFormat(<string>targetDirectory, "models");

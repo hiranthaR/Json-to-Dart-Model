@@ -4,6 +4,7 @@
 
    - Added option to sort constructor declarations before other members.
    - Fixed lint errors for empty classes.
+   - Documentation update.
 
 ## 3.3.1
 
