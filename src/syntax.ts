@@ -4,6 +4,7 @@ import { camelCase, pascalCase, snakeCase, filterListType, equalByType, getNeste
 import { Input } from "./input";
 import { TypeDefinition } from "./constructor";
 import { ClassNameModel } from "./settings";
+import { emptyClass } from "./syntax/empty-class.syntax";
 
 
 export const emptyListWarn = "list is empty";
@@ -418,9 +419,10 @@ export class ClassDefinition {
   private nameEnhancement: string = '';
   fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
 
-  constructor(className: string, privateFields = false) {
-    this._name = pascalCase(className);
-    this._path = snakeCase(className);
+  constructor(model: ClassNameModel, privateFields = false) {
+    this._name = pascalCase(model.className);
+    this._path = snakeCase(model.className);
+    this.nameEnhancement = model.nameEnhancement;
     this._privateFields = privateFields;
   }
 
@@ -435,10 +437,6 @@ export class ClassDefinition {
    */
   updateName(name: string) {
     this._name = pascalCase(name);
-  }
-
-  addNameEnhancement(name: string) {
-    this.nameEnhancement = name;
   }
 
   /** A class that converted back to the value 
@@ -564,13 +562,10 @@ export class ClassDefinition {
     const isDynamic = typeDef.type?.match("dynamic") && !typeDef.isList;
     const isNullable = nullable ?? typeDef.nullable;
 
-    if (input.freezed && input.nullSafety && isDynamic) {
-      return "Object?";
-    } else {
-      return isDynamic
-        ? typeDef.type
-        : typeDef.type + questionMark(input, isNullable);
-    }
+    return isDynamic
+      ? typeDef.type
+      : typeDef.type + questionMark(input, isNullable);
+
   }
 
   private fieldList(input: Input): string {
@@ -1079,6 +1074,11 @@ export class ClassDefinition {
   toCodeGenString(input: Input): string {
     var field = "";
 
+    if (this.fields.size === 0) {
+      field = emptyClass(this.name);
+      return field;
+    }
+
     if (input.freezed) {
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
@@ -1092,8 +1092,13 @@ export class ClassDefinition {
         field += `${this.importsForParts(input)}`;
         field += `@JsonSerializable()\n`;
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''}; {\n`;
-        field += `${this.fieldListCodeGen(input)}\n\n`;
-        field += `${this.defaultPrivateConstructor(input)}`;
+        if (input.sortConstructorsFirst) {
+          field += `${this.defaultPrivateConstructor(input)}\n\n`;
+          field += `${this.fieldListCodeGen(input)}`;
+        } else {
+          field += `${this.fieldListCodeGen(input)}\n\n`;
+          field += `${this.defaultPrivateConstructor(input)}`;
+        }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
         field += `${this.gettersSetters(input)}\n\n`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
@@ -1110,8 +1115,13 @@ export class ClassDefinition {
         field += `${this.importsForParts(input)}`;
         field += `@JsonSerializable()\n`;
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-        field += `${this.fieldListCodeGen(input)}\n\n`;
-        field += `${this.defaultConstructor(input)}`;
+        if (input.sortConstructorsFirst) {
+          field += `${this.defaultConstructor(input)}\n\n`;
+          field += `${this.fieldListCodeGen(input)}`;
+        } else {
+          field += `${this.fieldListCodeGen(input)}\n\n`;
+          field += `${this.defaultConstructor(input)}`;
+        }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
         field += `${this.codeGenJsonParseFunc()}\n\n`;
         field += `${this.codeGenToJsonFunc()}`;
@@ -1127,14 +1137,25 @@ export class ClassDefinition {
 
   toString(input: Input): string {
     var field = "";
+
+    if (this.fields.size === 0) {
+      field = emptyClass(this.name);
+      return field;
+    }
+
     if (this._privateFields) {
       field += `${this.importsFromPackage(input)}`;
       field += `${this.importList()}`;
       field += `${this.importsForParts(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-      field += `${this.fieldList(input)}\n\n`;
-      field += `${this.defaultPrivateConstructor(input)}`;
+      if (input.sortConstructorsFirst) {
+        field += `${this.defaultPrivateConstructor(input)}\n\n`;
+        field += `${this.fieldList(input)}`;
+      } else {
+        field += `${this.fieldList(input)}\n\n`;
+        field += `${this.defaultPrivateConstructor(input)}`;
+      }
       field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
       field += `${this.gettersSetters(input)}\n\n`;
       field += `${this.jsonParseFunc(input)}\n\n`;
@@ -1151,8 +1172,13 @@ export class ClassDefinition {
       field += `${this.importsForParts(input)}`;
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
-      field += `${this.fieldList(input)}\n\n`;
-      field += `${this.defaultConstructor(input)}`;
+      if (input.sortConstructorsFirst) {
+        field += `${this.defaultConstructor(input)}\n\n`;
+        field += `${this.fieldList(input)}`;
+      } else {
+        field += `${this.fieldList(input)}\n\n`;
+        field += `${this.defaultConstructor(input)}`;
+      }
       field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
       field += `${this.jsonParseFunc(input)}\n\n`;
       field += `${this.toJsonFunc(input)}`;

@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.3.0",
+  "version": "3.3.2",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -147,6 +147,11 @@
               "Always generate using Freezed code generator."
             ],
             "markdownDescription": "Supported code-generators `Freezed` and `Json Serializable`.\n> **Note:** to use one of them you must have all required dependencies."
+          },
+          "jsonToDart.sortConstructorsFirst": {
+            "type": "boolean",
+            "default": false,
+            "description": "Sort constructor declarations before other members."
           },
           "jsonToDart.immutable": {
             "type": "boolean",

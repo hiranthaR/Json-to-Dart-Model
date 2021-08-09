@@ -5,7 +5,7 @@ import { printLine } from "./syntax";
 import { getWorkspaceRoot } from "./utils";
 import { config } from "./configuration";
 
-export class Models {
+class Models {
     private fileName: string = "/models.jsonc";
 
     get directory() {
@@ -96,3 +96,5 @@ async function askForFileCreation(): Promise<boolean> {
     return window.showInformationMessage(text, { modal: true }, ...["Add"])
         .then((action) => action === "Add" ? true : false);
 }
+
+export const models = new Models();
