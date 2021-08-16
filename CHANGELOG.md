@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.3
+
+   - Fixed JSON annotation key for Freezed and JSON serializable, ex: `@JsonKey(name: user_id)`. JSON key annotation will be added only when needed. This provides a cleaner code syntax.
+
 ## 3.3.2
 
    - Added option to sort constructor declarations before other members.

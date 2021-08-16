@@ -64,6 +64,14 @@ export const printLine = (print: string, lines = 0, tabs = 0): string => {
 };
 
 /**
+ * Adds JSON annotation only if needed for Freezed and JSON serializable.
+ * @param {string} jsonKey a raw JSON key.
+ */
+const jsonKeyAnnotation = (jsonKey: string): string => {
+  return jsonKey.includes('_') ? `@JsonKey(name: '${jsonKey}') ` : '';
+};
+
+/**
  * To indicate that a variable might have the value null.
  * @param {Input} input the user input.
  * @returns string as "?" if null safety enabled. Otherwise empty string.
@@ -581,16 +589,20 @@ export class ClassDefinition {
   }
 
   private fieldListCodeGen(input: Input): string {
-    return this.getFields((f) => {
+    const final = input.isImmutable ? this.finalKeyword(true) : '';
+    let sb = '';
+
+    for (let f of [...this.fields.values()]) {
       const fieldName = f.getName(this._privateFields);
-      var sb = "\t" + `@JsonKey(name: '${f.jsonKey}')\n`;
-      sb += "\t";
-      if (input.isImmutable) {
-        sb += this.finalKeyword(true);
+
+      if (f.jsonKey.includes('_')) {
+        sb += '\t' + jsonKeyAnnotation(f.jsonKey) + '\n';
       }
-      sb += this.addType(f, input) + ` ${fieldName};`;
-      return sb;
-    }).join("\n");
+
+      sb += '\t' + final + this.addType(f, input) + ` ${fieldName};` + '\n';
+    }
+
+    return sb;
   }
 
   /**
@@ -612,7 +624,7 @@ export class ClassDefinition {
     for (var [name, typeDef] of this.fields) {
       const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
-      const jsonKey = `@JsonKey(name: '${name}') `;
+      const jsonKey = jsonKeyAnnotation(name);
       const defaultVal = defaultValue(typeDef, input.nullSafety, true);
       const required = requiredValue(typeDef.required, input.nullSafety);
       sb += printLine(jsonKey + required + defaultVal, 1, 2);
@@ -1096,7 +1108,7 @@ export class ClassDefinition {
           field += `${this.defaultPrivateConstructor(input)}\n\n`;
           field += `${this.fieldListCodeGen(input)}`;
         } else {
-          field += `${this.fieldListCodeGen(input)}\n\n`;
+          field += `${this.fieldListCodeGen(input)}\n`;
           field += `${this.defaultPrivateConstructor(input)}`;
         }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
@@ -1119,7 +1131,7 @@ export class ClassDefinition {
           field += `${this.defaultConstructor(input)}\n\n`;
           field += `${this.fieldListCodeGen(input)}`;
         } else {
-          field += `${this.fieldListCodeGen(input)}\n\n`;
+          field += `${this.fieldListCodeGen(input)}\n`;
           field += `${this.defaultConstructor(input)}`;
         }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
