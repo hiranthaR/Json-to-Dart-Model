@@ -1,17 +1,19 @@
-import * as fs from "fs";
-import { window } from "vscode";
-import { getWorkspaceRoot } from "../utils";
+import * as fs from 'fs';
+
+import { getWorkspaceRoot } from '../utils';
+import { window } from 'vscode';
+
 
 class Pubspec {
     readonly data: string;
     readonly path: string;
     readonly dependencies = new Map<string, boolean>([
-        ["freezed_annotation", false],
-        ["json_annotation", false],
-        ["equatable", false],
-        ["freezed", true],
-        ["build_runner", true],
-        ["json_serializable", true],
+        ['freezed_annotation', false],
+        ['json_annotation', false],
+        ['equatable', false],
+        ['freezed', true],
+        ['build_runner', true],
+        ['json_serializable', true],
     ]);
 
     constructor() {
@@ -23,7 +25,7 @@ class Pubspec {
     get getData(): string {
         if (this.exsist) {
             // Get pubspec context.
-            return fs.readFileSync(this.path, "utf8");
+            return fs.readFileSync(this.path, 'utf8');
         } else {
             return '';
         }
@@ -48,7 +50,7 @@ class Pubspec {
         if (this.exsist) {
             // Get pubspec context.
             if (this.data.includes(name)) {
-                let index = this.data.indexOf(name);
+                const index = this.data.indexOf(name);
                 return this.data.substr(index, 16).slice(-6);
             }
         }
@@ -64,7 +66,7 @@ class Pubspec {
         let data = this.getData;
 
         if (!(data.length > 0)) {
-            const text = "Failed to read pubspec.yaml file";
+            const text = 'Failed to read pubspec.yaml file';
             window.showErrorMessage(text);
             return;
         }
@@ -87,7 +89,7 @@ class Pubspec {
 
 
 function updatePubspec(path: string, data: string) {
-    fs.writeFile(path, data.toString(), "utf8", (error) => {
+    fs.writeFile(path, data.toString(), 'utf8', (error) => {
         if (error) {
             window.showErrorMessage('Error updating pubspec.yaml file.');
             return;
@@ -108,13 +110,13 @@ async function appendDependencies(
     dependencies: Map<string, boolean>,
 ): Promise<string> {
     let pubspec = data;
-    const keyword = "sdk: flutter";
+    const keyword = 'sdk: flutter';
 
     for await (const [name, isDev] of dependencies) {
-        let dependency = `\n  ${name}:`;
+        const dependency = `\n  ${name}:`;
 
         while (!pubspec.includes(dependency)) {
-            let index = pubspec.indexOf(
+            const index = pubspec.indexOf(
                 keyword,
                 isDev ?
                     1 + pubspec.indexOf(keyword) :

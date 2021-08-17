@@ -1,4 +1,5 @@
-import { ASTNode } from "json-to-ast";
+import * as _ from 'lodash';
+
 import {
   getListSubtype,
   getTypeName,
@@ -7,8 +8,8 @@ import {
   isPrimitiveType,
   pascalCase,
   snakeCase
-} from "./utils";
-import * as _ from "lodash";
+} from './utils';
+import { ASTNode } from 'json-to-ast';
 
 interface TypeDefinitionProperties {
   /**
@@ -132,10 +133,10 @@ export class TypeDefinition implements TypeDefinitionProperties {
     this.isAmbiguous = isAmbiguous;
     if (type !== null) {
       this.isPrimitive = isPrimitiveType(type);
-      if (name === "int" && isASTLiteralDouble(astNode)) {
-        this.name = "double";
+      if (name === 'int' && isASTLiteralDouble(astNode)) {
+        this.name = 'double';
       }
-      if (type.includes("DateTime")) {
+      if (type.includes('DateTime')) {
         this.isDate = true;
       }
       if (isList(type)) {
@@ -153,7 +154,7 @@ export class TypeDefinition implements TypeDefinitionProperties {
 
   filteredKey(key: string): string {
     const search = /([^]@)/gi;
-    const replace = "";
+    const replace = '';
 
     if (key.match(/d@/gi)) {
       this.defaultValue = true;
@@ -179,7 +180,7 @@ export class TypeDefinition implements TypeDefinitionProperties {
     if (!this.isPrimitive) {
       this._importName = snakeCase(name);
     } else {
-      throw new Error(`TypeDefinition: import can't be added to a primitive object.`);
+      throw new Error('TypeDefinition: import can\'t be added to a primitive object.');
     }
   }
 
@@ -187,7 +188,7 @@ export class TypeDefinition implements TypeDefinitionProperties {
     if (!this.isPrimitive) {
       this.type = pascalCase(name);
     } else {
-      throw new Error(`TypeDefinition: primitive objects can't be updated.`);
+      throw new Error('TypeDefinition: primitive objects can\'t be updated.');
     }
   }
 
@@ -200,17 +201,17 @@ export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
   var isAmbiguous = false;
   var type: string = getTypeName(obj);
 
-  if (type === "List") {
+  if (type === 'List') {
     var list = obj;
     var elemType: string = getListSubtype(list);
     if (elemType !== getListSubtype(list)) {
       isAmbiguous = true;
     }
     return new TypeDefinition(
-      null, "", "", elemType, type, obj, isAmbiguous, astNode
+      null, '', '', elemType, type, obj, isAmbiguous, astNode
     );
   }
   return new TypeDefinition(
-    null, "", "", type, "", obj, isAmbiguous, astNode
+    null, '', '', type, '', obj, isAmbiguous, astNode
   );
 }

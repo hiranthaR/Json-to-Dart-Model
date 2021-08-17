@@ -27,7 +27,7 @@ export enum CodeGenerator {
     Freezed = "Freezed",
 }
 
-export interface InputProperties {
+interface InputProperties {
     codeGenerator?: CodeGenerator;
     immutable?: boolean;
     toString?: StringMethod;

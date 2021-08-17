@@ -1,4 +1,4 @@
-import { pubspec } from "../shared/pubspec";
+import { pubspec } from '../shared/pubspec';
 
 /**
  * Adds all missing code generation libraries.

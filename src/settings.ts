@@ -1,5 +1,5 @@
-import { snakeCase } from "./utils";
-import { Input } from "./input";
+import { Input } from './input';
+import { snakeCase } from './utils';
 
 /** Separates class names and enhancement names from the syntax */
 export class ClassNameModel {
@@ -10,9 +10,9 @@ export class ClassNameModel {
         if (!className.match(/\W/gm)) {
             this.className = className;
         } else {
-            let split = className.split(/\W{1,}/gm);
-            let first = split.shift() ?? className;
-            let last = '.' + split.join('.').split('.').map((e) => snakeCase(e)).join('.');
+            const split = className.split(/\W{1,}/gm);
+            const first = split.shift() ?? className;
+            const last = '.' + split.join('.').split('.').map((e) => snakeCase(e)).join('.');
             this.className = first;
             if (last.match(/(\W|dart)+$/gm)) {
                 this.nameEnhancement = '.' + last.replace(/(\W|dart)+$/gm, '').split('.').map((e) => snakeCase(e)).join('.');
@@ -80,7 +80,7 @@ export class Settings implements ISettings {
                 this.targetDirectory = settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
                 break;
             case TargetDirectoryType.Standard:
-                this.targetDirectory = settings.targetDirectory + `/models`;
+                this.targetDirectory = settings.targetDirectory + '/models';
                 break;
             default:
                 this.targetDirectory = settings.targetDirectory;

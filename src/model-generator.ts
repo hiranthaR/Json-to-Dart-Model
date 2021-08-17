@@ -1,15 +1,16 @@
-import parse = require("json-to-ast");
-import * as _ from "lodash";
+import parse = require('json-to-ast');
+import * as _ from 'lodash';
 
-import { ClassDefinition, Warning, newEmptyListWarn, newAmbiguousListWarn, WithWarning, Dependency, } from "./syntax";
-import { navigateNode, mergeObjectList, pascalCase, fixFieldName, cleanKey } from "./utils";
-import { TypeDefinition, typeDefinitionFromAny } from "./constructor";
-import { ASTNode } from "json-to-ast";
-import { isArray, parseJson } from "./lib";
-import { ISettings } from "./settings";
+
+import { ClassDefinition, Dependency, Warning, WithWarning, newAmbiguousListWarn, newEmptyListWarn, } from './syntax';
+import { TypeDefinition, typeDefinitionFromAny } from './constructor';
+import { cleanKey, fixFieldName, mergeObjectList, navigateNode, pascalCase } from './utils';
+import { isArray, parseJson } from './lib';
+import { ASTNode } from 'json-to-ast';
+import { ISettings } from './settings';
 
 class DartCode extends WithWarning<string> {
-    constructor(result: string, warnings: Array<Warning>) {
+    constructor(result: string, warnings: Warning[]) {
         super(result, warnings);
     }
     getCode() { return this.result; }
@@ -22,18 +23,18 @@ export class Hint {
     constructor(path: string, type: string) {
         this.path = path;
         this.type = type;
-    };
+    }
 }
 
 export class ModelGenerator {
     private settings: ISettings;
     private rootClassName: string;
     private privateFields: boolean;
-    private allClasses = new Array<ClassDefinition>();
+    private allClasses: ClassDefinition[] = [];
     private allClassMapping = new Map<ClassDefinition, Dependency>();
-    hints: Array<Hint>;
+    hints: Hint[];
 
-    constructor(settings: ISettings, privateFields = false, hints: Array<Hint> | null = null) {
+    constructor(settings: ISettings, privateFields = false, hints: Hint[] | null = null) {
         this.settings = settings;
         this.rootClassName = settings.model.className;
         this.privateFields = privateFields;
@@ -60,11 +61,11 @@ export class ModelGenerator {
         json: any,
         path: string,
         astNode: ASTNode,
-    }): Array<Warning> {
-        var warnings = new Array<Warning>();
+    }): Warning[] {
+        const warnings = new Array<Warning>();
         if (isArray(args.json)) {
             // if first element is an array, start in the first element.
-            var node = navigateNode(args.astNode, '0');
+            const node = navigateNode(args.astNode, '0');
             this.generateClassDefinition({
                 className: args.className,
                 json: args.json[0],
@@ -72,16 +73,16 @@ export class ModelGenerator {
                 astNode: node,
             });
         } else {
-            var jsonRawData: Map<any, any> = new Map(Object.entries(args.json));
+            const jsonRawData: Map<string, unknown> = new Map(Object.entries(args.json));
             // Override the model class name with a new one.
             this.settings.model.className = args.className;
             // Create a new class definition by new parameters.
-            var classDefinition = new ClassDefinition(this.settings.model, this.privateFields);
+            const classDefinition = new ClassDefinition(this.settings.model, this.privateFields);
             const _className = pascalCase(args.className);
             jsonRawData.forEach((value, key) => {
-                var typeDef: TypeDefinition;
-                var hint = this.hintForPath(`${args.path}/${cleanKey(key)}`);
-                var node = navigateNode(args.astNode, cleanKey(key));
+                let typeDef: TypeDefinition;
+                const hint = this.hintForPath(`${args.path}/${cleanKey(key)}`);
+                const node = navigateNode(args.astNode, cleanKey(key));
                 if (hint !== null && hint !== undefined) {
                     typeDef = new TypeDefinition(
                         null, key, _className, null, hint.type, value, false, node
@@ -116,17 +117,17 @@ export class ModelGenerator {
             });
             // Push new created class definition.
             this.allClasses.push(classDefinition);
-            var dependencies = classDefinition.dependencies;
+            const dependencies = classDefinition.dependencies;
+            let warns: Warning[];
             dependencies.forEach((dependency) => {
-                var warns: Array<Warning>;
                 if (dependency.typeDef.type !== null && dependency.typeDef.isList) {
                     // only generate dependency class if the array is not empty
                     if (dependency.typeDef.value.length > 0) {
                         // when list has ambiguous values, take the first one, otherwise merge all objects
                         // into a single one
-                        var toAnalyze;
+                        let toAnalyze;
                         if (!dependency.typeDef.isAmbiguous) {
-                            var mergeWithWarning = mergeObjectList(
+                            const mergeWithWarning = mergeObjectList(
                                 dependency.typeDef.value, `${args.path}/${dependency.name}`
                             );
                             toAnalyze = mergeWithWarning.result;
@@ -136,7 +137,7 @@ export class ModelGenerator {
                         }
                         const obj: any = {};
                         toAnalyze.forEach((value: any, key: any) => obj[key] = value);
-                        var node = navigateNode(args.astNode, dependency.name);
+                        const node = navigateNode(args.astNode, dependency.name);
                         warns = this.generateClassDefinition({
                             className: dependency.className,
                             json: obj,
@@ -145,7 +146,7 @@ export class ModelGenerator {
                         });
                     }
                 } else {
-                    var node = navigateNode(args.astNode, dependency.name);
+                    const node = navigateNode(args.astNode, dependency.name);
                     warns = this.generateClassDefinition({
                         className: dependency.className,
                         json: jsonRawData.get(dependency.name),
@@ -153,8 +154,8 @@ export class ModelGenerator {
                         astNode: node,
                     });
                 }
-                if (warns!! !== null && warns!! !== undefined) {
-                    warns!!.forEach(wrn => warnings.push(wrn));
+                if (warns !== null && warns !== undefined) {
+                    warns.forEach(wrn => warnings.push(wrn));
                 }
             });
         }
@@ -162,19 +163,19 @@ export class ModelGenerator {
         return warnings;
     }
 
-    private async mergeDefinitions(arr: [ClassDefinition, Dependency][]) {
+    private async mergeDefinitions(arr: Array<[ClassDefinition, Dependency]>) {
         for (let i = 0; i < arr.length; i++) {
-            let cd = arr[i][0];
-            let d = arr[i][1];
-            let paths = arr.map((c) => c[0].path);
-            let count: any = {};
+            const cd = arr[i][0];
+            const d = arr[i][1];
+            const paths = arr.map((c) => c[0].path);
+            const count: any = {};
 
             if (paths.indexOf(cd.path) !== i) {
-                let p = cd.path;
-                let c = p in count ? count[p] = count[p] + 1 : count[p] = 1;
+                const p = cd.path;
+                const c = p in count ? count[p] = count[p] + 1 : count[p] = 1;
                 let idx = c;
                 // A class name for duplicate object.
-                let prefix = d.typeDef.prefix + "_";
+                const prefix = d.typeDef.prefix + '_';
                 let path = prefix + p;
 
                 if (paths.indexOf(path) === -1) {
@@ -185,7 +186,7 @@ export class ModelGenerator {
                 while (paths.indexOf(path) !== -1) {
                     //If it continues to duplicate, add index.
                     path = prefix + p + `_${idx++}`;
-                };
+                }
                 // Create file path for objects.
                 cd.updatePath(path);
                 // Navigate object to file.
@@ -203,15 +204,16 @@ export class ModelGenerator {
         let classDef;
         const path = dependency.typeDef.importName;
         const field = dependency.typeDef;
+        // eslint-disable-next-line prefer-const
         classDef = this.allClasses.find((c) => {
             if (path === null) {
                 return false;
-            };
+            }
 
             return c.hasPath(path) && c.hasField(field);
         });
         if (classDef === undefined) {
-            console.debug(`ModelGenerator: sortByDependency => found undefined object`);
+            console.debug('ModelGenerator: sortByDependency => found undefined object');
         }
         return classDef;
     }
@@ -273,7 +275,7 @@ export class ModelGenerator {
                     }
                 }
             }
-        };
+        }
 
         const definitions = Array.from(this.allClassMapping);
         definitions.sort((a, b) => a[0].name.localeCompare(b[0].name));
@@ -284,16 +286,17 @@ export class ModelGenerator {
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. The dart code is not validated so invalid dart code
     /// might be returned
-    private async generateUnsafeDart(rawJson: string): Promise<Array<ClassDefinition>> {
-        var jsonRawData = parseJson(rawJson);
-        var astNode = parse(rawJson, {
+    private async generateUnsafeDart(rawJson: string): Promise<ClassDefinition[]> {
+        const jsonRawData = parseJson(rawJson);
+        const astNode = parse(rawJson, {
             loc: true,
             source: undefined
         });
-        var warnings: Array<Warning> = this.generateClassDefinition({
+
+        const warnings: Warning[] = this.generateClassDefinition({
             className: this.rootClassName,
             json: jsonRawData,
-            path: "",
+            path: '',
             astNode: astNode,
         });
         // After generating all classes, merge similar classes with paths.
@@ -310,7 +313,7 @@ export class ModelGenerator {
     /// generateDartClasses will generate all classes and append one after another
     /// in a single string. The [rawJson] param is assumed to be a properly
     /// formatted JSON string. If the generated dart is invalid it will throw an error.
-    generateDartClasses(rawJson: string): Promise<Array<ClassDefinition>> {
+    generateDartClasses(rawJson: string): Promise<ClassDefinition[]> {
         return this.generateUnsafeDart(rawJson);
     }
 }
