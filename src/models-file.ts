@@ -1,12 +1,12 @@
-import * as fs from "fs";
+import * as fs from 'fs';
 
-import { ConfigurationTarget, window } from "vscode";
-import { printLine } from "./syntax";
-import { getWorkspaceRoot } from "./utils";
-import { config } from "./configuration";
+import { ConfigurationTarget, window } from 'vscode';
+import { config } from './configuration';
+import { getWorkspaceRoot } from './utils';
+import { printLine } from './syntax';
 
 class Models {
-    private fileName: string = "/models.jsonc";
+    private fileName: string = '/models.jsonc';
 
     get directory() {
         return getWorkspaceRoot();
@@ -59,10 +59,10 @@ class Models {
     }
 
     async create(): Promise<void> {
-        const text = "models.jsonc file was created for the first time";
+        const text = 'models.jsonc file was created for the first time';
         const accepted = await askForFileCreation();
         if (accepted) {
-            fs.writeFile(this.file, this.toString(), "utf8", (err) => {
+            fs.writeFile(this.file, this.toString(), 'utf8', (err) => {
                 if (err) {
                     return console.error(err);
                 }
@@ -76,12 +76,12 @@ class Models {
         return window.showInformationMessage(
             'Start building JSON models?\n\nBuilds from file models.jsonc',
             { modal: true },
-            ...["Start", "Don't ask again"]).then((action) => {
+            ...['Start', "Don't ask again"]).then((action) => {
                 switch (action) {
                     case "Don't ask again":
                         config.setConfig<boolean>('fastMode', true, ConfigurationTarget.Global);
                         return true;
-                    case "Start":
+                    case 'Start':
                         return true;
                     default:
                         return false;
@@ -93,8 +93,8 @@ class Models {
 async function askForFileCreation(): Promise<boolean> {
     const text = 'models.jsonc file not found.'
         + '\n\n\Do you want it to be created for you?';
-    return window.showInformationMessage(text, { modal: true }, ...["Add"])
-        .then((action) => action === "Add" ? true : false);
+    return window.showInformationMessage(text, { modal: true }, ...['Add'])
+        .then((action) => action === 'Add' ? true : false);
 }
 
 export const models = new Models();

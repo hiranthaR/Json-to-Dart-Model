@@ -222,9 +222,9 @@ All generated classes with Freezed will be `@immutable` and support all methods 
 @freezed
 class Todo with _$Todo {
   factory Todo({
-    @JsonKey(name: 'id') int? id,
-    @JsonKey(name: 'description') String? description,
-    @JsonKey(name: 'completed') bool? completed,
+    @JsonKey(name: 'todo_id') int? todoId,
+    String? description,
+    bool? completed,
   }) = _Todo;
 
   factory Todo.fromJson(Map<String, dynamic> json) => _$TodoFromJson(json);

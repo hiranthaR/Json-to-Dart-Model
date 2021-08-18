@@ -1,16 +1,16 @@
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from "vscode";
-import { CodeGenerator, Equality, StringMethod } from "./input";
+import { CodeGenerator, Equality, StringMethod } from './input';
+import { ConfigurationTarget, WorkspaceConfiguration, workspace } from 'vscode';
 
 class Configuration {
     private config: WorkspaceConfiguration;
 
     constructor() {
-        workspace.onDidChangeConfiguration((e) => this.reloadConfig());
-        this.config = workspace.getConfiguration("jsonToDart");
+        workspace.onDidChangeConfiguration(() => this.reloadConfig());
+        this.config = workspace.getConfiguration('jsonToDart');
     }
 
     private reloadConfig() {
-        this.config = workspace.getConfiguration("jsonToDart");
+        this.config = workspace.getConfiguration('jsonToDart');
     }
 
     private getConfig<T>(key: string, defaultValue: T) {
@@ -23,7 +23,7 @@ class Configuration {
 
     get codeGenerator() { return CodeGenerator[this.getConfig<string>('codeGenerator', CodeGenerator.JSON) as CodeGenerator]; }
     get immutable() { return this.getConfig<boolean>('immutable', false); }
-    get equality() { return Equality[this.getConfig<string>('equality', Equality.Default) as Equality]; };
+    get equality() { return Equality[this.getConfig<string>('equality', Equality.Default) as Equality]; }
     get toString() { return StringMethod[this.getConfig<string>('toString', StringMethod.Default) as StringMethod]; }
     get copyWith() { return this.getConfig<boolean>('copyWith', false); }
     get fastMode() { return this.getConfig<boolean>('fastMode', false); }
@@ -31,7 +31,7 @@ class Configuration {
     get runBuilder() { return this.getConfig<boolean>('runBuilder', true); }
     get primaryConfiguration() { return this.getConfig<boolean>('primaryConfiguration', false); }
     get targetDirectory() { return this.getConfig<string>('targetDirectory.path', '/lib/models'); }
-    get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); };
+    get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); }
 }
 
 export const config = new Configuration();

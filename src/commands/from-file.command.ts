@@ -1,9 +1,9 @@
-import { window } from "vscode";
-import { runDartFormat, generateClass, runBuildRunner } from "../index";
-import { Input } from "../input";
-import { handleError } from "../lib";
-import { models } from "../models-file";
-import { TargetDirectoryType, Settings, ClassNameModel } from "../settings";
+import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
+import { generateClass, runBuildRunner, runDartFormat } from '../index';
+import { Input } from '../input';
+import { handleError } from '../lib';
+import { models } from '../models-file';
+import { window } from 'vscode';
 
 /** Used to warn users about changes. */
 const deprecatedSettingsProperties: string[] = [
@@ -87,7 +87,7 @@ export const transformFromFile = async () => {
                         return;
                     }
                     // Settings config.
-                    let config: Settings = {
+                    const config: Settings = {
                         model: new ClassNameModel(className),
                         targetDirectory: targetDirectory,
                         object: json,
