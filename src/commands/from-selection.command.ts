@@ -35,7 +35,7 @@ export const transformFromSelection = async (uri: Uri) => {
 
     const json: string = await getSelectedText().then(validateLength).catch(handleError);
 
-    const settings: Settings = {
+    const config: Settings = {
         model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
@@ -45,8 +45,11 @@ export const transformFromSelection = async (uri: Uri) => {
 
     if (!input.primaryConfiguration) {
         // Disable run builder from the not code generation function.
-        settings.input.codeGenerator = CodeGenerator.Default;
+        config.input.codeGenerator = CodeGenerator.Default;
     }
+
+    // Create new settings.
+    const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
         runDartFormat(<string>targetDirectory, 'models');

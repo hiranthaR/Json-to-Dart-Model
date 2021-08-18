@@ -11,7 +11,7 @@ import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user
 export const transformFromClipboard = async (uri: Uri) => {
     const className = await promptForBaseClassName();
     let input = new Input();
-    let targetDirectoryType: TargetDirectoryType = TargetDirectoryType.Standard;
+    let targetDirectoryType = TargetDirectoryType.Standard;
 
     if (_.isNil(className) || className.trim() === '') {
         window.showErrorMessage('The class name must not be empty');
@@ -37,7 +37,7 @@ export const transformFromClipboard = async (uri: Uri) => {
 
     const json: string = await getClipboardText().then(validateLength).catch(handleError);
 
-    const settings: Settings = {
+    const config: Settings = {
         model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
         object: json,
@@ -47,8 +47,11 @@ export const transformFromClipboard = async (uri: Uri) => {
 
     if (!input.primaryConfiguration) {
         // Disable run builder from the not code generation function.
-        settings.input.codeGenerator = CodeGenerator.Default;
+        config.input.codeGenerator = CodeGenerator.Default;
     }
+
+    // Create new settings.
+    const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
         runDartFormat(

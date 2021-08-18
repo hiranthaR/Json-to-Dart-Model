@@ -1,30 +1,30 @@
-import { config } from "./configuration";
 import {
     promptForCodeGenerator,
+    promptForCopyWithMethod,
     promptForEqualityOperator,
     promptForImmutableClass,
     promptForToStringMethod,
-    promptForCopyWithMethod,
-} from "./shared";
+} from './shared';
+import { config } from './configuration';
 
 /** To string method type */
 export enum StringMethod {
-    Default = "Default",
-    Auto = "Auto",
-    Stringify = "Stringify",
-    Dart = "Dart",
+    Default = 'Default',
+    Auto = 'Auto',
+    Stringify = 'Stringify',
+    Dart = 'Dart',
 }
 /** Equality method type */
 export enum Equality {
-    Default = "Default",
-    Equatable = "Equatable",
-    Dart = "Dart",
+    Default = 'Default',
+    Equatable = 'Equatable',
+    Dart = 'Dart',
 }
 /** Supported code generators */
 export enum CodeGenerator {
-    Default = "Default",
-    JSON = "JSON",
-    Freezed = "Freezed",
+    Default = 'Default',
+    JSON = 'JSON',
+    Freezed = 'Freezed',
 }
 
 interface InputProperties {
@@ -75,7 +75,7 @@ export class Input implements InputProperties {
     }
 
     get isImmutable(): boolean {
-        return this.equality === "Equatable" || this.immutable;
+        return this.equality === 'Equatable' || this.immutable;
     }
 
     get generate(): boolean {
@@ -83,7 +83,7 @@ export class Input implements InputProperties {
     }
 
     get equatable(): boolean {
-        return this.equality === "Equatable";
+        return this.equality === 'Equatable';
     }
 
     get freezed(): boolean {
@@ -95,11 +95,11 @@ export class Input implements InputProperties {
     }
 
     get isAutoOrStringify(): boolean {
-        return this.equatable && this.toString === "Auto" || this.equatable && this.toString === "Stringify";
+        return this.equatable && this.toString === 'Auto' || this.equatable && this.toString === 'Stringify';
     }
 
     get isAutoOrToStringMethod(): boolean {
-        return !this.equatable && this.toString === "Auto" || !this.equatable && this.toString === "Dart";
+        return !this.equatable && this.toString === 'Auto' || !this.equatable && this.toString === 'Dart';
     }
 }
 
@@ -108,7 +108,7 @@ export class Input implements InputProperties {
  * @generate indicates whether selected code generator.
  */
 export const getUserInput = async (generate: boolean = false): Promise<Input> => {
-    let input = new Input();
+    const input = new Input();
 
     input.runBuilder = config.runBuilder;
 
@@ -121,10 +121,10 @@ export const getUserInput = async (generate: boolean = false): Promise<Input> =>
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
         input.equality = await promptForEqualityOperator();
-        if (input.equality !== "Equatable") {
+        if (input.equality !== 'Equatable') {
             input.immutable = await promptForImmutableClass();
         }
-        const isEquatable = input.equality === "Equatable";
+        const isEquatable = input.equality === 'Equatable';
         input.toString = await promptForToStringMethod(isEquatable);
         input.copyWith = await promptForCopyWithMethod();
         input.nullSafety = config.nullSafety;

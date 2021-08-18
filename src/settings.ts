@@ -74,16 +74,17 @@ export class Settings implements ISettings {
         this.object = settings.object;
         this.input = settings.input;
         this.targetDirectoryType = settings.targetDirectoryType;
-
-        switch (settings.targetDirectoryType) {
-            case TargetDirectoryType.Default:
-                this.targetDirectory = settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
-                break;
-            case TargetDirectoryType.Standard:
-                this.targetDirectory = settings.targetDirectory + '/models';
-                break;
-            default:
-                this.targetDirectory = settings.targetDirectory;
-        }
+        this.targetDirectory = buildTargetDirectory(settings);
     }
 }
+
+const buildTargetDirectory = (settings: ISettings): string => {
+    switch (settings.targetDirectoryType) {
+        case TargetDirectoryType.Default:
+            return settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
+        case TargetDirectoryType.Standard:
+            return settings.targetDirectory + '/models';
+        default:
+            return settings.targetDirectory;
+    }
+};
