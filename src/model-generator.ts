@@ -1,13 +1,14 @@
 import parse = require('json-to-ast');
 import * as _ from 'lodash';
 
-
 import { ClassDefinition, Dependency, Warning, WithWarning, newAmbiguousListWarn, newEmptyListWarn, } from './syntax';
 import { TypeDefinition, typeDefinitionFromAny } from './constructor';
 import { cleanKey, fixFieldName, mergeObjectList, navigateNode, pascalCase } from './utils';
 import { isArray, parseJson } from './lib';
 import { ASTNode } from 'json-to-ast';
 import { ISettings } from './settings';
+
+var pluralize = require('pluralize');
 
 class DartCode extends WithWarning<string> {
     constructor(result: string, warnings: Warning[]) {
@@ -73,7 +74,7 @@ export class ModelGenerator {
                 astNode: node,
             });
         } else {
-            const jsonRawData: Map<string, unknown> = new Map(Object.entries(args.json));
+            const jsonRawData: Map<string, any> = new Map(Object.entries(args.json));
             // Override the model class name with a new one.
             this.settings.model.className = args.className;
             // Create a new class definition by new parameters.
@@ -91,7 +92,7 @@ export class ModelGenerator {
                     typeDef = typeDefinitionFromAny(value, node);
                 }
 
-                const name = typeDef.filteredKey(key);
+                let name = typeDef.filteredKey(key);
 
                 typeDef.name = fixFieldName(name, args.className);
                 typeDef.value = value;
@@ -101,7 +102,12 @@ export class ModelGenerator {
                         typeDef.updateImport(name);
                         const type = pascalCase(name);
                         if (typeDef.isList) {
-                            typeDef.type = typeDef.type?.replace('Class', type);
+                            // Convert plural class names to singular.
+                            const singularName = pluralize.singular(type);
+                            // Rename plural class names.
+                            typeDef.type = typeDef.type?.replace('Class', singularName);
+                            typeDef.updateImport(singularName);
+                            name = singularName;
                         } else {
                             typeDef.type = type;
                         }

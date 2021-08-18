@@ -196,7 +196,7 @@ export const joinAsClass = (key: string, value: string): string => {
 };
 
 const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): string => {
-  const jsonValue = valueFromJson(key);
+  const jsonValue = valueFromJson(typeDef.jsonKey);
   const type = typeDef.type;
   // IMPORTANT. To keep the formatting correct.
   // By using block body. Default tabs are longTab = 5; shortTab = 3; 
@@ -623,7 +623,7 @@ export class ClassDefinition {
     for (var [name, typeDef] of this.fields) {
       const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
-      const jsonKey = jsonKeyAnnotation(name);
+      const jsonKey = jsonKeyAnnotation(typeDef.jsonKey);
       const defaultVal = defaultValue(typeDef, input.nullSafety, true);
       const required = requiredValue(typeDef.required, input.nullSafety);
       sb += printLine(jsonKey + required + defaultVal, 1, 2);
