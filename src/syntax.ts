@@ -66,8 +66,8 @@ export const printLine = (print: string, lines = 0, tabs = 0): string => {
  * Adds JSON annotation only if needed for Freezed and JSON serializable.
  * @param {string} jsonKey a raw JSON key.
  */
-const jsonKeyAnnotation = (jsonKey: string): string => {
-  return jsonKey.includes('_') ? `@JsonKey(name: '${jsonKey}') ` : '';
+const jsonKeyAnnotation = (name: string, jsonKey: string): string => {
+  return name !== jsonKey ? `@JsonKey(name: '${jsonKey}') ` : '';
 };
 
 /**
@@ -593,9 +593,10 @@ export class ClassDefinition {
 
     for (const f of [...this.fields.values()]) {
       const fieldName = f.getName(this._privateFields);
+      const jsonKey = jsonKeyAnnotation(f.name, f.jsonKey);
 
-      if (f.jsonKey.includes('_')) {
-        sb += '\t' + jsonKeyAnnotation(f.jsonKey) + '\n';
+      if (jsonKey.length) {
+        sb += '\t' + jsonKey + '\n';
       }
 
       sb += '\t' + final + this.addType(f, input) + ` ${fieldName};` + '\n';
@@ -620,13 +621,14 @@ export class ClassDefinition {
     sb += printLine(`${input.nullSafety ? '' : 'abstract '}class ${this.name} with `, 1);
     sb += printLine(`_$${this.name} {`);
     sb += printLine(`factory ${this.name}({`, 1, 1);
-    for (var [name, typeDef] of this.fields) {
+    for (const typeDef of [...this.fields.values()]) {
       const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
-      const jsonKey = jsonKeyAnnotation(typeDef.jsonKey);
+      const jsonKey = jsonKeyAnnotation(typeDef.name, typeDef.jsonKey);
       const defaultVal = defaultValue(typeDef, input.nullSafety, true);
       const required = requiredValue(typeDef.required, input.nullSafety);
       sb += printLine(jsonKey + required + defaultVal, 1, 2);
+
       if (typeDef.isDate && typeDef.defaultValue && !typeDef.isList) {
         sb += printLine(`${this.addType(typeDef, input, input.nullSafety)} ${optional},`);
       } else {
