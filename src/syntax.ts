@@ -5,6 +5,7 @@ import { ClassNameModel } from './settings';
 import { Input } from './input';
 import { TypeDefinition } from './constructor';
 import { emptyClass } from './syntax/empty-class.syntax';
+import { handleJsonValue } from './model-generator';
 
 export const emptyListWarn = 'list is empty';
 export const ambiguousListWarn = 'list is ambiguous';
@@ -120,18 +121,18 @@ const defaultValue = (
 };
 
 const defaultDateTime = (
-  fields: Map<string, TypeDefinition>,
+  fields: Dependency[],
   freezed: boolean = false,
   nullSafety: boolean = false,
 ): string => {
   let sb = '';
-  const dates = Array.from(fields).filter(
-    (v) => v[1].isDate && !v[1].isList && v[1].defaultValue
+  const dates = fields.filter(
+    (v) => v.typeDef.isDate && !v.typeDef.isList && v.typeDef.defaultValue
   );
   if (!dates.length) { return sb; }
   if (freezed) {
     for (let i = 0; i < dates.length; i++) {
-      const typeDef = dates[i][1];
+      const typeDef = dates[i].typeDef;
       const optional = 'optional' + pascalCase(typeDef.name);
       const expressionBody = (): string => {
         let body = '';
@@ -156,7 +157,7 @@ const defaultDateTime = (
     }
   } else {
     for (let i = 0; i < dates.length; i++) {
-      const typeDef = dates[i][1];
+      const typeDef = dates[i].typeDef;
       const comma: string = dates.length - 1 === i ? '' : ',';
       if (i === 0) {
         sb += printLine(`\t: ${typeDef.name} = ${typeDef.name}`);
@@ -424,7 +425,7 @@ export class ClassDefinition {
   private _path: string;
   private _privateFields: boolean;
   private nameEnhancement: string = '';
-  fields: Map<string, TypeDefinition> = new Map<string, TypeDefinition>();
+  fields: Dependency[] = [];
 
   constructor(model: ClassNameModel, privateFields = false) {
     this._name = pascalCase(model.className);
@@ -450,8 +451,8 @@ export class ClassDefinition {
    * @returns as object.
   */
   get value() {
-    const keys = Array.from(this.fields.keys());
-    const values = Array.from(this.fields.values()).map((v) => v.value);
+    const keys = this.fields.map((k) => k.name);
+    const values = this.fields.map((v) => v.typeDef.value);
     return _.zipObject(keys, values);
   }
 
@@ -512,16 +513,16 @@ export class ClassDefinition {
 
   get dependencies(): Dependency[] {
     var dependenciesList = new Array<Dependency>();
-    for (const [key, value] of this.fields) {
-      if (!value.isPrimitive) {
-        dependenciesList.push(new Dependency(key, value));
+    for (const value of this.fields) {
+      if (!value.typeDef.isPrimitive) {
+        dependenciesList.push(new Dependency(value.name, value.typeDef));
       }
     }
     return dependenciesList;
   }
 
   private getFields(callbackfn: (typeDef: TypeDefinition, key: string) => any): TypeDefinition[] {
-    return Array.from(this.fields).map(([k, v]) => callbackfn(v, k));
+    return this.fields.map((v) => callbackfn(v.typeDef, v.name));
   }
 
   has = (other: ClassDefinition): boolean => {
@@ -532,13 +533,12 @@ export class ClassDefinition {
   };
 
   private isSubsetOf = (other: ClassDefinition): boolean => {
-    const keys = Array.from(this.fields.keys());
+    const keys = this.fields;
     const len = keys.length;
     for (let i = 0; i < len; i++) {
-      const key = keys[i];
-      var otherTypeDef = other.fields.get(key);
+      var otherTypeDef = other.fields[i].typeDef;
       if (otherTypeDef !== undefined) {
-        var typeDef = this.fields.get(key);
+        const typeDef = keys[i];
         if (!_.isEqual(typeDef, otherTypeDef)) {
           return false;
         }
@@ -551,18 +551,14 @@ export class ClassDefinition {
 
   hasField(otherField: TypeDefinition) {
     return (
-      Array.from(this.fields.keys()).filter(
-        (k: string) => _.isEqual(this.fields.get(k), otherField)
+      this.fields.filter(
+        (k) => _.isEqual(k.typeDef, otherField)
       ) !== null
     );
   }
 
   addField(name: string, typeDef: TypeDefinition) {
-    this.fields.set(name, typeDef);
-  }
-
-  getField(key: string): TypeDefinition | undefined {
-    return this.fields.get(key);
+    this.fields.push(new Dependency(name, typeDef));
   }
 
   private addType(typeDef: TypeDefinition, input: Input, nullable?: boolean) {
@@ -591,7 +587,7 @@ export class ClassDefinition {
     const final = input.isImmutable ? this.finalKeyword(true) : '';
     let sb = '';
 
-    for (const f of [...this.fields.values()]) {
+    for (const f of this.fields.map((v) => v.typeDef)) {
       const fieldName = f.getName(this._privateFields);
       const jsonKey = jsonKeyAnnotation(f.name, f.jsonKey);
 
@@ -611,8 +607,8 @@ export class ClassDefinition {
    */
   private freezedField(input: Input): string {
     var sb = '';
-    const nonConstatValue = Array.from(this.fields.values()).some((f) => {
-      return f.isDate && !f.isList && f.defaultValue;
+    const nonConstatValue = this.fields.some((f) => {
+      return f.typeDef.isDate && !f.typeDef.isList && f.typeDef.defaultValue;
     });
     const privatConstructor = input.nullSafety && nonConstatValue
       ? printLine(`${this.name}._();`, 2, 1)
@@ -621,7 +617,7 @@ export class ClassDefinition {
     sb += printLine(`${input.nullSafety ? '' : 'abstract '}class ${this.name} with `, 1);
     sb += printLine(`_$${this.name} {`);
     sb += printLine(`factory ${this.name}({`, 1, 1);
-    for (const typeDef of [...this.fields.values()]) {
+    for (const typeDef of this.fields.map((v) => v.typeDef)) {
       const optional = 'optional' + pascalCase(typeDef.name);
       const fieldName = typeDef.getName(this._privateFields);
       const jsonKey = jsonKeyAnnotation(typeDef.name, typeDef.jsonKey);
@@ -657,7 +653,7 @@ export class ClassDefinition {
       for (let i = 0; i < fields.length; i++) {
         const separator = fields.length - 1 === i ? '];' : ', ';
         const f = fields[i];
-        sb += `${f.getName(this._privateFields)}`;
+        sb += `${f.typeDef.getName(this._privateFields)}`;
         sb += separator;
       }
       return sb;
@@ -670,7 +666,7 @@ export class ClassDefinition {
       sb += printLine('return [', 1, 2);
       for (let i = 0; i < fields.length; i++) {
         const f = fields[i];
-        sb += printLine(`${f.getName(this._privateFields)},`, 1, 4);
+        sb += printLine(`${f.typeDef.getName(this._privateFields)},`, 1, 4);
       }
       sb += printLine('];', 1, 2);
       sb += printLine('}', 1, 1);
@@ -718,8 +714,8 @@ export class ClassDefinition {
    */
   private importsFromPackage(input: Input): string {
     var imports = '';
-    const required = Array.from(this.fields.values()).some((f) => f.required && !input.nullSafety);
-    const listEquality = Array.from(this.fields.values()).some((f) => f.isList && input.equality === 'Dart');
+    const required = this.fields.some((f) => f.typeDef.required && !input.nullSafety);
+    const listEquality = this.fields.some((f) => f.typeDef.isList && input.equality === 'Dart');
     // Sorted alphabetically for effective dart style.
     imports += input.equatable && !input.freezed
       ? "import 'package:equatable/equatable.dart';\n"
@@ -753,14 +749,15 @@ export class ClassDefinition {
   }
 
   private importList(): string {
-    var imports = '';
-    imports += this.getFields((f) => {
-      var sb = '';
-      if (f.importName !== null) {
-        sb = "import '" + f.importName + this.nameEnhancement + ".dart';\n";
+    let imports = '';
+    const nameSet = new Set(this.fields.map((f) => f.typeDef.importName).sort());
+    const names = [...nameSet];
+
+    for (const name of names) {
+      if (name !== null) {
+        imports += "import '" + name + this.nameEnhancement + ".dart';\n";
       }
-      return sb;
-    }).sort().join('');
+    }
 
     if (imports.length === 0) {
       return imports;
@@ -809,7 +806,7 @@ export class ClassDefinition {
 
   private defaultConstructor(input: Input): string {
     let constructor = '';
-    const values = Array.from(this.fields.values());
+    const values = this.fields.map((v) => v.typeDef);
     const defaultDate = defaultDateTime(this.fields);
     const isDefaultDate = defaultDate.length > 0;
     const areConstant = (typeDef: TypeDefinition) => {
@@ -869,7 +866,9 @@ export class ClassDefinition {
       sb += printLine('.fromJson(Map<String, dynamic> json) => ');
       sb += printLine(`${this.name}(\n`);
       sb += this.getFields((f, k) => {
-        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+        // Check forced type for only not primitive type.
+        const key = k.match('.') && !f.isList && f.type && !f.isPrimitive ? f.type : k;
+        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(key, f, input))}`;
       }).join('\n');
       sb += printLine(');', 1, 3);
       return sb;
@@ -951,7 +950,7 @@ export class ClassDefinition {
    */
   private copyWithMethod(input: Input): string {
     if (!input.copyWith) { return ''; }
-    const values = Array.from(this.fields.values());
+    const values = this.fields.map((v) => v.typeDef);
     var sb = '';
     sb += printLine(`${this.name} copyWith({`, 2, 2);
     // Constructor objects.
@@ -976,7 +975,7 @@ export class ClassDefinition {
    */
   private toStringMethod(print: boolean = false): string {
     if (!print) { return ''; }
-    const values = Array.from(this.fields.values());
+    const values = this.fields.map((f) => f.typeDef);
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
@@ -1017,7 +1016,7 @@ export class ClassDefinition {
    */
   private equalityOperator(input: Input): string {
     if (input.equality !== 'Dart') { return ''; }
-    const fields = Array.from(this.fields.values()).sort((a, b) => {
+    const fields = this.fields.map((f) => f.typeDef).sort((a, b) => {
       return a.isList === b.isList ? 0 : a ? -1 : 1;
     });
     let sb = '';
@@ -1056,7 +1055,7 @@ export class ClassDefinition {
 
   private hashCode(input: Input): string {
     if (input.equality !== 'Dart') { return ''; }
-    const fields = Array.from(this.fields.values());
+    const fields = this.fields.map((f) => f.typeDef);
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
@@ -1087,7 +1086,7 @@ export class ClassDefinition {
   toCodeGenString(input: Input): string {
     var field = '';
 
-    if (this.fields.size === 0) {
+    if (this.fields.length === 0) {
       field = emptyClass(this.name);
       return field;
     }
@@ -1151,7 +1150,7 @@ export class ClassDefinition {
   toString(input: Input): string {
     var field = '';
 
-    if (this.fields.size === 0) {
+    if (this.fields.length === 0) {
       field = emptyClass(this.name);
       return field;
     }

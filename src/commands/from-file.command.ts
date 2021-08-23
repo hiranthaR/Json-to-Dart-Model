@@ -55,7 +55,7 @@ export const transformFromFile = async () => {
                 return;
             }
 
-            const targetDirectory = models.directory + input.targetDirectory;
+            let targetDirectory = models.directory + input.targetDirectory;
             const duplicates = await models.duplicatesClass(objects);
 
             if (duplicates.length) {
@@ -78,7 +78,7 @@ export const transformFromFile = async () => {
                     // Class name key.
                     const key = '__className';
                     // Separate class names from objects.
-                    const { [key]: className, ...jsonObject } = object;
+                    const { [key]: className, ['__path']: path, ...jsonObject } = object;
                     // Conver back to json.
                     const json = JSON.stringify(jsonObject);
                     // Check if the class name is not missing.
@@ -86,6 +86,11 @@ export const transformFromFile = async () => {
                         window.showWarningMessage('Some JSON objects do not have a class name');
                         return;
                     }
+
+                    if (path !== undefined) {
+                        targetDirectory = models.directory + path;
+                    }
+
                     // Settings config.
                     const config: Settings = {
                         model: new ClassNameModel(className),

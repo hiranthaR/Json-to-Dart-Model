@@ -1,5 +1,26 @@
 # Changelog
 
+## 3.3.5
+
+   - Added support to force new type for key.
+
+     Example:
+     ```json
+     {
+        "userPost.post": {
+	  	   "id": 1,
+	  	   "description": "Json To Dart Model",
+	  	   "completed": false
+	     }
+     }
+     ```
+     Result:
+     ```dart
+     Post? userPost; // <- result
+     UserPost? userPost; // <- without forcing
+     ```
+   - Bugfix.
+
 ## 3.3.4
 
    - Fixed JSON annotation key bug.

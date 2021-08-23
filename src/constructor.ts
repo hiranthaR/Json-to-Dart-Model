@@ -85,6 +85,9 @@ interface TypeDefinitionProperties {
   /**
    * A function that returns raw JSON key by cleaning some annotations added by the user
    * and marks properties according to the user's preferences.
+   * 
+   *  * Possible returns with forced type or original, ex: `orginal.forced_type`. To separate key, use [handleJsonValue]
+   * 
    * @param {string} key a key to be processed.
    * @returns string value.
    */
