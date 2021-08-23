@@ -32,6 +32,7 @@
         <li><a href="#convert-from-file">Convert from file</a></li>
         <li><a href="#annotations">Annotations</a></li>
         <li><a href="#speed-up-converting">Speed up converting</a></li>
+        <li><a href="#enhanced-file-names">Enhanced file names</a></li>
         <li><a href="#context-actions">Context actions</a></li>
       </ul>
     <li>
@@ -126,6 +127,11 @@ To customize your classes is very easy. If you want fast to create a simple clas
 
 After adding the object and convert to Dart classes just run a command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class, just delete the class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
 
+<!-- ENHANCED FILE NAMES -->
+## Enhanced File Names
+
+Enhanced file names like `user.model.dart` can make you code friendly with other converters such as like [Hive Object Converter](https://marketplace.visualstudio.com/items?itemName=mrgnhnt96.hive-object-converter). To create it you just need to separate your class name with a dot and after the dot, everything will be added as an enhancement name. Example: `user.model` result `user.model.dart`. Just that.
+
 <!-- CONTEXT ACTIONS -->
 ## Context Actions
 
@@ -213,18 +219,15 @@ Read more about how to install [Freezed](https://pub.dev/packages/freezed#instal
 All generated classes with Freezed will be `@immutable` and support all methods like `copyWith`, `toString`, equality operator`==`... See example:
 
 ```dart
-// Examples are for Freezed up to version 0.12.7
 @freezed
-abstract class Address with _$Address {
-  factory Address({
-    @JsonKey(name: "street") String street,
-    @JsonKey(name: "suite") String suite,
-    @JsonKey(name: "city") String city,
-    @JsonKey(name: "zipcode") String zipcode,
-    @JsonKey(name: "geo") Geo geo,
-  }) = _Address;
+class Todo with _$Todo {
+  factory Todo({
+    @JsonKey(name: 'todo_id') int? todoId,
+    String? description,
+    bool? completed,
+  }) = _Todo;
 
-  factory Address.fromJson(Map<String, dynamic> json) => _$AddressFromJson(json);
+  factory Todo.fromJson(Map<String, dynamic> json) => _$TodoFromJson(json);
 }
 ```
 
@@ -238,39 +241,31 @@ Freezed generator is useful for those who work daily with coding. All you have t
 Equatable is the immutable class with the ability to compare your generated models in a better way. You can check if 2 classes, which are different instances, are equals **_without a single line of extra code_**. Of course, you can add [toString](#to-string-method) method and [copyWith](#copyWith-method) for a better experience.
 
 ```dart
-class Todos extends Equatable {
-  final int userId;
-  final int id;
-  final String title;
-  final bool completed;
+class Todo extends Equatable {
+  final int? id;
+  final String? description;
+  final bool? completed;
 
-  const Todos({
-    this.userId,
-    this.id,
-    this.title,
-    this.completed,
-  });
+  const Todo({this.id, this.description, this.completed});
 
-  factory Todos.fromJson(Map<String, dynamic> json) => Todos(
-        userId: json['userId'] as int,
-        id: json['id'] as int,
-        title: json['title'] as String,
-        completed: json['completed'] as bool,
+  factory Todo.fromJson(Map<String, dynamic> json) => Todo(
+        id: json['id'] as int?,
+        description: json['description'] as String?,
+        completed: json['completed'] as bool?,
       );
 
   Map<String, dynamic> toJson() => {
-        'userId': userId,
         'id': id,
-        'title': title,
+        'description': description,
         'completed': completed,
       };
-  
+
   // Here will be more methods after your customization.
   // toString();
   // copyWith();
 
   @override
-  List<Object> get props => [userId, id, title, completed]; 
+  List<Object?> get props => [id, description, completed];
 }
 ```
 
@@ -321,16 +316,14 @@ bool get stringify => true;
 `copyWith` method will make your life easier with `@immutable` classes. Highly recommended with immutable classes.
 
 ```dart
-Todos copyWith({
-  int userId,
-  int id,
-  String title,
-  bool completed,
+Todo copyWith({
+  int? id,
+  String? description,
+  bool? completed,
 }) {
-  return Todos(
-    userId: userId ?? this.userId,
+  return Todo(
     id: id ?? this.id,
-    title: title ?? this.title,
+    description: description ?? this.description,
     completed: completed ?? this.completed,
   );
 }
@@ -338,7 +331,7 @@ Todos copyWith({
 <!-- NULL SAFETY -->
 ## Null Safety
 
-Null-Safety is enabled as default and it will indicate that a variable may have the value null. Required in the new Dart language from version 2.12.0. To disable it, go to the `Settings/Extensions/JSON To Dart Model`.
+Null-Safety is enabled as default like in Dart language and it will indicate that a variable may have the value null. To disable it, go to the `Settings/Extensions/JSON To Dart Model`.
 
 > **Note:** make sure your packages also support Dart null safety.
 

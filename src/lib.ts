@@ -1,10 +1,11 @@
-import * as copyPaste from "copy-paste";
-import { ViewColumn, window } from "vscode";
-import * as fs from "fs";
-import { ModelGenerator } from "./model-generator";
-import { ClassDefinition } from "./syntax";
-import { pascalCase } from "./helper";
-import { Settings } from "./settings";
+import * as copyPaste from 'copy-paste';
+import * as fs from 'fs';
+
+import { ViewColumn, window } from 'vscode';
+import { ClassDefinition } from './syntax';
+import { ModelGenerator } from './model-generator';
+import { Settings } from './settings';
+import { pascalCase } from './utils';
 
 export function getClipboardText() {
   try {
@@ -15,7 +16,9 @@ export function getClipboardText() {
 }
 
 export function handleError(error: Error) {
-  window.showErrorMessage(error.message);
+  const separateWithSpace = (v: string) => v === v.toUpperCase() ? ` ${v}` : v;
+  const name = error.name.split('').map(separateWithSpace).join('').trim();
+  window.showErrorMessage(`${name}: ${error.message}`);
 }
 
 export function pasteToMarker(content: string) {
@@ -33,7 +36,7 @@ export function getSelectedText(): Promise<string> {
 
 export const validateLength = (text: any) => {
   if (text.length === 0) {
-    return Promise.reject(new Error("Nothing selected"));
+    return Promise.reject(new Error('Nothing selected'));
   } else {
     return Promise.resolve(text);
   }
@@ -65,7 +68,7 @@ export function parseJson(json: string): { [key: string]: any } {
   try {
     return tryEval(json);
   } catch (error) {
-    return new Error("Selected string is not a valid JSON");
+    return new Error('Selected string is not a valid JSON');
   }
 }
 
@@ -88,27 +91,27 @@ export function mapTsTypeToDartType(
   obj: any
 ): string {
   const types: { [name: string]: string } = {
-    integer: "int",
-    string: "String",
-    boolean: "bool",
+    integer: 'int',
+    string: 'String',
+    boolean: 'bool',
     object: pascalCase(key.toLowerCase()),
-    map: `Map<String,String>`,
-    double: "double",
+    map: 'Map<String,String>',
+    double: 'double',
   };
   return types[type] ?? type;
 }
 
 export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
-  var classes: Array<ClassDefinition> = await modelGenerator.generateDartClasses(
-    settings.object
-  );
+  var classes: ClassDefinition[] = await modelGenerator.generateDartClasses(settings.object);
 
-  return new Promise<void>(async (resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     classes.map((c) => {
-      const targetPath = `${settings.targetDirectory}/${c.path}.dart`;
+      const enhancement = settings.model.nameEnhancement;
+      const targetPath = `${settings.targetDirectory}/${c.path}` + enhancement + '.dart';
+
       if (fs.existsSync(targetPath)) {
-        window.showInformationMessage(`${c.path}.dart already exists`);
+        window.showInformationMessage(`${c.path}` + enhancement + '.dart already exists');
         return;
       }
 
@@ -117,7 +120,7 @@ export async function createClass(settings: Settings) {
         settings.input.generate
           ? c.toCodeGenString(settings.input)
           : c.toString(settings.input),
-        "utf8",
+        'utf8',
         (error) => {
           if (error) {
             reject(error);
@@ -128,51 +131,4 @@ export async function createClass(settings: Settings) {
       );
     });
   });
-}
-
-export async function appendDependencies(
-  targetPath: string,
-  dependency: string,
-  dev: boolean
-): Promise<string> {
-  var pubspec = fs.readFileSync(targetPath, "utf8");
-  var keyword = "sdk: flutter";
-
-  if (pubspec.includes(dependency)) {
-    return Promise.reject(new Error("Dependcies already exist!"));
-  }
-
-  var index = pubspec.indexOf(
-    keyword,
-    dev ? 1 + pubspec.indexOf(keyword) : pubspec.indexOf(keyword)
-  );
-  if (index > 0) {
-    pubspec =
-      pubspec.substring(0, index + keyword.length) +
-      dependency +
-      pubspec.substring(index + keyword.length, pubspec.length);
-  }
-  return new Promise(async (resolve, reject) => {
-    fs.writeFile(targetPath, pubspec.toString(), "utf8", (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve;
-    });
-  });
-}
-
-export async function appendPubspecDependencies(targetPath: string) {
-  const dependency = "\n  json_annotation:";
-  const dependency2 = "\n equatable:";
-  const devDependency1 = "\n  build_runner:";
-  const devDependency2 = "\n  json_serializable:";
-
-  return Promise.all([
-    await appendDependencies(targetPath, dependency, false),
-    await appendDependencies(targetPath, dependency2, false),
-    await appendDependencies(targetPath, devDependency1, true),
-    await appendDependencies(targetPath, devDependency2, true),
-  ]);
 }

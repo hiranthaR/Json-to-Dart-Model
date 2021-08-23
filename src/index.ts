@@ -1,43 +1,43 @@
-import * as fs from "fs";
-import * as _ from "lodash";
-import * as mkdirp from "mkdirp";
+import * as _ from 'lodash';
+import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
 
-import { ExtensionContext, commands, window } from "vscode";
-import { handleError, createClass, appendPubspecDependencies } from "./lib";
+import { ExtensionContext, commands, window } from 'vscode';
 import {
+  addCodeGenerationLibraries,
   transformFromClipboard,
   transformFromClipboardToCodeGen,
   transformFromFile,
   transformFromSelection,
   transformFromSelectionToCodeGen,
-} from "./commands";
-import { Settings } from "./settings";
-import { getWorkspaceRoot } from "./utils";
+} from './commands';
+import { Settings } from './settings';
+import { createClass } from './lib';
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
     commands.registerCommand(
-      "jsonToDart.fromFile",
+      'jsonToDart.fromFile',
       transformFromFile
     ),
     commands.registerCommand(
-      "jsonToDart.fromSelection",
+      'jsonToDart.fromSelection',
       transformFromSelection
     ),
     commands.registerCommand(
-      "jsonToDart.fromClipboard",
+      'jsonToDart.fromClipboard',
       transformFromClipboard
     ),
     commands.registerCommand(
-      "jsonToDart.addCodeGenerationLibraries",
+      'jsonToDart.addCodeGenerationLibraries',
       addCodeGenerationLibraries
     ),
     commands.registerCommand(
-      "jsonToDart.fromClipboardToCodeGen",
+      'jsonToDart.fromClipboardToCodeGen',
       transformFromClipboardToCodeGen
     ),
     commands.registerCommand(
-      "jsonToDart.fromSelectionToCodeGen",
+      'jsonToDart.fromSelectionToCodeGen',
       transformFromSelectionToCodeGen
     ),
   );
@@ -54,28 +54,31 @@ export function activate(context: ExtensionContext) {
  * ```
  */
 export const runDartFormat = (directory: string, lastDirectory: string) => {
-  const startIndex = directory.indexOf("lib/");
-  const formatDirectory = directory.substring(startIndex).split("/").join(" ");
-  const fileDirectory = formatDirectory + " " + lastDirectory.toLowerCase();
-  const terminal = window.createTerminal({ name: "dart format bin", hideFromUser: true });
-  terminal.sendText("dart format bin " + fileDirectory);
+  const last = directory.split('/').pop();
+  if (!last) { return; }
+  const index = directory.indexOf('/lib') === -1 ? directory.indexOf(last) : directory.indexOf('/lib');
+  const formatDirectory = directory.substring(index).split('/').join(' ');
+  const fileDirectory = formatDirectory + ' ' + lastDirectory.toLowerCase();
+  const terminal = window.createTerminal({ name: 'dart format bin', hideFromUser: true });
+  console.debug('dart format' + fileDirectory);
+  terminal.sendText('dart format' + fileDirectory);
 };
 
 /**
  * Run "build_runner build".
  */
 export const runBuildRunner = () => {
-  let terminal = window.createTerminal("pub get");
-  terminal.show();
+  const terminal = window.createTerminal({ name: 'pub get', hideFromUser: false });
   terminal.sendText(
-    "flutter pub run build_runner build --delete-conflicting-outputs"
+    'flutter pub run build_runner build --delete-conflicting-outputs'
   );
+  terminal.show(true);
 };
 
 export const generateClass = async (settings: Settings) => {
-  const classDirectoryPath = `${settings.targetDirectory}`;
-  if (!fs.existsSync(classDirectoryPath)) {
-    await createDirectory(classDirectoryPath);
+  const path = `${settings.targetDirectory}`;
+  if (!fs.existsSync(path)) {
+    await createDirectory(path);
   }
   await createClass(settings);
 };
@@ -86,18 +89,4 @@ function createDirectory(targetDirectory: string): Promise<void> {
       .then((_) => resolve())
       .catch((error) => reject(error));
   });
-}
-
-async function addCodeGenerationLibraries() {
-  let workspaceRoot = getWorkspaceRoot();
-
-  const targetPath = `${workspaceRoot}/pubspec.yaml`;
-
-  if (fs.existsSync(targetPath)) {
-    appendPubspecDependencies(targetPath)
-      .then((_) => window.showInformationMessage("Dependencies added!"))
-      .catch(handleError);
-  } else {
-    window.showErrorMessage("pubspec.yaml does't exist :/");
-  }
 }

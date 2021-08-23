@@ -1,8 +1,17 @@
-import { ASTNode } from "json-to-ast";
-import { getListSubtype, getTypeName, isASTLiteralDouble, isList, isPrimitiveType, pascalCase, snakeCase } from "./helper";
-import * as _ from "lodash";
+import * as _ from 'lodash';
 
-interface TypeDefinitionInterface {
+import {
+  getListSubtype,
+  getTypeName,
+  isASTLiteralDouble,
+  isList,
+  isPrimitiveType,
+  pascalCase,
+  snakeCase
+} from './utils';
+import { ASTNode } from 'json-to-ast';
+
+interface TypeDefinitionProperties {
   /**
    * Object patch name. Used for imports.
    *  * If the name is null, it means no need to print.
@@ -76,6 +85,9 @@ interface TypeDefinitionInterface {
   /**
    * A function that returns raw JSON key by cleaning some annotations added by the user
    * and marks properties according to the user's preferences.
+   * 
+   *  * Possible returns with forced type or original, ex: `orginal.forced_type`. To separate key, use [handleJsonValue]
+   * 
    * @param {string} key a key to be processed.
    * @returns string value.
    */
@@ -90,7 +102,7 @@ interface TypeDefinitionInterface {
  * A class that holds all the information about the object.
  * * Every type are formatted and ready for printing to string.
  */
-export class TypeDefinition implements TypeDefinitionInterface {
+export class TypeDefinition implements TypeDefinitionProperties {
   private _importName: string | null;
   jsonKey: string;
   prefix: string;
@@ -124,10 +136,10 @@ export class TypeDefinition implements TypeDefinitionInterface {
     this.isAmbiguous = isAmbiguous;
     if (type !== null) {
       this.isPrimitive = isPrimitiveType(type);
-      if (name === "int" && isASTLiteralDouble(astNode)) {
-        this.name = "double";
+      if (name === 'int' && isASTLiteralDouble(astNode)) {
+        this.name = 'double';
       }
-      if (type.includes("DateTime")) {
+      if (type.includes('DateTime')) {
         this.isDate = true;
       }
       if (isList(type)) {
@@ -145,7 +157,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
 
   filteredKey(key: string): string {
     const search = /([^]@)/gi;
-    const replace = "";
+    const replace = '';
 
     if (key.match(/d@/gi)) {
       this.defaultValue = true;
@@ -171,7 +183,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
     if (!this.isPrimitive) {
       this._importName = snakeCase(name);
     } else {
-      throw new Error(`TypeDefinition: import can't be added to a primitive object.`);
+      throw new Error('TypeDefinition: import can\'t be added to a primitive object.');
     }
   }
 
@@ -179,7 +191,7 @@ export class TypeDefinition implements TypeDefinitionInterface {
     if (!this.isPrimitive) {
       this.type = pascalCase(name);
     } else {
-      throw new Error(`TypeDefinition: primitive objects can't be updated.`);
+      throw new Error('TypeDefinition: primitive objects can\'t be updated.');
     }
   }
 
@@ -192,17 +204,17 @@ export function typeDefinitionFromAny(obj: any, astNode: ASTNode) {
   var isAmbiguous = false;
   var type: string = getTypeName(obj);
 
-  if (type === "List") {
+  if (type === 'List') {
     var list = obj;
     var elemType: string = getListSubtype(list);
     if (elemType !== getListSubtype(list)) {
       isAmbiguous = true;
     }
     return new TypeDefinition(
-      null, "", "", elemType, type, obj, isAmbiguous, astNode
+      null, '', '', elemType, type, obj, isAmbiguous, astNode
     );
   }
   return new TypeDefinition(
-    null, "", "", type, "", obj, isAmbiguous, astNode
+    null, '', '', type, '', obj, isAmbiguous, astNode
   );
 }

@@ -1,9 +1,9 @@
-import { window } from "vscode";
-import { runDartFormat, generateClass, runBuildRunner } from "../index";
-import { handleError } from "../lib";
-import { Models } from "../models-file";
-import { PathType, Settings } from "../settings";
-import { getConfiguration } from "../utils";
+import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
+import { generateClass, runBuildRunner, runDartFormat } from '../index';
+import { Input } from '../input';
+import { handleError } from '../lib';
+import { models } from '../models-file';
+import { window } from 'vscode';
 
 /** Used to warn users about changes. */
 const deprecatedSettingsProperties: string[] = [
@@ -34,8 +34,6 @@ const isDeprecatedSettings = (object: Object): boolean => {
 export const transformFromFile = async () => {
     const jsonc = require('jsonc').safe;
 
-    const models = new Models();
-
     if (models.exist) {
         const data = models.data;
         const [err, result] = jsonc.parse(data);
@@ -45,7 +43,7 @@ export const transformFromFile = async () => {
             // All json objects from the models.jsonc.
             const objects: any[] = result;
             // User configuration.
-            const input = getConfiguration();
+            const input = new Input();
 
             if (!objects.length) {
                 window.showInformationMessage('models.jsonc file is empty');
@@ -89,12 +87,12 @@ export const transformFromFile = async () => {
                         return;
                     }
                     // Settings config.
-                    let config: Settings = {
-                        className: className,
-                        targetDirectory: <string>targetDirectory,
+                    const config: Settings = {
+                        model: new ClassNameModel(className),
+                        targetDirectory: targetDirectory,
                         object: json,
                         input: input,
-                        pathType: PathType.Default,
+                        targetDirectoryType: TargetDirectoryType.Default,
                     };
                     // Create new settings.
                     const settings = new Settings(config);
@@ -108,7 +106,8 @@ export const transformFromFile = async () => {
                     const key = '__className';
                     // Separate class names from objects.
                     const { [key]: className } = object;
-                    runDartFormat(targetDirectory, className);
+                    const model = new ClassNameModel(className as string);
+                    runDartFormat(targetDirectory, model.className);
                 }
                 if (input.generate && input.runBuilder) {
                     runBuildRunner();

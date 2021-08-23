@@ -1,7 +1,9 @@
-import * as changeCase from "change-case";
-import { ArrayNode, ASTNode, LiteralNode, ObjectNode } from "json-to-ast";
-import { isArray, isMap } from "./lib";
-import { newAmbiguousType, Warning, WithWarning } from "./syntax";
+import * as changeCase from 'change-case';
+
+import { ASTNode, ArrayNode, LiteralNode, ObjectNode } from 'json-to-ast';
+import { Warning, WithWarning, newAmbiguousType } from '../syntax';
+import { isArray, isMap } from '../lib';
+import { handleJsonValue } from '../model-generator';
 
 export enum ListType { Object, String, Double, Int, Dynamic, Null }
 
@@ -15,12 +17,12 @@ class MergeableListType {
     };
 }
 
-function mergeableListType(list: Array<any>): MergeableListType {
+function mergeableListType(list: any[]): MergeableListType {
     var t = ListType.Dynamic;
     var isAmbigous = false;
     list.forEach((e) => {
         var inferredType: ListType;
-        if (typeof e + "" === 'number') {
+        if (typeof e + '' === 'number') {
             inferredType = e % 1 === 0 ? ListType.Int : ListType.Double;
         } else if (typeof e === 'string') {
             inferredType = ListType.String;
@@ -39,7 +41,7 @@ function mergeableListType(list: Array<any>): MergeableListType {
  * The list with primitive types.
  * @isPrimitiveType return false if some type not included in this list.
  */
-const keywords = ["String", "int", "bool", "num", "double", "dynamic", "DateTime"];
+let keywords = ['String', 'int', 'bool', 'num', 'double', 'dynamic', 'DateTime'] as const;
 
 /**
  * Calculates the length of the list type.
@@ -63,18 +65,18 @@ export function filterListType(typeName: string): string[] {
 export const isPrimitiveType = (typeName: string): boolean => {
     const identical = typeName === typeName.trim() ? true : false;
     const lists = typeName.match(/List/g) ?? [];
-    const values = typeName.split(/<|>|\ /g).filter((v) => v !== "");
+    const values = typeName.split(/<|>|\ /g).filter((v) => v !== '');
     const toLeft = typeName.match(/</g) ?? [];
-    const leftArrows = toLeft.map((_, i) => typeName.split("")[(i + 1) * 5 - 1]);
+    const leftArrows = toLeft.map((_, i) => typeName.split('')[(i + 1) * 5 - 1]);
     const toRight = typeName.match(/>/g) ?? [];
-    const rightArrows = typeName.split("").splice(-toRight.length);
+    const rightArrows = typeName.split('').splice(-toRight.length);
     const validListSyntax =
-        leftArrows.every((e) => e === "<") &&
-        rightArrows.every((e) => e === ">") &&
+        leftArrows.every((e) => e === '<') &&
+        rightArrows.every((e) => e === '>') &&
         toRight.length === toLeft.length &&
         lists.length === toRight.length &&
         lists.length === toLeft.length;
-    const validValue = values.every((e) => ["List", ...keywords].includes(e));
+    const validValue = values.every((e) => ['List', ...keywords].includes(e));
     const validSyntax = lists.length
         ? validListSyntax && validValue
             ? true
@@ -85,7 +87,7 @@ export const isPrimitiveType = (typeName: string): boolean => {
     return identical && validSyntax ? true : false;
 };
 
-export const isList = (text: string): boolean => text.startsWith("List<");
+export const isList = (text: string): boolean => text.startsWith('List<');
 export const camelCase = (text: string): string => changeCase.camelCase(text);
 export const pascalCase = (text: string): string => {
     return changeCase.pascalCase(text).replace(/_/g, '');
@@ -119,8 +121,8 @@ export function isDate(date: string): boolean {
  */
 export const cleanKey = (key: string): string => {
     const search = /([^]@)/gi;
-    const replace = "";
-    return key.replace(search, replace);
+    const replace = '';
+    return handleJsonValue(key.replace(search, replace)).name;
 };
 
 /**
@@ -150,11 +152,11 @@ export const handleKey = (key: string): string => {
 export function fixFieldName(name: string, prefix: string, isPrivate = false): string {
     // Keywords that cannot be used as values in the Dart language.
     var reservedKeys: string[] = ['get', 'for', 'default', 'set', 'this', 'break', 'class', 'return', 'in'];
-    var fieldName = camelCase(name)?.replace(/_/g, "");
+    var fieldName = camelCase(name)?.replace(/_/g, '');
 
     if (reservedKeys.includes(fieldName)) {
         var reserved = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
-        return fieldName = camelCase(`${prefix}${reserved}`)?.replace(/_/g, "");
+        return fieldName = camelCase(`${prefix}${reserved}`)?.replace(/_/g, '');
     }
 
     return isPrivate ? `_${fieldName}` : fieldName;
@@ -198,15 +200,15 @@ export const equalByType = (object: any, other: any): boolean => {
 
 export function getTypeName(obj: any): string {
     var type = typeof obj;
-    if (obj === null || obj === "undefined") {
+    if (obj === null || obj === 'undefined') {
         return 'dynamic';
-    } else if (isDate(obj) && type === "string") {
+    } else if (isDate(obj) && type === 'string') {
         return 'DateTime';
     } else if (type === 'string') {
         return 'String';
     } else if (type === 'number') {
-        return obj % 1 === 0 ? "int" : "double";
-    } else if (type === "boolean") {
+        return obj % 1 === 0 ? 'int' : 'double';
+    } else if (type === 'boolean') {
         return 'bool';
     } else if (isArray(obj)) {
         return 'List';
@@ -222,33 +224,33 @@ export function getTypeName(obj: any): string {
  * @param {Array<any>} arr list that will be scanned for each item in the list.
  * @returns {string} Return a string.
  */
-export const getListTypeName = (arr: Array<any>): string => {
+export const getListTypeName = (arr: any[]): string => {
     if (Array.isArray(arr) && !arr.length) {
-        return "dynamic";
+        return 'dynamic';
     } else {
-        if (arr.every((i) => getTypeName(i) === "DateTime")) {
-            return "DateTime";
-        } else if (arr.every((i) => getTypeName(i) === "String")) {
-            return "String";
-        } else if (arr.every((i) => getTypeName(i) === "bool")) {
-            return "bool";
-        } else if (arr.every((i) => typeof i === "number")) {
-            if (arr.every((i) => getTypeName(i) === "int")) {
-                return "int";
-            } else if (arr.every((i) => getTypeName(i) === "double")) {
-                return "double";
+        if (arr.every((i) => getTypeName(i) === 'DateTime')) {
+            return 'DateTime';
+        } else if (arr.every((i) => getTypeName(i) === 'String')) {
+            return 'String';
+        } else if (arr.every((i) => getTypeName(i) === 'bool')) {
+            return 'bool';
+        } else if (arr.every((i) => typeof i === 'number')) {
+            if (arr.every((i) => getTypeName(i) === 'int')) {
+                return 'int';
+            } else if (arr.every((i) => getTypeName(i) === 'double')) {
+                return 'double';
             } else {
-                return "num";
+                return 'num';
             }
         } else if (arr.every((i) =>
-            typeof i === "string" ||
-            typeof i === "number" ||
-            typeof i === "boolean" ||
+            typeof i === 'string' ||
+            typeof i === 'number' ||
+            typeof i === 'boolean' ||
             i instanceof Array
         )) {
-            return "dynamic";
+            return 'dynamic';
         } else {
-            return "Class";
+            return 'Class';
         }
     }
 };
@@ -262,10 +264,10 @@ export const getListTypeName = (arr: Array<any>): string => {
  * var arr = [[""]]; // return string "List<List<String>>"  
  */
 export function getListSubtype(arr: any[]): string {
-    let sb = "";
+    let sb = '';
     const typeSet = new Set();
     const typeName = Array.from(typeSet).toString();
-    for (let element of arr) {
+    for (const element of arr) {
         if (arr.every((e) => e instanceof Array)) {
             sb += getListSubtype(element);
         } else {
@@ -273,12 +275,12 @@ export function getListSubtype(arr: any[]): string {
         }
     }
     sb += !sb.length ? getListTypeName(arr) : typeName;
-    return "List<" + sb + ">";
+    return 'List<' + sb + '>';
 }
 
 export function navigateNode(astNode: ASTNode, path: string): ASTNode {
     let node: ASTNode;
-    if (astNode?.type === "Object") {
+    if (astNode?.type === 'Object') {
         var objectNode: ObjectNode = astNode as ObjectNode;
         var propertyNode = objectNode.children[0];
         if (propertyNode !== null) {
@@ -286,7 +288,7 @@ export function navigateNode(astNode: ASTNode, path: string): ASTNode {
             node = propertyNode.value;
         }
     }
-    if (astNode?.type === "Array") {
+    if (astNode?.type === 'Array') {
         var arrayNode: ArrayNode = astNode as ArrayNode;
         var index = +path ?? null;
         if (index !== null && arrayNode.children.length > index) {
@@ -299,7 +301,7 @@ export function navigateNode(astNode: ASTNode, path: string): ASTNode {
 var _pattern = /([0-9]+)\.{0,1}([0-9]*)e(([-0-9]+))/g;
 
 export function isASTLiteralDouble(astNode: ASTNode): boolean {
-    if (astNode !== null && astNode !== undefined && astNode.type === "Literal") {
+    if (astNode !== null && astNode !== undefined && astNode.type === 'Literal') {
         var literalNode: LiteralNode = astNode as LiteralNode;
         var containsPoint = literalNode.raw.includes('.');
         var containsExponent = literalNode.raw.includes('e');
@@ -335,7 +337,7 @@ export const getNestedObject = (obj: any): any => {
     }
 };
 
-export function mergeObjectList(list: Array<any>, path: string, idx = -1): WithWarning<Map<any, any>> {
+export function mergeObjectList(list: any[], path: string, idx = -1): WithWarning<Map<any, any>> {
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
@@ -410,7 +412,7 @@ function mergeObj(obj: Map<any, any>, other: Map<any, any>, path: string): WithW
                 if (t === 'int' && otherType === 'double') {
                     // if double was found instead of int, assign the double
                     clone.set(k, v);
-                } else if (typeof v + "" !== 'number' && clone.get(k) % 1 === 0) {
+                } else if (typeof v + '' !== 'number' && clone.get(k) % 1 === 0) {
                     // if types are not equal, then
                     warnings.push(newAmbiguousType(`${path}/${k}`));
                 }
