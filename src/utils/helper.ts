@@ -3,6 +3,7 @@ import * as changeCase from 'change-case';
 import { ASTNode, ArrayNode, LiteralNode, ObjectNode } from 'json-to-ast';
 import { Warning, WithWarning, newAmbiguousType } from '../syntax';
 import { isArray, isMap } from '../lib';
+import { handleJsonValue } from '../model-generator';
 
 export enum ListType { Object, String, Double, Int, Dynamic, Null }
 
@@ -40,7 +41,7 @@ function mergeableListType(list: any[]): MergeableListType {
  * The list with primitive types.
  * @isPrimitiveType return false if some type not included in this list.
  */
-const keywords = ['String', 'int', 'bool', 'num', 'double', 'dynamic', 'DateTime'];
+let keywords = ['String', 'int', 'bool', 'num', 'double', 'dynamic', 'DateTime'] as const;
 
 /**
  * Calculates the length of the list type.
@@ -121,7 +122,7 @@ export function isDate(date: string): boolean {
 export const cleanKey = (key: string): string => {
     const search = /([^]@)/gi;
     const replace = '';
-    return key.replace(search, replace);
+    return handleJsonValue(key.replace(search, replace)).name;
 };
 
 /**

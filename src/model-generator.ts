@@ -1,7 +1,7 @@
 import parse = require('json-to-ast');
 import * as _ from 'lodash';
 
-import { ClassDefinition, Dependency, Warning, WithWarning, newAmbiguousListWarn, newEmptyListWarn, } from './syntax';
+import { ClassDefinition, Dependency, Warning, WithWarning, newAmbiguousListWarn, newEmptyListWarn } from './syntax';
 import { TypeDefinition, typeDefinitionFromAny } from './constructor';
 import { cleanKey, fixFieldName, mergeObjectList, navigateNode, pascalCase } from './utils';
 import { isArray, parseJson } from './lib';
@@ -15,6 +15,22 @@ class DartCode extends WithWarning<string> {
         super(result, warnings);
     }
     getCode() { return this.result; }
+}
+
+type JsonValue = {
+    name: string;
+    type: string | null;
+}
+
+export function handleJsonValue(key: string): JsonValue {
+    if (key.match('.') && key[0] !== '.') {
+        let name = key.split('.').shift() ?? key;
+        let type = key.split('.').pop() ?? null;
+
+        return { name: name, type: type }
+    } else {
+        return { name: key, type: null };
+    }
 }
 
 export class Hint {
@@ -92,15 +108,21 @@ export class ModelGenerator {
                     typeDef = typeDefinitionFromAny(value, node);
                 }
 
+                // returns JSON key without annotation but with forced type or original.
                 let name = typeDef.filteredKey(key);
-
-                typeDef.name = fixFieldName(name, args.className);
+                // Force key name by user if available.
+                typeDef.name = fixFieldName(handleJsonValue(name).name, args.className);
                 typeDef.value = value;
                 typeDef.prefix = _className;
                 if (typeDef.type !== null) {
+                    // Restore original JSON key.
+                    typeDef.jsonKey = handleJsonValue(name).name;
+
                     if (!typeDef.isPrimitive) {
-                        typeDef.updateImport(name);
-                        const type = pascalCase(name);
+                        // Force key type by user if available.
+                        const type = pascalCase(handleJsonValue(name).type ?? name);
+                        typeDef.updateImport(type);
+
                         if (typeDef.isList) {
                             // Convert plural class names to singular.
                             const singularName = pluralize.singular(type);
@@ -113,12 +135,14 @@ export class ModelGenerator {
                         }
                     }
                 }
+
                 if (typeDef.type === null) {
                     warnings.push(newEmptyListWarn(`${args.path}/${name}`));
                 }
                 if (typeDef.isAmbiguous) {
                     warnings.push(newAmbiguousListWarn(`${args.path}/${name}`));
                 }
+
                 classDefinition.addField(name, typeDef);
             });
             // Push new created class definition.
@@ -152,11 +176,11 @@ export class ModelGenerator {
                         });
                     }
                 } else {
-                    const node = navigateNode(args.astNode, dependency.name);
+                    const node = navigateNode(args.astNode, handleJsonValue(dependency.name).name);
                     warns = this.generateClassDefinition({
-                        className: dependency.className,
+                        className: dependency.typeDef.type ?? dependency.className,
                         json: jsonRawData.get(dependency.name),
-                        path: `${args.path}/${dependency.name}`,
+                        path: `${args.path}/${handleJsonValue(dependency.name).name}`,
                         astNode: node,
                     });
                 }
@@ -308,12 +332,15 @@ export class ModelGenerator {
         // After generating all classes, merge similar classes with paths.
         //
         // If duplicates are detected create a new path.
-        if (this.duplicates.length) {
-            await this.handleDuplicates();
-            return Array.from(this.allClassMapping.keys());
-        } else {
-            return this.allClasses;
-        }
+        //TODO: fix duplicates handling.
+        // if (this.duplicates.length) {
+        //     await this.handleDuplicates();
+        //     return Array.from(this.allClassMapping.keys());
+        // } else {
+        //     return this.allClasses;
+        // }
+
+        return this.allClasses;
     }
 
     /// generateDartClasses will generate all classes and append one after another

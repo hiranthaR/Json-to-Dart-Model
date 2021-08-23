@@ -5,6 +5,7 @@ import { ClassNameModel } from './settings';
 import { Input } from './input';
 import { TypeDefinition } from './constructor';
 import { emptyClass } from './syntax/empty-class.syntax';
+import { handleJsonValue } from './model-generator';
 
 export const emptyListWarn = 'list is empty';
 export const ambiguousListWarn = 'list is ambiguous';
@@ -869,7 +870,9 @@ export class ClassDefinition {
       sb += printLine('.fromJson(Map<String, dynamic> json) => ');
       sb += printLine(`${this.name}(\n`);
       sb += this.getFields((f, k) => {
-        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+        // Check forced type for only not primitive type.
+        const key = k.match('.') && !f.isList && f.type && !f.isPrimitive ? f.type : k;
+        return `\t\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(key, f, input))}`;
       }).join('\n');
       sb += printLine(');', 1, 3);
       return sb;
