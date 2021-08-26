@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.6
+
+   - Bugfix.
+
 ## 3.3.5
 
    - Added support to force new type for key.

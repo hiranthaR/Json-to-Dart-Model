@@ -55,6 +55,7 @@ export const transformFromFile = async () => {
                 return;
             }
 
+            let targetDirectoryType = TargetDirectoryType.Default;
             let targetDirectory = models.directory + input.targetDirectory;
             const duplicates = await models.duplicatesClass(objects);
 
@@ -87,8 +88,15 @@ export const transformFromFile = async () => {
                         return;
                     }
 
+                    // Toggle target directories by generating multiple models.
                     if (path !== undefined) {
+                        // Target directory by user preferences
                         targetDirectory = models.directory + path;
+                        targetDirectoryType = TargetDirectoryType.Raw;
+                    } else {
+                        // Default
+                        targetDirectory = models.directory + input.targetDirectory;
+                        targetDirectoryType = TargetDirectoryType.Default;
                     }
 
                     // Settings config.
@@ -97,7 +105,7 @@ export const transformFromFile = async () => {
                         targetDirectory: targetDirectory,
                         object: json,
                         input: input,
-                        targetDirectoryType: TargetDirectoryType.Default,
+                        targetDirectoryType: targetDirectoryType,
                     };
                     // Create new settings.
                     const settings = new Settings(config);
