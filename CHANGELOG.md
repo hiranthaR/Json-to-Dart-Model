@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.7
+
+   - Improved double values conversion.
+
 ## 3.3.6
 
    - Bugfix.
