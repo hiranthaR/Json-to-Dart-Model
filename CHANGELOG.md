@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.7
+
+   - Improved double values conversion.
+   - Added possibility to override the default path with a new one by adding `__path` key by working with models.jsonc file. Example: `"__path": "/lib/models/user"`.
+ 
 ## 3.3.6
 
    - Bugfix.
@@ -12,9 +17,9 @@
      ```json
      {
         "userPost.post": {
-	  	   "id": 1,
-	  	   "description": "Json To Dart Model",
-	  	   "completed": false
+         "id": 1,
+         "description": "Json To Dart Model",
+         "completed": false
 	     }
      }
      ```

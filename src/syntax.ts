@@ -1,11 +1,10 @@
 import * as _ from 'lodash';
-
-import { camelCase, equalByType, filterListType, getNestedObject, pascalCase, snakeCase } from './utils';
-import { ClassNameModel } from './settings';
-import { Input } from './input';
 import { TypeDefinition } from './constructor';
+import { Input } from './input';
+import { ClassNameModel } from './settings';
 import { emptyClass } from './syntax/empty-class.syntax';
-import { handleJsonValue } from './model-generator';
+import { camelCase, equalByType, filterListType, getNestedObject, pascalCase, snakeCase } from './utils';
+
 
 export const emptyListWarn = 'list is empty';
 export const ambiguousListWarn = 'list is ambiguous';
@@ -342,15 +341,19 @@ export function jsonParseValue(
   input: Input
 ) {
   const jsonValue = valueFromJson(key);
+  const nullable = questionMark(input, typeDef.nullable);
   let formatedValue = '';
+
   if (typeDef.isPrimitive) {
     if (typeDef.isDate) {
       formatedValue = jsonParseClass(key, typeDef, input);
     } else {
       if (typeDef.type?.match('dynamic') && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
+      } if (typeDef.type?.match('double')) {
+        formatedValue = `(${jsonValue} as num${nullable})${nullable}.toDouble()`;
       } else {
-        formatedValue = `${jsonValue} as ${typeDef.type}` + questionMark(input, typeDef.nullable);
+        formatedValue = `${jsonValue} as ${typeDef.type}` + nullable;
       }
     }
   } else {

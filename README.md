@@ -111,12 +111,13 @@ To customize your classes is very easy. If you want fast to create a simple clas
 
 `Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. To configure options for output, go to the `Settings/Extensions/JSON To Dart Model`
 
-**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. **Note that you add base class names to each object with key** `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc` file should look like this:
+**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. **Note that you add base class names to each object with key** `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc`. By adding key `__path` you can override the default path and navigate your models where you want and how your want in your workspace. File should look like this:
 
 ```jsonc
 [
   {
-    "__className": "UserPosts", // <- The base class name of the object.
+    "__className": "UserPost", // <- The base class name of the object.
+    "__path": "/lib/models/user_post", // <- override default path with a new one by adding '__path' key.
     "userId": 1,
     "id": 1, // To mark as required value, change "id" to "r@id".
     "title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
