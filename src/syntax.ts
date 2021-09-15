@@ -62,6 +62,11 @@ export const printLine = (print: string, lines = 0, tabs = 0): string => {
   return sb;
 };
 
+const includeIfNull = (jsonValue: string, input: Input): string => {
+  const include = input.includeIfNull === true && input.nullSafety === false;
+  return include ? `${jsonValue} == null ? null : ` : '';
+};
+
 /**
  * Adds JSON annotation only if needed for Freezed and JSON serializable.
  * @param {string} jsonKey a raw JSON key.
@@ -342,6 +347,7 @@ export function jsonParseValue(
 ) {
   const jsonValue = valueFromJson(key);
   const nullable = questionMark(input, typeDef.nullable);
+  const IfNull = `${includeIfNull(jsonValue, input)}`;
   let formatedValue = '';
 
   if (typeDef.isPrimitive) {
@@ -351,9 +357,9 @@ export function jsonParseValue(
       if (typeDef.type?.match('dynamic') && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
       } if (typeDef.type?.match('double')) {
-        formatedValue = `(${jsonValue} as num${nullable})${nullable}.toDouble()`;
+        formatedValue = `${IfNull}(${jsonValue} as num${nullable})${nullable}.toDouble()`;
       } else {
-        formatedValue = `${jsonValue} as ${typeDef.type}` + nullable;
+        formatedValue = `${IfNull}${jsonValue} as ${typeDef.type}` + nullable;
       }
     }
   } else {
