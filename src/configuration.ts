@@ -1,5 +1,5 @@
+import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { CodeGenerator, Equality, StringMethod } from './input';
-import { ConfigurationTarget, WorkspaceConfiguration, workspace } from 'vscode';
 
 class Configuration {
     private config: WorkspaceConfiguration;
@@ -32,6 +32,7 @@ class Configuration {
     get primaryConfiguration() { return this.getConfig<boolean>('primaryConfiguration', false); }
     get targetDirectory() { return this.getConfig<string>('targetDirectory.path', '/lib/models'); }
     get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); }
+    get includeIfNull() { return this.getConfig<boolean>('includeIfNull', false); }
 }
 
 export const config = new Configuration();

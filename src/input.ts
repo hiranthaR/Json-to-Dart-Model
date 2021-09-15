@@ -1,11 +1,11 @@
+import { config } from './configuration';
 import {
     promptForCodeGenerator,
     promptForCopyWithMethod,
     promptForEqualityOperator,
     promptForImmutableClass,
-    promptForToStringMethod,
+    promptForToStringMethod
 } from './shared';
-import { config } from './configuration';
 
 /** To string method type */
 export enum StringMethod {
@@ -42,6 +42,7 @@ interface InputProperties {
     primaryConfiguration?: boolean;
     fastMode?: boolean;
     sortConstructorsFirst?: boolean;
+    includeIfNull?: boolean;
 }
 
 /**
@@ -59,6 +60,7 @@ export class Input implements InputProperties {
     primaryConfiguration: boolean;
     fastMode: boolean;
     sortConstructorsFirst?: boolean;
+    includeIfNull?: boolean;
 
     constructor(props?: InputProperties) {
         this.codeGenerator = props?.codeGenerator ?? config.codeGenerator;
@@ -72,6 +74,7 @@ export class Input implements InputProperties {
         this.primaryConfiguration = props?.primaryConfiguration ?? config.primaryConfiguration;
         this.fastMode = props?.fastMode ?? config.fastMode;
         this.sortConstructorsFirst = props?.sortConstructorsFirst ?? config.sortConstructorsFirst;
+        this.includeIfNull = props?.includeIfNull ?? config.includeIfNull;
     }
 
     get isImmutable(): boolean {

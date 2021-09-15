@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.3.7",
+  "version": "3.3.8",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -197,6 +197,11 @@
             "type": "boolean",
             "default": true,
             "markdownDescription": "Indicate that a variable can have the value `null`. Null-Safety is default from version **2.12.0** in the Dart language."
+          },
+          "jsonToDart.includeIfNull": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "The generator will include if `null` values in the serialized output. This option will work only for Dart without null safety support."
           },
           "jsonToDart.primaryConfiguration": {
             "type": "boolean",

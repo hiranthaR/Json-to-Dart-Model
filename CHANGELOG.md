@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.8
+
+   - Added new option include if null for the `fromJson` method.
+
 ## 3.3.7
 
    - Improved double values conversion.
