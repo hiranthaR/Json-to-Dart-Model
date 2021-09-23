@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.3.9
+
+   - Implemented faster equality operator.
+
 ## 3.3.8
 
    - Added new option include if null for the `fromJson` method.

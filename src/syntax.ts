@@ -1030,21 +1030,23 @@ export class ClassDefinition {
     });
     let sb = '';
     sb += printLine('@override', 2, 1);
-    sb += printLine('bool operator ==(Object other) {', 1, 1);
+    sb += printLine('bool operator ==(dynamic other) {', 1, 1);
     sb += printLine('if (identical(other, this)) return true;', 1, 2);
+    sb += printLine(`if (other is! ${this.name}) return false;`, 1, 2);
+    sb += printLine('return ', 1, 2);
     const printBlock = (lines: number = 1, tabs: number = 4): string => {
-      let sb;
-      sb = printLine(`return other is ${this.name} && `, 1, 2);
-
+      let sb = '';
       for (let i = 0; i < fields.length; i++) {
         const isEnd = fields.length - 1 === i;
         const field = fields[i];
         const separator = isEnd ? ';' : ' &&';
+        const _lines = i === 0 ? 0 : lines;
+        const _tabs = i === 0 ? 0 : tabs;
         if (field.isList) {
-          sb += printLine(`listEquals(other.${field.name}, ${field.name})`, lines, tabs);
+          sb += printLine(`listEquals(other.${field.name}, ${field.name})`, _lines, _tabs);
           sb += separator;
         } else {
-          sb += printLine(`other.${field.name} == ${field.name}`, lines, tabs);
+          sb += printLine(`other.${field.name} == ${field.name}`, _lines, _tabs);
           sb += separator;
         }
       }
