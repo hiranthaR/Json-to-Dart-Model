@@ -164,7 +164,7 @@ class Example {
   int id;
   String title;
 
-  Example({@required this.id, this.title = 'Json To Dart Model'});
+  Example({required this.id, this.title = 'Json To Dart Model'});
   
   // The rest...
 }
@@ -279,13 +279,13 @@ If you don't want to install the Equatable package and work with `@immutable` cl
 
 ```dart
 @override
-bool operator ==(Object other) {
+bool operator ==(dynamic other) {
   if(identical(other, this)) return true;
-  return other is Todos &&
-    other.userId == userId &&
-    other.id == id &&
-    other.title == title &&
-    other.completed == completed;
+  if (other is! Todos) return false;
+  return other.userId == userId &&
+      other.id == id &&
+      other.title == title &&
+      other.completed == completed;
 }
 
 @override
