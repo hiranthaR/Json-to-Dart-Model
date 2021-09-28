@@ -863,12 +863,15 @@ export class ClassDefinition {
       sb += printLine('.fromJson(Map<String, dynamic> json) {');
       sb += printLine(`return ${this.name}(\n`, 1, 2);
       sb += this.getFields((f, k) => {
-        return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(k, f, input))}`;
+        // Check forced type for only not primitive type.
+        const key = k.match('.') && !f.isList && f.type && !f.isPrimitive ? f.type : k;
+        return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(key, f, input))}`;
       }).join('\n');
       sb += printLine(');', 1, 2);
       sb += printLine('}', 1, 1);
       return sb;
     };
+
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}`, 2, 1);
@@ -882,11 +885,14 @@ export class ClassDefinition {
       sb += printLine(');', 1, 3);
       return sb;
     };
-    return expressionBody();
+
+    const line = expressionBody().substring(0, expressionBody().indexOf('(\n') + 1);
+
+    return line.length > 78 ? blockBody() : expressionBody();
   }
 
   private toJsonFunc(input: Input): string {
-    const blocBody = (): string => {
+    const blockBody = (): string => {
       let sb = '';
       sb += printLine('Map<String, dynamic> toJson() {', 0, 1);
       sb += printLine('return {', 1, 2);
@@ -897,6 +903,7 @@ export class ClassDefinition {
       sb += printLine('}', 1, 1);
       return sb;
     };
+
     const expressionBody = (): string => {
       var sb = '';
       sb += printLine('Map<String, dynamic> toJson() => {', 0, 1);
@@ -906,7 +913,10 @@ export class ClassDefinition {
       sb += printLine('};', 1, 3);
       return sb;
     };
-    return expressionBody();
+
+    const line = expressionBody().substring(0, expressionBody().indexOf('{\n') + 1);
+
+    return line.length > 80 ? blockBody() : expressionBody();
   }
 
   /**

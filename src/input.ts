@@ -8,7 +8,7 @@ import {
 } from './shared';
 
 /** To string method type */
-export enum StringMethod {
+export enum ToStringMethod {
     Default = 'Default',
     Auto = 'Auto',
     Stringify = 'Stringify',
@@ -30,7 +30,7 @@ export enum CodeGenerator {
 interface InputProperties {
     codeGenerator?: CodeGenerator;
     immutable?: boolean;
-    toString?: StringMethod;
+    toString?: ToStringMethod;
     copyWith?: boolean;
     equality?: Equality;
     nullSafety?: boolean;
@@ -51,7 +51,7 @@ interface InputProperties {
 export class Input implements InputProperties {
     codeGenerator: CodeGenerator;
     immutable: boolean;
-    toString: StringMethod;
+    toString: ToStringMethod;
     copyWith: boolean;
     equality: Equality;
     nullSafety: boolean;

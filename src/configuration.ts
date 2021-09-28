@@ -1,5 +1,5 @@
 import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
-import { CodeGenerator, Equality, StringMethod } from './input';
+import { CodeGenerator, Equality, ToStringMethod } from './input';
 
 class Configuration {
     private config: WorkspaceConfiguration;
@@ -24,7 +24,7 @@ class Configuration {
     get codeGenerator() { return CodeGenerator[this.getConfig<string>('codeGenerator', CodeGenerator.JSON) as CodeGenerator]; }
     get immutable() { return this.getConfig<boolean>('immutable', false); }
     get equality() { return Equality[this.getConfig<string>('equality', Equality.Default) as Equality]; }
-    get toString() { return StringMethod[this.getConfig<string>('toString', StringMethod.Default) as StringMethod]; }
+    get toString() { return ToStringMethod[this.getConfig<string>('toString', ToStringMethod.Default) as ToStringMethod]; }
     get copyWith() { return this.getConfig<boolean>('copyWith', false); }
     get fastMode() { return this.getConfig<boolean>('fastMode', false); }
     get nullSafety() { return this.getConfig<boolean>('nullSafety', true); }
