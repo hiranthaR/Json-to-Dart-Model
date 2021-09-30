@@ -1,11 +1,11 @@
 import * as copyPaste from 'copy-paste';
 import * as fs from 'fs';
-
 import { ViewColumn, window } from 'vscode';
-import { ClassDefinition } from './syntax';
 import { ModelGenerator } from './model-generator';
 import { Settings } from './settings';
+import { ClassDefinition } from './syntax';
 import { pascalCase } from './utils';
+
 
 export function getClipboardText() {
   try {
@@ -105,16 +105,16 @@ export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
   var classes: ClassDefinition[] = await modelGenerator.generateDartClasses(settings.object);
 
-  return new Promise<void>((resolve, reject) => {
-    classes.map((c) => {
-      const enhancement = settings.model.nameEnhancement;
-      const targetPath = `${settings.targetDirectory}/${c.path}` + enhancement + '.dart';
+  for (const c of classes) {
+    const enhancement = settings.model.nameEnhancement;
+    const targetPath = `${settings.targetDirectory}/${c.path}` + enhancement + '.dart';
 
-      if (fs.existsSync(targetPath)) {
-        window.showInformationMessage(`${c.path}` + enhancement + '.dart already exists');
-        return;
-      }
+    if (fs.existsSync(targetPath)) {
+      window.showInformationMessage(`${c.path}` + enhancement + '.dart already exists');
+      return;
+    }
 
+    return new Promise<void>((resolve, reject) => {
       fs.writeFile(
         targetPath,
         settings.input.generate
@@ -130,5 +130,5 @@ export async function createClass(settings: Settings) {
         }
       );
     });
-  });
+  }
 }

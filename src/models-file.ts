@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import { ConfigurationTarget, window } from 'vscode';
 import { config } from './configuration';
+import { handleError } from './lib';
 import { getWorkspaceRoot } from './utils';
-
 
 class Models {
     private fileName: string = '/models.jsonc';
@@ -21,6 +21,23 @@ class Models {
 
     get data(): string {
         return fs.readFileSync(this.file, 'utf-8');
+    }
+
+    getModels(showError = true): any[] | undefined {
+        const jsonc = require('jsonc').safe;
+        const [err, result] = jsonc.parse(this.data);
+
+        if (err) {
+            if (showError) {
+                handleError(new Error(`Failed to parse JSON: ${err.message}.\nProbably bad JSON syntax.`));
+            } else {
+                return undefined;
+            }
+        } else {
+            // All json objects from the models.jsonc.
+            const objects: any[] = result;
+            return objects;
+        }
     }
 
     private toString() {

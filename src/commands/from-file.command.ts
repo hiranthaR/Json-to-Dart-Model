@@ -1,9 +1,9 @@
-import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
+import { window } from 'vscode';
 import { generateClass, runBuildRunner, runDartFormat } from '../index';
 import { Input } from '../input';
 import { handleError } from '../lib';
 import { models } from '../models-file';
-import { window } from 'vscode';
+import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 
 /** Used to warn users about changes. */
 const deprecatedSettingsProperties: string[] = [
@@ -32,16 +32,10 @@ const isDeprecatedSettings = (object: Object): boolean => {
 };
 
 export const transformFromFile = async () => {
-    const jsonc = require('jsonc').safe;
-
     if (models.exist) {
-        const data = models.data;
-        const [err, result] = jsonc.parse(data);
-        if (err) {
-            handleError(new Error(`Failed to parse JSON: ${err.message}.\nProbably bad JSON syntax.`));
-        } else {
+        if (models.getModels()) {
             // All json objects from the models.jsonc.
-            const objects: any[] = result;
+            const objects: any[] = models.getModels()!;
             // User configuration.
             const input = new Input();
 

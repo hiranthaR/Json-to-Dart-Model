@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.3.9",
+  "version": "3.4.0",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {

@@ -1,18 +1,21 @@
-import * as _ from 'lodash';
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
-
-import { ExtensionContext, commands, window } from 'vscode';
+import {
+  commands,
+  ExtensionContext, TextDocument, window,
+  workspace
+} from 'vscode';
 import {
   addCodeGenerationLibraries,
   transformFromClipboard,
   transformFromClipboardToCodeGen,
   transformFromFile,
   transformFromSelection,
-  transformFromSelectionToCodeGen,
+  transformFromSelectionToCodeGen
 } from './commands';
-import { Settings } from './settings';
 import { createClass } from './lib';
+import { models } from './models-file';
+import { Settings } from './settings';
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -41,6 +44,20 @@ export function activate(context: ExtensionContext) {
       transformFromSelectionToCodeGen
     ),
   );
+
+  // Run builder if new objects detected on save.
+  if (models.exist) {
+    let previous = models.getModels(false);
+    workspace.onDidSaveTextDocument((document: TextDocument) => {
+      if (document.languageId !== 'jsonc' || !document.fileName.endsWith('/models.jsonc')) { return; };
+      const current = models.getModels(false);
+      if (previous === undefined || current === undefined) { return; }
+      if (previous.length !== current.length) {
+        previous = current;
+        transformFromFile();
+      }
+    });
+  }
 }
 
 /**

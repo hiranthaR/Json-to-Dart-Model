@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.4.0
+
+   - Hotfix. Does not generate a new model after deleted.
+   - Added method to generate models from the `models.jsonc` file after detected newly added JSON objects.
+
 ## 3.3.9
 
    - Implemented faster equality operator.

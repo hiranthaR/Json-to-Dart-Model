@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-
-import { CodeGenerator, Equality, StringMethod } from '../input';
 import { InputBoxOptions, OpenDialogOptions, Uri, window } from 'vscode';
+import { CodeGenerator, Equality, ToStringMethod } from '../input';
 import { getWorkspaceRoot } from '../utils';
+
 
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.
@@ -72,7 +72,7 @@ export async function promptForImmutableClass(): Promise<boolean> {
     }
 }
 
-export async function promptForToStringMethod(isEquatableEnabled: boolean = false): Promise<StringMethod> {
+export async function promptForToStringMethod(isEquatableEnabled: boolean = false): Promise<ToStringMethod> {
     const withEquatable = [
         {
             label: 'No',
@@ -108,13 +108,13 @@ export async function promptForToStringMethod(isEquatableEnabled: boolean = fals
 
     switch (selection?.label) {
         case 'Yes':
-            return StringMethod.Dart;
+            return ToStringMethod.Dart;
         case 'Dart':
-            return StringMethod.Dart;
+            return ToStringMethod.Dart;
         case 'Stringify':
-            return StringMethod.Stringify;
+            return ToStringMethod.Stringify;
         default:
-            return StringMethod.Default;
+            return ToStringMethod.Default;
     }
 }
 
