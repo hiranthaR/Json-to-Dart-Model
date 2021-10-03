@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.4.1
+
+   - Bugfix.
+
 ## 3.4.0
 
    - Hotfix. Does not generate a new model after deleted.
