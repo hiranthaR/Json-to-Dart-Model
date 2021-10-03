@@ -105,30 +105,32 @@ export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
   var classes: ClassDefinition[] = await modelGenerator.generateDartClasses(settings.object);
 
-  for (const c of classes) {
+  for (var i = 0; i < classes.length; ++i) {
+    const classDef = classes[i];
     const enhancement = settings.model.nameEnhancement;
-    const targetPath = `${settings.targetDirectory}/${c.path}` + enhancement + '.dart';
+    const path = `${settings.targetDirectory}/${classDef.path}` + enhancement + '.dart';
 
-    if (fs.existsSync(targetPath)) {
-      window.showInformationMessage(`${c.path}` + enhancement + '.dart already exists');
-      return;
+    if (fs.existsSync(path)) {
+      window.showInformationMessage(`${classDef.path}` + enhancement + '.dart already exists');
+    } else {
+      const data = settings.input.generate ?
+        classDef.toCodeGenString(settings.input) :
+        classDef.toString(settings.input);
+
+      await writeFile(path, data);
     }
-
-    return new Promise<void>((resolve, reject) => {
-      fs.writeFile(
-        targetPath,
-        settings.input.generate
-          ? c.toCodeGenString(settings.input)
-          : c.toString(settings.input),
-        'utf8',
-        (error) => {
-          if (error) {
-            reject(error);
-            return;
-          }
-          resolve();
-        }
-      );
-    });
   }
+}
+
+async function writeFile(path: string, data: string) {
+  return new Promise<void>((resolve, reject) => {
+    fs.writeFile(path, data, 'utf8', (error) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      resolve();
+    }
+    );
+  });
 }
