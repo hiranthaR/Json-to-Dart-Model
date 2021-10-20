@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { InputBoxOptions, OpenDialogOptions, Uri, window } from 'vscode';
-import { CodeGenerator, Equality, ToStringMethod } from '../input';
-import { getWorkspaceRoot } from '../utils';
 
+import { CodeGenerator, Equality, ToStringMethod } from '../input';
+import { InputBoxOptions, OpenDialogOptions, Uri, window } from 'vscode';
+import { getWorkspaceRoot } from '../utils';
 
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.

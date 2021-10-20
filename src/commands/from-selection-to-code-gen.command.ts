@@ -5,7 +5,7 @@ import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { Input, getUserInput } from '../input';
 import { Uri, window } from 'vscode';
 import { generateClass, runBuildRunner, runDartFormat } from '../index';
-import { getSelectedText, handleError, validateLength } from '../lib';
+import { getSelectedText, handleError, validateJSON } from '../lib';
 import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user-prompts';
 
 export const transformFromSelectionToCodeGen = async (uri: Uri) => {
@@ -33,12 +33,12 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
         targetDirectory = uri.fsPath;
     }
 
-    const json: string = await getSelectedText().then(validateLength).catch(handleError);
+    const json: string = await getSelectedText().then(validateJSON).catch(handleError);
 
     const config: Settings = {
         model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
-        object: json,
+        json: json,
         input: input,
         targetDirectoryType: TargetDirectoryType.Standard,
     };

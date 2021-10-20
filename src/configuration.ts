@@ -1,5 +1,5 @@
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { CodeGenerator, Equality, ToStringMethod } from './input';
+import { ConfigurationTarget, WorkspaceConfiguration, workspace } from 'vscode';
 
 class Configuration {
     private config: WorkspaceConfiguration;

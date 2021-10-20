@@ -26,7 +26,7 @@ export class ClassNameModel {
 /** The indicates how the path was taken. */
 export enum TargetDirectoryType {
     /** 
-     *  The path type from the default options as from the settings.
+     *  The generator generates all files to the map. The map name is as provided class name.
      */
     Default,
     /** 
@@ -34,7 +34,7 @@ export enum TargetDirectoryType {
      */
     Standard,
     /** 
-     * The raw path directly from the context.
+     * The generator does not generate files to the map.
      */
     Raw,
 }
@@ -49,9 +49,9 @@ export interface ISettings {
      */
     targetDirectory: string;
     /**
-     * JSON object.
+     * A valid JSON.
      */
-    object: string;
+    json: string;
     /**
      * User input.
      */
@@ -65,13 +65,13 @@ export interface ISettings {
 export class Settings implements ISettings {
     model: ClassNameModel;
     targetDirectory: string;
-    object: string;
+    json: string;
     input: Input;
     targetDirectoryType: TargetDirectoryType;
 
     constructor(settings: ISettings) {
         this.model = settings.model;
-        this.object = settings.object;
+        this.json = settings.json;
         this.input = settings.input;
         this.targetDirectoryType = settings.targetDirectoryType;
         this.targetDirectory = buildTargetDirectory(settings);

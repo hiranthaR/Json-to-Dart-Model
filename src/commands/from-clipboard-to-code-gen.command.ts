@@ -5,7 +5,7 @@ import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { Input, getUserInput } from '../input';
 import { Uri, window } from 'vscode';
 import { generateClass, runBuildRunner, runDartFormat } from '../index';
-import { getClipboardText, handleError, validateLength } from '../lib';
+import { getClipboardText, handleError, validateJSON } from '../lib';
 import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user-prompts';
 
 export const transformFromClipboardToCodeGen = async (uri: Uri) => {
@@ -36,12 +36,12 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
         targetDirectory = uri.fsPath;
     }
 
-    const json: string = await getClipboardText().then(validateLength).catch(handleError);
+    const json: string = await getClipboardText().then(validateJSON).catch(handleError);
 
     const config: Settings = {
         model: new ClassNameModel(className),
         targetDirectory: <string>targetDirectory,
-        object: json,
+        json: json,
         input: input,
         targetDirectoryType: targetDirectoryType,
     };

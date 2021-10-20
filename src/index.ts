@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import {
-  commands,
-  ExtensionContext, TextDocument, window,
+  ExtensionContext,
+  commands, window,
   workspace
 } from 'vscode';
 import {
@@ -13,9 +13,10 @@ import {
   transformFromSelection,
   transformFromSelectionToCodeGen
 } from './commands';
-import { createClass } from './lib';
-import { models } from './models-file';
 import { Settings } from './settings';
+import { createClass } from './lib';
+import { jsonReader } from './json-reader';
+
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -45,19 +46,8 @@ export function activate(context: ExtensionContext) {
     ),
   );
 
-  // Run builder if new objects detected on save.
-  if (models.exist) {
-    let previous = models.getModels(false);
-    workspace.onDidSaveTextDocument((document: TextDocument) => {
-      if (document.languageId !== 'jsonc' || !document.fileName.endsWith('/models.jsonc')) { return; };
-      const current = models.getModels(false);
-      if (previous === undefined || current === undefined) { return; }
-      if (previous.length !== current.length) {
-        previous = current;
-        transformFromFile();
-      }
-    });
-  }
+  const disposableOnDidSave = workspace.onDidSaveTextDocument((doc) => jsonReader.onChange(doc));
+  context.subscriptions.push(disposableOnDidSave);
 }
 
 /**

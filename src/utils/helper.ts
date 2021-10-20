@@ -2,8 +2,8 @@ import * as changeCase from 'change-case';
 
 import { ASTNode, ArrayNode, LiteralNode, ObjectNode } from 'json-to-ast';
 import { Warning, WithWarning, newAmbiguousType } from '../syntax';
-import { isArray, isMap } from '../lib';
-import { handleJsonValue } from '../model-generator';
+import { isArray, isObject } from '../lib';
+import { inputKeyNameHandler } from '../model-generator';
 
 export enum ListType { Object, String, Double, Int, Dynamic, Null }
 
@@ -26,7 +26,7 @@ function mergeableListType(list: any[]): MergeableListType {
             inferredType = e % 1 === 0 ? ListType.Int : ListType.Double;
         } else if (typeof e === 'string') {
             inferredType = ListType.String;
-        } else if (isMap(e)) {
+        } else if (isObject(e)) {
             inferredType = ListType.Object;
         }
         if (t !== ListType.Null && t !== inferredType!!) {
@@ -41,7 +41,7 @@ function mergeableListType(list: any[]): MergeableListType {
  * The list with primitive types.
  * @isPrimitiveType return false if some type not included in this list.
  */
-let keywords = ['String', 'int', 'bool', 'num', 'double', 'dynamic', 'DateTime'] as const;
+const keywords = ['String', 'int', 'bool', 'num', 'double', 'dynamic', 'DateTime'] as const;
 
 /**
  * Calculates the length of the list type.
@@ -122,7 +122,7 @@ export function isDate(date: string): boolean {
 export const cleanKey = (key: string): string => {
     const search = /([^]@)/gi;
     const replace = '';
-    return handleJsonValue(key.replace(search, replace)).name;
+    return inputKeyNameHandler(key.replace(search, replace)).name;
 };
 
 /**
@@ -197,6 +197,21 @@ export const equalByType = (object: any, other: any): boolean => {
 
     return true;
 };
+
+/**
+ * Returns `true` if the object has an object value.
+ * @param object The object being analyzed.
+ * @returns A boolean.
+ */
+export function hasObjects(object: { [key: string]: any }): boolean {
+    return Object.values(object).some((value) => {
+        if (value instanceof Array) {
+            return getListTypeName(value) === 'Class';
+        } else {
+            return getTypeName(value) === 'Class';
+        }
+    });
+}
 
 export function getTypeName(obj: any): string {
     var type = typeof obj;
@@ -323,14 +338,14 @@ export function isASTLiteralDouble(astNode: ASTNode): boolean {
 }
 
 /**  
- * Get the object from the deeply nested array.
+ * Extract values from the array.
  * @param {any} obj - A object param.
  * @return {any} Return a any object.
  */
-export const getNestedObject = (obj: any): any => {
+export const extractor = (obj: any): any => {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
-            return getNestedObject(obj[i]);
+            return extractor(obj[i]);
         }
     } else {
         return obj;
@@ -341,7 +356,7 @@ export function mergeObjectList(list: any[], path: string, idx = -1): WithWarnin
     var warnings = new Array<Warning>();
     var obj = new Map();
     for (var i = 0; i < list.length; i++) {
-        var toMerge = new Map(Object.entries(getNestedObject(list[i])));
+        var toMerge = new Map(Object.entries(extractor(list[i])));
         if (toMerge.size !== 0) {
             toMerge.forEach((v: any, k: any) => {
                 var t = getTypeName(obj.get(k));

@@ -1,4 +1,3 @@
-import { config } from './configuration';
 import {
     promptForCodeGenerator,
     promptForCopyWithMethod,
@@ -6,6 +5,7 @@ import {
     promptForImmutableClass,
     promptForToStringMethod
 } from './shared';
+import { config } from './configuration';
 
 /** To string method type */
 export enum ToStringMethod {

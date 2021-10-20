@@ -1,10 +1,10 @@
 import * as _ from 'lodash';
-import { TypeDefinition } from './constructor';
-import { Input } from './input';
-import { ClassNameModel } from './settings';
-import { emptyClass } from './syntax/empty-class.syntax';
-import { camelCase, equalByType, filterListType, getNestedObject, pascalCase, snakeCase } from './utils';
 
+import { camelCase, equalByType, extractor, filterListType, pascalCase, snakeCase } from './utils';
+import { ClassNameModel } from './settings';
+import { Input } from './input';
+import { TypeDefinition } from './constructor';
+import { emptyClass } from './syntax/empty-class.syntax';
 
 export const emptyListWarn = 'list is empty';
 export const ambiguousListWarn = 'list is ambiguous';
@@ -478,7 +478,7 @@ export class ClassDefinition {
    */
   hasValue(other: any): boolean {
     if (Array.isArray(other)) {
-      return _.isEqual(this.value, getNestedObject(other));
+      return _.isEqual(this.value, extractor(other));
     } else {
       return _.isEqual(this.value, other);
     }
@@ -502,7 +502,7 @@ export class ClassDefinition {
    */
   hasEqualField(other: any): boolean {
     if (Array.isArray(other)) {
-      return equalByType(this.value, getNestedObject(other));
+      return equalByType(this.value, extractor(other));
     } else {
       return equalByType(this.value, other);
     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.5.0
+
+   - Added support for safe `JSON`. The generator can read and parse `json` and `jsonc` from any method.
+   - Added support for multiple files conversion. The generator can read `**.json` and `**.jsonc` files from the tracked file or directory.
+   - Improved conversion performance. 5X faster speed.
+
 ## 3.4.1
 
    - Bugfix.
