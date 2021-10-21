@@ -99,6 +99,6 @@ export const transformFromFile = async () => {
             }
         }
     } else {
-        await jsonReader.createFile();
+        await jsonReader.createTrackingLocation();
     }
 };

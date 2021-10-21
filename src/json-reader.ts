@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as mkdirp from 'mkdirp';
 
 import { ConfigurationTarget, TextDocument, window } from 'vscode';
 import { getWorkspaceRoot, hasObjects } from './utils';
@@ -7,6 +8,7 @@ import { config } from './configuration';
 import { jsonc } from 'jsonc';
 import { transformFromFile } from './commands';
 
+enum TrackingMethodType { 'File', 'Directory', 'None' }
 export type SafeData = [Error, JsonData] | [null, JsonData];
 type DirType = Pick<JsonData, 'workspaceRoot' | 'defaultDirectory' | 'filename' | 'filePath'>;
 
@@ -188,20 +190,62 @@ class JsonReader {
         return safeData;
     }
 
-    async createFile(): Promise<void> {
-        const text = 'models.jsonc file was created for the first time';
-        const errText = 'Failed to create the model.jsonc file';
-        const accepted = await askForFileCreation();
-        if (accepted) {
-            fs.writeFile(this.filePath, this.documentation, 'utf8', (err) => {
-                if (err) {
-                    window.showErrorMessage(errText);
-                    console.error(err);
-                    return;
+    async createTrackingLocation(): Promise<void> {
+        const gitignoreFile = `${this.workspaceRoot}/.gitignore`;
+        const errText = 'Failed to create the tracking places';
+        const createFile = await promptForFileCreation();
+
+        if (createFile) {
+            const trackingMethod = await promptForTrackingMethod();
+
+            if (fs.existsSync(gitignoreFile)) {
+                const gitignorData = fs.readFileSync(gitignoreFile, 'utf8');
+                const ignorFiles = `
+# JSON to Dart Model file tracking locations.
+/.json_models/
+models.jsonc`;
+                if (!gitignorData.split('\n').some((line) => line.match('.json_models') || line.match('models.jsonc'))) {
+                    const ignor = await promptForGitignor();
+                    if (ignor) {
+                        const newData = `${gitignorData}${ignorFiles}`;
+                        fs.writeFile(gitignoreFile, newData, 'utf8', (error) => {
+                            if (error) {
+                                window.showErrorMessage('Error updating .gitignor file.');
+                                return;
+                            }
+                        });
+                    }
                 }
-                window.showInformationMessage(text);
-                return;
-            });
+            }
+
+            if (trackingMethod === TrackingMethodType.File) {
+                const text = 'models.jsonc file was created for the first time';
+                fs.writeFile(this.filePath, this.documentation, 'utf8', (err) => {
+                    if (err) {
+                        window.showErrorMessage(errText);
+                        console.error(err);
+                        return;
+                    }
+                    window.showInformationMessage(text);
+                    return;
+                });
+            } else if (trackingMethod === TrackingMethodType.Directory) {
+                if (!this.existsSyncDir) {
+                    const text = `root${this.dirName} directory was created for the first time`;
+                    const path = `${this.dirPath}${this.fileName}`;
+                    await mkdirp(this.dirPath);
+                    fs.writeFile(path, this.documentation, 'utf8', (err) => {
+                        if (err) {
+                            window.showErrorMessage(errText);
+                            console.error(err);
+                            return;
+                        }
+                        window.showInformationMessage(text);
+                        return;
+                    });
+                }
+            }
+
         }
     }
 
@@ -283,11 +327,31 @@ class JsonReader {
     }
 }
 
-async function askForFileCreation(): Promise<boolean> {
-    const text = 'models.jsonc file not found.'
-        + '\n\n\Do you want it to be created for you?';
-    return window.showInformationMessage(text, { modal: true }, ...['Add'])
-        .then((action) => action === 'Add' ? true : false);
+async function promptForFileCreation(): Promise<boolean> {
+    const text = 'No tracking file or directory found.\n\n\Do you want it to be created for you?';
+    return window.showInformationMessage(text, { modal: true }, ...['Create'])
+        .then((action) => action === 'Create' ? true : false);
+}
+
+async function promptForTrackingMethod(): Promise<TrackingMethodType> {
+    const text = 'How do you want to track your JSON models?.\n\n\Choose a tracked method from the file or directory.';
+    return window.showInformationMessage(text, { modal: true, }, ...['File', 'Directory'])
+        .then((action) => {
+            switch (action) {
+                case 'File':
+                    return TrackingMethodType.File;
+                case 'Directory':
+                    return TrackingMethodType.Directory;
+                default:
+                    return TrackingMethodType.None;
+            }
+        });
+}
+
+async function promptForGitignor(): Promise<boolean> {
+    const text = 'Ignore JSON to Dart model tracking files for GitHub?';
+    return window.showInformationMessage(text, { modal: true }, ...['Ignore'])
+        .then((action) => action === 'Ignore' ? true : false);
 }
 
 export const jsonReader = new JsonReader();
