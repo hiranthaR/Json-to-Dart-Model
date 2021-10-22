@@ -1,16 +1,13 @@
-import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
-
 import { ConfigurationTarget, TextDocument, window } from 'vscode';
-import { getWorkspaceRoot, hasObjects } from './utils';
+import { FileManager, hasObjects } from './utils';
 import { TargetDirectoryType } from './settings';
 import { config } from './configuration';
 import { jsonc } from 'jsonc';
 import { transformFromFile } from './commands';
 
-enum TrackingMethodType { 'File', 'Directory', 'None' }
+enum LocationType { 'File', 'Directory', 'None' }
 export type SafeData = [Error, JsonData] | [null, JsonData];
-type DirType = Pick<JsonData, 'workspaceRoot' | 'defaultDirectory' | 'filename' | 'filePath'>;
+type JsonDataOptions = Pick<JsonData, 'workspaceRoot' | 'defaultDirectory' | 'filename' | 'filePath' | 'value'>;
 
 /**
  * A class that separates JSON object keys that have been added by the user.
@@ -36,46 +33,43 @@ export class JsonData {
     /** The file location. */
     filePath: string;
     /** A JSON object without option keys `__className` and `__path` added by the user. */
-    value: Record<string, any>;
+    value: Record<string, any> = {};
     /** JSON string strictly ready for conversion. */
     json: string;
 
-    constructor(dir: DirType, object: Record<string, any> = {}) {
-        const { [this.nameKey]: name, [this.pathKey]: path, ...obj } = object;
+    constructor(options: JsonDataOptions) {
+        const { [this.nameKey]: name, [this.pathKey]: path, ...value } = options.value;
         this.className = name;
         this.requiredPath = path;
-        this.value = obj;
-        this.json = JSON.stringify(obj);
-        this.filename = dir.filename[0].match('/') ? dir.filename.substr(1) : dir.filename;
-        this.filePath = dir.filePath;
-        this.workspaceRoot = dir.workspaceRoot;
-        this.defaultDirectory = dir.defaultDirectory;
+        this.value = value;
+        this.json = JSON.stringify(value);
+        this.filename = options.filename[0].match('/') ? options.filename.substr(1) : options.filename;
+        this.filePath = options.filePath;
+        this.workspaceRoot = options.workspaceRoot;
+        this.defaultDirectory = options.defaultDirectory;
         this.targetDirectory = path !== undefined ?
-            dir.workspaceRoot + path :
-            dir.workspaceRoot + dir.defaultDirectory;
-        this.targetDirectoryType = path !== undefined || !hasObjects(obj) ?
+            options.workspaceRoot + path :
+            options.workspaceRoot + options.defaultDirectory;
+        this.targetDirectoryType = path !== undefined || !hasObjects(value) ?
             TargetDirectoryType.Raw :
             TargetDirectoryType.Default;
     }
 }
 
-class JsonReader {
+class JsonReader extends FileManager {
     private defaultDirectory: string;
     private fileName = '/models.jsonc';
     private dirName = '/.json_models';
     private length: number;
 
     constructor() {
+        super();
         this.defaultDirectory = config.targetDirectory;
         this.length = this.allData.length;
     }
 
     get hasData() {
         return this.allData.length > 0;
-    }
-
-    get workspaceRoot() {
-        return getWorkspaceRoot();
     }
 
     private get filePath(): string {
@@ -86,58 +80,56 @@ class JsonReader {
         return this.workspaceRoot + this.dirName;
     }
 
-    private get readDir(): string[] {
-        try {
-            return fs.readdirSync(this.dirPath, 'utf-8');
-        } catch (_) {
-            return [];
-        }
-    }
-
     get existsSyncFile(): boolean {
-        return fs.existsSync(this.filePath);
+        return this.existsSync(this.filePath);
     }
 
     get existsSyncDir(): boolean {
-        return fs.existsSync(this.dirPath);
+        return this.existsSync(this.dirPath);
     }
 
     get allData(): SafeData[] {
         const safeData: SafeData[] = [];
-        const files = this.readDir;
+        const files = this.readDirectory(this.dirName);
 
         if (this.existsSyncFile) {
-            const json = fs.readFileSync(this.filePath, 'utf-8');
+            const json = this.readFile(this.filePath);
             const [err, result] = jsonc.safe.parse(json);
 
             if (err) {
-                const dir: DirType = {
+                const options: JsonDataOptions = {
                     workspaceRoot: this.workspaceRoot,
                     defaultDirectory: this.defaultDirectory,
                     filename: this.fileName,
                     filePath: this.filePath,
+                    value: {},
                 };
-                safeData.push([err, new JsonData(dir)]);
+
+                safeData.push([err, new JsonData(options)]);
             } else {
                 if (result instanceof Array) {
                     for (let i = 0; i < result.length; i++) {
                         const object = result[i];
-                        const dir: DirType = {
+                        const options: JsonDataOptions = {
                             workspaceRoot: this.workspaceRoot,
                             defaultDirectory: this.defaultDirectory,
                             filename: this.fileName,
                             filePath: this.filePath,
+                            value: object,
                         };
-                        safeData.push([null, new JsonData(dir, object)]);
+
+                        safeData.push([null, new JsonData(options)]);
                     }
                 } else {
-                    const dir: DirType = {
+                    const options: JsonDataOptions = {
                         workspaceRoot: this.workspaceRoot,
                         defaultDirectory: this.defaultDirectory,
                         filename: this.fileName,
                         filePath: this.filePath,
+                        value: result,
                     };
-                    safeData.push([null, new JsonData(dir, result)]);
+
+                    safeData.push([null, new JsonData(options)]);
                 }
             }
         }
@@ -151,37 +143,43 @@ class JsonReader {
             const path = this.dirPath + `/${file}`;
 
             if (file.endsWith('.jsonc') || file.endsWith('.json')) {
-                const json = fs.readFileSync(path, 'utf-8');
+                const json = this.readFile(path);
                 const [err, result] = jsonc.safe.parse(json);
 
                 if (err) {
-                    const dir: DirType = {
+                    const options: JsonDataOptions = {
                         workspaceRoot: this.workspaceRoot,
                         defaultDirectory: this.defaultDirectory,
                         filename: file,
                         filePath: path,
+                        value: {},
                     };
-                    safeData.push([err, new JsonData(dir)]);
+
+                    safeData.push([err, new JsonData(options)]);
                 } else {
                     if (result instanceof Array) {
                         for (let i = 0; i < result.length; i++) {
                             const object = result[i];
-                            const dir: DirType = {
+                            const options: JsonDataOptions = {
                                 workspaceRoot: this.workspaceRoot,
                                 defaultDirectory: this.defaultDirectory,
                                 filename: file,
                                 filePath: path,
+                                value: object,
                             };
-                            safeData.push([null, new JsonData(dir, object)]);
+
+                            safeData.push([null, new JsonData(options)]);
                         }
                     } else {
-                        const dir: DirType = {
+                        const options: JsonDataOptions = {
                             workspaceRoot: this.workspaceRoot,
                             defaultDirectory: this.defaultDirectory,
                             filename: file,
                             filePath: path,
+                            value: result,
                         };
-                        safeData.push([null, new JsonData(dir, result)]);
+
+                        safeData.push([null, new JsonData(options)]);
                     }
                 }
             }
@@ -191,67 +189,35 @@ class JsonReader {
     }
 
     async createTrackingLocation(): Promise<void> {
-        const gitignoreFile = `${this.workspaceRoot}/.gitignore`;
-        const errText = 'Failed to create the tracking places';
-        const createFile = await promptForFileCreation();
+        const gitignore = '/.gitignore';
+        const error = 'Failed to create the tracking places';
+        const createLocation = await promptForTrackLocation();
 
-        if (createFile) {
-            const trackingMethod = await promptForTrackingMethod();
+        if (createLocation) {
+            const locationType = await promptForTrackingMethod();
 
-            if (fs.existsSync(gitignoreFile)) {
-                const gitignorData = fs.readFileSync(gitignoreFile, 'utf8');
-                const ignorFiles = `
-# JSON to Dart Model file tracking locations.
-/.json_models/
-models.jsonc`;
-                if (!gitignorData.split('\n').some((line) => line.match('.json_models') || line.match('models.jsonc'))) {
-                    const ignor = await promptForGitignor();
-                    if (ignor) {
-                        const newData = `${gitignorData}${ignorFiles}`;
-                        fs.writeFile(gitignoreFile, newData, 'utf8', (error) => {
-                            if (error) {
-                                window.showErrorMessage('Error updating .gitignor file.');
-                                return;
-                            }
-                        });
-                    }
-                }
+            if (this.existsSync(gitignore)) {
+                await updateGitignore(gitignore, this);
             }
 
-            if (trackingMethod === TrackingMethodType.File) {
-                const text = 'models.jsonc file was created for the first time';
-                fs.writeFile(this.filePath, this.documentation, 'utf8', (err) => {
-                    if (err) {
-                        window.showErrorMessage(errText);
-                        console.error(err);
-                        return;
-                    }
-                    window.showInformationMessage(text);
-                    return;
-                });
-            } else if (trackingMethod === TrackingMethodType.Directory) {
+            if (locationType === LocationType.File) {
+                const info = 'models.jsonc file was created for the first time';
+                this.writeFile(this.filePath, this.documentation, { showError: error, showInfo: info });
+            } else if (locationType === LocationType.Directory) {
                 if (!this.existsSyncDir) {
-                    const text = `root${this.dirName} directory was created for the first time`;
+                    const info = `${this.dirName} directory was created for the first time`;
                     const path = `${this.dirPath}${this.fileName}`;
-                    await mkdirp(this.dirPath);
-                    fs.writeFile(path, this.documentation, 'utf8', (err) => {
-                        if (err) {
-                            window.showErrorMessage(errText);
-                            console.error(err);
-                            return;
-                        }
-                        window.showInformationMessage(text);
-                        return;
-                    });
+
+                    await this.createDirectory(this.dirPath);
+                    this.writeFile(path, this.documentation, { showError: error, showInfo: info });
                 }
             }
-
         }
     }
 
     async getConfirmation(): Promise<boolean> {
         return window.showInformationMessage(
-            'Start building JSON models?\n\nBuilds from file models.jsonc',
+            'Start building JSON models?\n\nBuilds from file tracked files',
             { modal: true },
             ...['Start', "Don't ask again"]).then((action) => {
                 switch (action) {
@@ -327,31 +293,52 @@ models.jsonc`;
     }
 }
 
-async function promptForFileCreation(): Promise<boolean> {
+async function promptForTrackLocation(): Promise<boolean> {
     const text = 'No tracking file or directory found.\n\n\Do you want it to be created for you?';
     return window.showInformationMessage(text, { modal: true }, ...['Create'])
         .then((action) => action === 'Create' ? true : false);
 }
 
-async function promptForTrackingMethod(): Promise<TrackingMethodType> {
-    const text = 'How do you want to track your JSON models?.\n\n\Choose a tracked method from the file or directory.';
+async function promptForTrackingMethod(): Promise<LocationType> {
+    const text = 'How do you want to track your JSON files?.\n\n\Choose from the file or directory.';
     return window.showInformationMessage(text, { modal: true, }, ...['File', 'Directory'])
         .then((action) => {
             switch (action) {
                 case 'File':
-                    return TrackingMethodType.File;
+                    return LocationType.File;
                 case 'Directory':
-                    return TrackingMethodType.Directory;
-                default:
-                    return TrackingMethodType.None;
+                    return LocationType.Directory;
             }
+
+            return LocationType.None;
         });
 }
 
-async function promptForGitignor(): Promise<boolean> {
-    const text = 'Ignore JSON to Dart model tracking files for GitHub?';
-    return window.showInformationMessage(text, { modal: true }, ...['Ignore'])
-        .then((action) => action === 'Ignore' ? true : false);
+async function updateGitignore(path: string, fm: FileManager): Promise<void> {
+    const data = fm.readFile(path);
+    const split = data.split('\n');
+    const space = split.pop() === '' ? '' : '\n';
+    const ignoredLocations = `${space}
+# "JSON to Dart Model" generator tracker files locations.
+/.json_models/
+models.jsonc
+`;
+
+    if (!split.some((line) => line.match('.json_models') || line.match('models.jsonc'))) {
+        const update = await promptForGitignorUpdate();
+
+        if (update) {
+            const err = 'The .gitignore file could not be updated.';
+            const newData = `${data}${ignoredLocations}`;
+            fm.writeFile(path, newData, { showError: err });
+        }
+    }
+}
+
+async function promptForGitignorUpdate(): Promise<boolean> {
+    const text = 'Do you want to add JSON files to .gitignore';
+    return window.showInformationMessage(text, { modal: true }, ...['Add'])
+        .then((action) => action === 'Add' ? true : false);
 }
 
 export const jsonReader = new JsonReader();

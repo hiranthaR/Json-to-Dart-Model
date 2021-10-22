@@ -1,17 +1,16 @@
 import * as assert from 'assert';
-import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
 import * as vscode from 'vscode';
+import { fm } from '../../utils';
 import { jsonReader } from '../../json-reader';
 import { jsonc } from 'jsonc';
 
 suite('JSON Reader Test Suite', async () => {
 	const root = jsonReader.workspaceRoot;
 	const modelsPath = `${root}/models.jsonc`;
-	const directory = `${root}/.json_models/`;
+	const directory = `${root}/.json_models`;
 	const jsonPath = `${directory}/json_test.json`;
 	const arrayJsonPath = `${directory}/array_json_test.json`;
 	const modelsData = `{
@@ -51,10 +50,10 @@ suite('JSON Reader Test Suite', async () => {
 	});
 
 	test('Creates models.jsonc file and .json_models directory with data for the test', async () => {
-		await mkdirp(directory);
-		fs.writeFile(modelsPath, modelsData, 'utf-8', () => { });
-		fs.writeFile(jsonPath, jsonData, 'utf-8', () => { });
-		fs.writeFile(arrayJsonPath, arrayJsonData, 'utf-8', () => { });
+		await fm.createDirectory(directory);
+		fm.writeFile(modelsPath, modelsData);
+		fm.writeFile(jsonPath, jsonData);
+		fm.writeFile(arrayJsonPath, arrayJsonData);
 	});
 
 	test('Sync and data exist', () => {
@@ -86,11 +85,9 @@ suite('JSON Reader Test Suite', async () => {
 	});
 
 	test('Cleaning of all test data files', async () => {
-		fs.unlinkSync(modelsPath);
-		fs.unlinkSync(jsonPath);
-		fs.unlinkSync(arrayJsonPath);
-		fs.rmdirSync(directory);
-		assert.strictEqual(jsonReader.existsSyncDir, false);
-		assert.strictEqual(jsonReader.existsSyncFile, false);
+		fm.removeFile(modelsPath);
+		fm.removeDirectory('/.json_models');
+		assert.strictEqual(jsonReader.existsSyncDir, false, 'Could not delete /.json_models directory.');
+		assert.strictEqual(jsonReader.existsSyncFile, false, 'Could not delete models.jsonc file.');
 	});
 });

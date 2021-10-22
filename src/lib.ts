@@ -1,10 +1,10 @@
 import * as copyPaste from 'copy-paste';
-import * as fs from 'fs';
 
 import { ViewColumn, window } from 'vscode';
 import { ClassDefinition } from './syntax';
 import { ModelGenerator } from './model-generator';
 import { Settings } from './settings';
+import { fm } from './utils';
 import { jsonc } from 'jsonc';
 
 export function getClipboardText() {
@@ -99,27 +99,14 @@ export async function createClass(settings: Settings) {
     const enhancement = settings.model.nameEnhancement;
     const path = `${settings.targetDirectory}/${classDef.path}${enhancement}.dart`;
 
-    if (fs.existsSync(path)) {
+    if (fm.existsSync(path)) {
       window.showInformationMessage(`${classDef.path}${enhancement}.dart already exists`);
     } else {
       const data = settings.input.generate ?
         classDef.toCodeGenString(settings.input) :
         classDef.toString(settings.input);
 
-      await writeFile(path, data);
+      await fm.writeFile(path, data);
     }
   }
-}
-
-function writeFile(path: string, data: string) {
-  return new Promise<void>((resolve, reject) => {
-    fs.writeFile(path, data, 'utf8', (error) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve();
-    }
-    );
-  });
 }

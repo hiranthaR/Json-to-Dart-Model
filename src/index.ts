@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-import * as mkdirp from 'mkdirp';
 import {
   ExtensionContext,
   commands, window,
@@ -15,8 +13,8 @@ import {
 } from './commands';
 import { Settings } from './settings';
 import { createClass } from './lib';
+import { fm } from './utils';
 import { jsonReader } from './json-reader';
-
 
 export function activate(context: ExtensionContext) {
   context.subscriptions.push(
@@ -84,16 +82,8 @@ export const runBuildRunner = () => {
 
 export const generateClass = async (settings: Settings) => {
   const path = `${settings.targetDirectory}`;
-  if (!fs.existsSync(path)) {
-    await createDirectory(path);
+  if (!fm.existsSync(path)) {
+    await fm.createDirectory(path);
   }
   await createClass(settings);
 };
-
-function createDirectory(targetDirectory: string): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    await mkdirp(targetDirectory)
-      .then((_) => resolve())
-      .catch((error) => reject(error));
-  });
-}
