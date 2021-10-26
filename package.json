@@ -84,7 +84,7 @@
         {
           "command": "jsonToDart.fromFile",
           "group": "jsonToDartGroup@1",
-          "when": "resourceFilename == models.jsonc"
+          "when": "resourceFilename == models.jsonc || resourceFilename =~ /.json_models/"
         },
         {
           "command": "jsonToDart.addCodeGenerationLibraries",
