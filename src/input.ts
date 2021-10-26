@@ -2,10 +2,12 @@ import {
     promptForCodeGenerator,
     promptForCopyWithMethod,
     promptForEqualityOperator,
+    promptForFromAndToSuffix,
     promptForImmutableClass,
     promptForToStringMethod
 } from './shared';
 import { config } from './configuration';
+import { pascalCase } from './utils';
 
 /** To string method type */
 export enum ToStringMethod {
@@ -43,6 +45,7 @@ interface InputProperties {
     fastMode?: boolean;
     sortConstructorsFirst?: boolean;
     includeIfNull?: boolean;
+    fromAndToSuffix?: string;
 }
 
 /**
@@ -61,6 +64,7 @@ export class Input implements InputProperties {
     fastMode: boolean;
     sortConstructorsFirst?: boolean;
     includeIfNull?: boolean;
+    fromAndToSuffix: string;
 
     constructor(props?: InputProperties) {
         this.codeGenerator = props?.codeGenerator ?? config.codeGenerator;
@@ -75,6 +79,8 @@ export class Input implements InputProperties {
         this.fastMode = props?.fastMode ?? config.fastMode;
         this.sortConstructorsFirst = props?.sortConstructorsFirst ?? config.sortConstructorsFirst;
         this.includeIfNull = props?.includeIfNull ?? config.includeIfNull;
+        const suffix = props?.fromAndToSuffix ?? config.fromAndToSuffix;
+        this.fromAndToSuffix = pascalCase(suffix);
     }
 
     get isImmutable(): boolean {
@@ -117,6 +123,7 @@ export const getUserInput = async (generate: boolean = false): Promise<Input> =>
 
     if (generate) {
         input.codeGenerator = await promptForCodeGenerator();
+
         if (input.freezed) {
             input.nullSafety = config.nullSafety;
         }
@@ -124,13 +131,25 @@ export const getUserInput = async (generate: boolean = false): Promise<Input> =>
     // Freezed supports all the methods and you do not have to ask the user about the rest.
     if (!input.freezed) {
         input.equality = await promptForEqualityOperator();
+
         if (input.equality !== 'Equatable') {
             input.immutable = await promptForImmutableClass();
         }
+
         const isEquatable = input.equality === 'Equatable';
         input.toString = await promptForToStringMethod(isEquatable);
         input.copyWith = await promptForCopyWithMethod();
+
+        if (!input.generate) {
+            const fromAndToSuffix = await promptForFromAndToSuffix();
+            const suffix = fromAndToSuffix?.trim();
+            input.fromAndToSuffix = !suffix && !suffix?.length ?
+                config.fromAndToSuffix :
+                pascalCase(suffix);
+        }
+
         input.nullSafety = config.nullSafety;
     }
+
     return input;
 };

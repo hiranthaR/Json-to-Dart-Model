@@ -329,6 +329,7 @@ export class ModelGenerator {
             path: '',
             astNode: astNode,
         });
+
         // After generating all classes, merge similar classes with paths.
         //
         // If duplicates are detected create a new path.

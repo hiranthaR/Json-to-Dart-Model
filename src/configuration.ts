@@ -33,6 +33,7 @@ class Configuration {
     get targetDirectory() { return this.getConfig<string>('targetDirectory.path', '/lib/models'); }
     get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); }
     get includeIfNull() { return this.getConfig<boolean>('includeIfNull', false); }
+    get fromAndToSuffix() { return this.getConfig<string>('fromAndToSuffix', 'Json'); }
 }
 
 export const config = new Configuration();

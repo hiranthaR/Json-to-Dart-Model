@@ -218,6 +218,11 @@
             "default": "/lib/models",
             "markdownDescription": "Default target directory when conversion is from the file `models.jsonc`."
           },
+          "jsonToDart.fromAndToSuffix": {
+            "type": "string",
+            "default": "Json",
+            "markdownDescription": "The suffix for the method `from/to`. By default is `fromJson/toJson`."
+          },
           "jsonToDart.runBuilder": {
             "type": "boolean",
             "default": true,

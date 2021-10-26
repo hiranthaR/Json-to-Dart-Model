@@ -235,13 +235,13 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
           if (typeDef.isDate) {
             formatedValue += printLine(`.map((e) => ${parseDateTime('e')})`, 1, tabs);
           } else {
-            formatedValue += printLine(`.map((e) => ${buildParseClass(key, 'e')})`, 1, tabs);
+            formatedValue += printLine(`.map((e) => ${buildParseClass(key, 'e', input)})`, 1, tabs);
           }
         } else {
           if (typeDef.isDate) {
             formatedValue += printLine(`?.map((e) => ${parseDateTime('e')})`, 1, tabs);
           } else {
-            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, 'e')})`, 1, tabs);
+            formatedValue += printLine(`?.map((e) => ${buildParseClass(key, 'e', input)})`, 1, tabs);
           }
         }
       } else {
@@ -250,7 +250,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
         if (typeDef.isDate) {
           formatedValue += printLine(`: ${parseDateTime('e')})`, 1, longTab + 2 * result.length);
         } else {
-          formatedValue += printLine(`: ${buildParseClass(key, 'e')})`, 1, longTab + 2 * result.length);
+          formatedValue += printLine(`: ${buildParseClass(key, 'e', input)})`, 1, longTab + 2 * result.length);
         }
       }
       for (let i = 0; i < result.length - 1; i++) {
@@ -266,7 +266,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
       if (typeDef.isDate) {
         formatedValue += printLine(`: ${parseDateTime(jsonValue)}`, 1, longTab);
       } else {
-        formatedValue += printLine(`: ${buildParseClass(key, jsonValue)}`, 1, longTab);
+        formatedValue += printLine(`: ${buildParseClass(key, jsonValue, input)}`, 1, longTab);
       }
     }
   }
@@ -276,7 +276,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
 const toJsonClass = (
   typeDef: TypeDefinition,
   privateField: boolean,
-  nullSafety: boolean = false
+  input: Input
 ): string => {
   const fieldKey = typeDef.getName(privateField);
   const thisKey = `${fieldKey}`;
@@ -289,14 +289,14 @@ const toJsonClass = (
         // Responsive formatting.
         // This will generate infiniti maps depending on how many lists are in the lists.
         // By default this line starts with keyword List, slice will remove it.
-        if (nullSafety) {
-          const isNull = typeDef.nullable;
+        if (input.nullSafety) {
+          const isNullable = typeDef.nullable;
           sb += printLine(`'${typeDef.jsonKey}': ${thisKey}?`);
           sb += Array.from(result).map(_ => printLine('.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
-            sb += printLine(`.map((e) => ${toIsoString('e', isNull)})`);
+            sb += printLine(`.map((e) => ${toIsoString('e', isNullable)})`);
           } else {
-            sb += printLine(`.map((e) => ${buildToJsonClass('e', isNull)})`);
+            sb += printLine(`.map((e) => ${buildToJsonClass('e', isNullable, input)})`);
           }
           sb += Array.from(result).map(_ => printLine('.toList())')).slice(0, -1).join('');
           sb += printLine('.toList(),');
@@ -306,34 +306,34 @@ const toJsonClass = (
           if (typeDef.isDate) {
             sb += printLine(`?.map((e) => ${toIsoString('e')})`);
           } else {
-            sb += printLine(`?.map((e) => ${buildToJsonClass('e')})`);
+            sb += printLine(`?.map((e) => ${buildToJsonClass('e', false, input)})`);
           }
           sb += Array.from(result).map(_ => printLine('?.toList())')).slice(0, -1).join('');
           sb += printLine('?.toList(),');
         }
       } else {
-        if (nullSafety) {
-          const isNull = typeDef.nullable;
+        if (input.nullSafety) {
+          const isNullable = typeDef.nullable;
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNull)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNullable)}).toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNull)}).toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNullable, input)}).toList(),`;
           }
         } else {
           if (typeDef.isDate) {
             sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e')})?.toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e')})?.toList(),`;
+            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', false, input)})?.toList(),`;
           }
         }
       }
     } else {
       // Class
-      const isNull = nullSafety && !typeDef.nullable;
+      const isNullable = input.nullSafety && !typeDef.nullable;
       if (typeDef.isDate) {
-        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNull)},`;
+        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNullable)},`;
       } else {
-        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNull)},`;
+        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNullable, input)},`;
       }
     }
   }
@@ -371,30 +371,30 @@ export function jsonParseValue(
 export function toJsonExpression(
   typeDef: TypeDefinition,
   privateField: boolean,
-  nullSafety: boolean = false
+  input: Input,
 ): string {
   const fieldKey = typeDef.getName(privateField);
   const thisKey = `${fieldKey}`;
   if (typeDef.isPrimitive) {
     if (typeDef.isDate) {
-      return toJsonClass(typeDef, privateField, nullSafety);
+      return toJsonClass(typeDef, privateField, input);
     } else {
       return `'${typeDef.jsonKey}': ${thisKey},`;
     }
   } else {
-    return toJsonClass(typeDef, privateField, nullSafety);
+    return toJsonClass(typeDef, privateField, input);
   }
 }
 
-const buildToJsonClass = (expression: string, nullSafety: boolean = false): string => {
+const buildToJsonClass = (expression: string, nullSafety: boolean = false, input: Input): string => {
   return nullSafety
-    ? `${expression}.toJson()`
-    : `${expression}?.toJson()`;
+    ? `${expression}.to${input.fromAndToSuffix}()`
+    : `${expression}?.to${input.fromAndToSuffix}()`;
 };
 
-const buildParseClass = (className: string, expression: string): string => {
+const buildParseClass = (className: string, expression: string, input: Input): string => {
   const name = pascalCase(className).replace(/_/g, '');
-  return `${name}.fromJson(${expression} as Map<String, dynamic>)`;
+  return `${name}.from${input.fromAndToSuffix}(${expression} as Map<String, dynamic>)`;
 };
 
 /**
@@ -642,7 +642,7 @@ export class ClassDefinition {
     };
     sb += printLine(`}) = _${this.name};`, 1, 1);
     sb += privatConstructor;
-    sb += printLine(`${this.codeGenJsonParseFunc(true)}`);
+    sb += printLine(`${this.codeGenJsonParseFunc(input)}`);
     sb += defaultDateTime(this.fields, true, input.nullSafety);
     sb += printLine('}', 1);
     return sb;
@@ -857,10 +857,11 @@ export class ClassDefinition {
   }
 
   private jsonParseFunc(input: Input): string {
+    const suffix = input.fromAndToSuffix;
     const blockBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}`, 2, 1);
-      sb += printLine('.fromJson(Map<String, dynamic> json) {');
+      sb += printLine(`.from${suffix}(Map<String, dynamic> json) {`);
       sb += printLine(`return ${this.name}(\n`, 1, 2);
       sb += this.getFields((f, k) => {
         // Check forced type for only not primitive type.
@@ -875,7 +876,7 @@ export class ClassDefinition {
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}`, 2, 1);
-      sb += printLine('.fromJson(Map<String, dynamic> json) => ');
+      sb += printLine(`.from${suffix}(Map<String, dynamic> json) => `);
       sb += printLine(`${this.name}(\n`);
       sb += this.getFields((f, k) => {
         // Check forced type for only not primitive type.
@@ -892,12 +893,13 @@ export class ClassDefinition {
   }
 
   private toJsonFunc(input: Input): string {
+    const suffix = input.fromAndToSuffix;
     const blockBody = (): string => {
       let sb = '';
-      sb += printLine('Map<String, dynamic> toJson() {', 0, 1);
+      sb += printLine(`Map<String, dynamic> to${suffix}() {`, 0, 1);
       sb += printLine('return {', 1, 2);
       this.getFields((f) => {
-        sb += printLine(`${toJsonExpression(f, this._privateFields, input.nullSafety)}`, 1, 3);
+        sb += printLine(`${toJsonExpression(f, this._privateFields, input)}`, 1, 3);
       });
       sb += printLine('};', 0, 2);
       sb += printLine('}', 1, 1);
@@ -906,9 +908,9 @@ export class ClassDefinition {
 
     const expressionBody = (): string => {
       var sb = '';
-      sb += printLine('Map<String, dynamic> toJson() => {', 0, 1);
+      sb += printLine(`Map<String, dynamic> to${suffix}() => {`, 0, 1);
       this.getFields((f) => {
-        sb += printLine(`${toJsonExpression(f, this._privateFields, input.nullSafety)}`, 1, 4);
+        sb += printLine(`${toJsonExpression(f, this._privateFields, input)}`, 1, 4);
       });
       sb += printLine('};', 1, 3);
       return sb;
@@ -923,7 +925,7 @@ export class ClassDefinition {
    * Generate function for json_serializable and freezed.
    * @param freezed force to generate expression body (required for freezed generator).
    */
-  private codeGenJsonParseFunc(freezed: boolean = false): string {
+  private codeGenJsonParseFunc(input: Input): string {
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}.`, 2, 1);
@@ -939,7 +941,7 @@ export class ClassDefinition {
       sb += printLine('}', 1, 1);
       return sb;
     };
-    return expressionBody().length > 78 && !freezed
+    return expressionBody().length > 78 && !input.freezed
       ? blockBody()
       : expressionBody();
   }
@@ -1040,7 +1042,7 @@ export class ClassDefinition {
     });
     let sb = '';
     sb += printLine('@override', 2, 1);
-    sb += printLine('bool operator ==(dynamic other) {', 1, 1);
+    sb += printLine('bool operator ==(Object other) {', 1, 1);
     sb += printLine('if (identical(other, this)) return true;', 1, 2);
     sb += printLine(`if (other is! ${this.name}) return false;`, 1, 2);
     sb += printLine('return ', 1, 2);
@@ -1134,7 +1136,7 @@ export class ClassDefinition {
         }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
         field += `${this.gettersSetters(input)}\n\n`;
-        field += `${this.codeGenJsonParseFunc()}\n\n`;
+        field += `${this.codeGenJsonParseFunc(input)}\n\n`;
         field += `${this.codeGenToJsonFunc()}`;
         field += `${this.copyWithMethod(input)}`;
         field += `${this.equalityOperator(input)}`;
@@ -1156,7 +1158,7 @@ export class ClassDefinition {
           field += `${this.defaultConstructor(input)}`;
         }
         field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
-        field += `${this.codeGenJsonParseFunc()}\n\n`;
+        field += `${this.codeGenJsonParseFunc(input)}\n\n`;
         field += `${this.codeGenToJsonFunc()}`;
         field += `${this.copyWithMethod(input)}`;
         field += `${this.equalityOperator(input)}`;

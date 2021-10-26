@@ -157,6 +157,15 @@ export const promptForBaseClassName = (): Thenable<string | undefined> => {
     return window.showInputBox(classNamePromptOptions);
 };
 
+export const promptForFromAndToSuffix = (): Thenable<string | undefined> => {
+    const options: InputBoxOptions = {
+        prompt: 'Suffix for methods from/to',
+        placeHolder: 'Json (Default)',
+    };
+
+    return window.showInputBox(options);
+};
+
 export const promptForTargetDirectory = async (): Promise<string | undefined> => {
     const workspaceRoot = getWorkspaceRoot();
     const options: OpenDialogOptions = {
