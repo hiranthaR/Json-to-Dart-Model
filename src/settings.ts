@@ -3,7 +3,9 @@ import { snakeCase } from './utils';
 
 /** Separates class names and enhancement names from the syntax */
 export class ClassNameModel {
-    readonly nameEnhancement: string = '';
+    readonly enhancement: string = '';
+    readonly directoryName: string;
+    readonly fileName: string;
     className: string;
 
     constructor(className: string) {
@@ -15,28 +17,30 @@ export class ClassNameModel {
             const last = '.' + split.join('.').split('.').map((e) => snakeCase(e)).join('.');
             this.className = first;
             if (last.match(/(\W|dart)+$/gm)) {
-                this.nameEnhancement = '.' + last.replace(/(\W|dart)+$/gm, '').split('.').map((e) => snakeCase(e)).join('.');
+                this.enhancement = '.' + last.replace(/(\W|dart)+$/gm, '').split('.').map((e) => snakeCase(e)).join('.');
             } else {
-                this.nameEnhancement = last;
+                this.enhancement = last;
             }
         }
+        this.directoryName = snakeCase(this.className);
+        this.fileName = `${snakeCase(this.className)}${snakeCase(this.enhancement)}.dart`;
     }
 }
 
-/** The indicates how the path was taken. */
+/** Indicates where and how to create generated files. */
 export enum TargetDirectoryType {
     /** 
      *  The generator generates all files to the map. The map name is as provided class name.
      */
+    Compressed,
+    /** 
+     * Creates to the `models` folder.
+     */
     Default,
     /** 
-     * The path to the `models` folder from user input.
+     * The generator does not generate files to the map. Creates them to the provided directory.
      */
-    Standard,
-    /** 
-     * The generator does not generate files to the map.
-     */
-    Raw,
+    Expanded,
 }
 
 export interface ISettings {
@@ -80,9 +84,9 @@ export class Settings implements ISettings {
 
 const buildTargetDirectory = (settings: ISettings): string => {
     switch (settings.targetDirectoryType) {
-        case TargetDirectoryType.Default:
+        case TargetDirectoryType.Compressed:
             return settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
-        case TargetDirectoryType.Standard:
+        case TargetDirectoryType.Default:
             return settings.targetDirectory + '/models';
         default:
             return settings.targetDirectory;

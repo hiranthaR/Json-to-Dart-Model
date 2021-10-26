@@ -1,35 +1,9 @@
-import { ClassNameModel, Settings } from '../settings';
+import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { generateClass, runBuildRunner, runDartFormat } from '../index';
 import { Input } from '../input';
 import { handleError } from '../lib';
 import { jsonReader } from '../json-reader';
 import { window } from 'vscode';
-
-/** Used to warn users about changes. */
-const deprecatedSettingsProperties: string[] = [
-    'freezed',
-    'equatable',
-    'immutable',
-    'toString',
-    'copyWith',
-    'equality',
-    'serializable',
-    'nullSafety',
-    'targetDirectory',
-    'primaryConfiguration',
-    'fastMode',
-];
-
-/**
- * Checks if `models.jsonc` file have configuration object which has been moved to the VS Code settings.
- * @param {Object} object that contains the deprecated properties.
- * @returns `true` if contains old settings object keys.
- */
-const isDeprecatedSettings = (object: Record<string, any>): boolean => {
-    return Object.keys(object).every((prop) => {
-        return deprecatedSettingsProperties.includes(prop);
-    });
-};
 
 export const transformFromFile = async () => {
     if (jsonReader.existsSyncFile || jsonReader.existsSyncDir) {
@@ -41,11 +15,6 @@ export const transformFromFile = async () => {
 
         if (len === 0) {
             window.showInformationMessage('Nothing to generate from the tracked places');
-            return;
-        }
-
-        if (isDeprecatedSettings(allData[0][1].value)) {
-            window.showInformationMessage('Configuration from the file models.jsonc was moved to the Settings/Extensions/JSON To Dart Model. Configure a new option in the settings and remove the configuration item from the file models.jsonc to avoid this warning.');
             return;
         }
 
@@ -90,7 +59,9 @@ export const transformFromFile = async () => {
                 const data = allData[i][1];
                 if (data.className) {
                     const model = new ClassNameModel(data.className);
-                    runDartFormat(data.targetDirectory, model.className);
+                    const formattingTarget = data.targetDirectoryType === TargetDirectoryType.Compressed ? model.directoryName : '';
+
+                    runDartFormat(data.targetDirectory, formattingTarget);
                 }
             }
 

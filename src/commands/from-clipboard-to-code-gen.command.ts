@@ -12,8 +12,6 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
     let input = new Input();
     const className = await promptForBaseClassName();
 
-    let targetDirectoryType: TargetDirectoryType = TargetDirectoryType.Standard;
-
     if (_.isNil(className) || className.trim() === '') {
         window.showErrorMessage('The class name must not be empty');
         return;
@@ -32,27 +30,26 @@ export const transformFromClipboardToCodeGen = async (uri: Uri) => {
             return;
         }
     } else {
-        targetDirectoryType = TargetDirectoryType.Raw;
         targetDirectory = uri.fsPath;
     }
 
     const json: string = await getClipboardText().then(validateJSON).catch(handleError);
-
+    const model = new ClassNameModel(className);
     const config: Settings = {
-        model: new ClassNameModel(className),
+        model: model,
         targetDirectory: <string>targetDirectory,
         json: json,
         input: input,
-        targetDirectoryType: targetDirectoryType,
+        targetDirectoryType: TargetDirectoryType.Compressed,
     };
     // Create new settings.
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        runDartFormat(
-            <string>targetDirectory,
-            settings.targetDirectoryType === TargetDirectoryType.Raw ? '' : 'models',
-        );
+        const formattingTarget = model.directoryName;
+
+        runDartFormat(<string>targetDirectory, formattingTarget);
+
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }

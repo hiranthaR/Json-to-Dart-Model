@@ -96,11 +96,12 @@ export async function createClass(settings: Settings) {
 
   for (var i = 0; i < classes.length; ++i) {
     const classDef = classes[i];
-    const enhancement = settings.model.nameEnhancement;
-    const path = `${settings.targetDirectory}/${classDef.path}${enhancement}.dart`;
+    const enhancement = settings.model.enhancement;
+    const fileName = `${classDef.path}${enhancement}.dart`;
+    const path = `${settings.targetDirectory}/${fileName}`;
 
     if (fm.existsSync(path)) {
-      window.showInformationMessage(`${classDef.path}${enhancement}.dart already exists`);
+      window.showInformationMessage(`${fileName} already exists`);
     } else {
       const data = settings.input.generate ?
         classDef.toCodeGenString(settings.input) :

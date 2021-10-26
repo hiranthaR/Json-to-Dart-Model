@@ -34,19 +34,22 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     }
 
     const json: string = await getSelectedText().then(validateJSON).catch(handleError);
-
+    const model = new ClassNameModel(className);
     const config: Settings = {
-        model: new ClassNameModel(className),
+        model: model,
         targetDirectory: <string>targetDirectory,
         json: json,
         input: input,
-        targetDirectoryType: TargetDirectoryType.Standard,
+        targetDirectoryType: TargetDirectoryType.Compressed,
     };
     // Create new settings.
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        runDartFormat(<string>targetDirectory, 'models');
+        const formattingTarget = model.directoryName;
+
+        runDartFormat(<string>targetDirectory, formattingTarget);
+
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }

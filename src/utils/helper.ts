@@ -203,7 +203,7 @@ export const equalByType = (object: any, other: any): boolean => {
  * @param object The object being analyzed.
  * @returns A boolean.
  */
-export function hasObjects(object: { [key: string]: any }): boolean {
+export function hasObject(object: { [key: string]: any }): boolean {
     return Object.values(object).some((value) => {
         if (value instanceof Array) {
             return getListTypeName(value) === 'Class';
@@ -257,12 +257,7 @@ export const getListTypeName = (arr: any[]): string => {
             } else {
                 return 'num';
             }
-        } else if (arr.every((i) =>
-            typeof i === 'string' ||
-            typeof i === 'number' ||
-            typeof i === 'boolean' ||
-            i instanceof Array
-        )) {
+        } else if (arr.every((i) => isPrimitiveType(getTypeName(i)))) {
             return 'dynamic';
         } else {
             return 'Class';

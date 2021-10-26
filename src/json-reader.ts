@@ -1,24 +1,14 @@
 import { ConfigurationTarget, TextDocument, window } from 'vscode';
-import { FileManager, hasObjects } from './utils';
+import { FileManager, hasObject } from './utils';
 import { TargetDirectoryType } from './settings';
 import { config } from './configuration';
 import { jsonc } from 'jsonc';
 import { transformFromFile } from './commands';
 
-enum LocationType { 'File', 'Directory', 'None' }
-export type SafeData = [Error, JsonData] | [null, JsonData];
-type JsonDataOptions = Pick<JsonData, 'workspaceRoot' | 'defaultDirectory' | 'filename' | 'filePath' | 'value'>;
-
-/**
- * A class that separates JSON object keys that have been added by the user.
- * And provides all information about the JSON object.
- */
-export class JsonData {
-    // A key to determine the class name.
-    private nameKey = '__className';
-    // A key to determine the model target path.
-    private pathKey = '__path';
-    targetDirectoryType = TargetDirectoryType.Default;
+interface IJsonData {
+    /** The type of the target directory. Indicates where and how files will be created. */
+    targetDirectoryType: TargetDirectoryType;
+    /** The workspace root */
     workspaceRoot: string | undefined;
     /** A class name from the JSON object. */
     className?: string;
@@ -33,8 +23,33 @@ export class JsonData {
     /** The file location. */
     filePath: string;
     /** A JSON object without option keys `__className` and `__path` added by the user. */
-    value: Record<string, any> = {};
+    value: Record<string, any>;
     /** JSON string strictly ready for conversion. */
+    json: string;
+}
+
+enum LocationType { 'File', 'Directory', 'None' }
+export type SafeData = [Error, JsonData] | [null, JsonData];
+type JsonDataOptions = Pick<IJsonData, 'workspaceRoot' | 'defaultDirectory' | 'filename' | 'filePath' | 'value'>;
+
+/**
+ * A class that separates JSON object keys that have been added by the user.
+ * And provides all information about the JSON object.
+ */
+export class JsonData implements IJsonData {
+    // A key to determine the class name.
+    private nameKey = '__className';
+    // A key to determine the model target path.
+    private pathKey = '__path';
+    targetDirectoryType = TargetDirectoryType.Compressed;
+    workspaceRoot: string | undefined;
+    className?: string;
+    requiredPath?: string;
+    defaultDirectory: string;
+    targetDirectory: string;
+    filename: string;
+    filePath: string;
+    value: Record<string, any> = {};
     json: string;
 
     constructor(options: JsonDataOptions) {
@@ -50,9 +65,9 @@ export class JsonData {
         this.targetDirectory = path !== undefined ?
             options.workspaceRoot + path :
             options.workspaceRoot + options.defaultDirectory;
-        this.targetDirectoryType = path !== undefined || !hasObjects(value) ?
-            TargetDirectoryType.Raw :
-            TargetDirectoryType.Default;
+        this.targetDirectoryType = path !== undefined || !hasObject(value) ?
+            TargetDirectoryType.Expanded :
+            TargetDirectoryType.Compressed;
     }
 }
 
@@ -191,10 +206,10 @@ class JsonReader extends FileManager {
     async createTrackingLocation(): Promise<void> {
         const gitignore = '/.gitignore';
         const error = 'Failed to create the tracking places';
-        const createLocation = await promptForTrackLocation();
+        const createLocation = await promptForLocation();
 
         if (createLocation) {
-            const locationType = await promptForTrackingMethod();
+            const locationType = await promptForLocationType();
 
             if (this.existsSync(gitignore)) {
                 await updateGitignore(gitignore, this);
@@ -217,7 +232,7 @@ class JsonReader extends FileManager {
 
     async getConfirmation(): Promise<boolean> {
         return window.showInformationMessage(
-            'Start building JSON models?\n\nBuilds from file tracked files',
+            'Start building JSON models?\n\nBuilds from tracked file locations.',
             { modal: true },
             ...['Start', "Don't ask again"]).then((action) => {
                 switch (action) {
@@ -293,13 +308,13 @@ class JsonReader extends FileManager {
     }
 }
 
-async function promptForTrackLocation(): Promise<boolean> {
+async function promptForLocation(): Promise<boolean> {
     const text = 'No tracking file or directory found.\n\n\Do you want it to be created for you?';
     return window.showInformationMessage(text, { modal: true }, ...['Create'])
         .then((action) => action === 'Create' ? true : false);
 }
 
-async function promptForTrackingMethod(): Promise<LocationType> {
+async function promptForLocationType(): Promise<LocationType> {
     const text = 'How do you want to track your JSON files?.\n\n\Choose from the file or directory.';
     return window.showInformationMessage(text, { modal: true, }, ...['File', 'Directory'])
         .then((action) => {
@@ -336,7 +351,7 @@ models.jsonc
 }
 
 async function promptForGitignorUpdate(): Promise<boolean> {
-    const text = 'Do you want to add JSON files to .gitignore';
+    const text = 'Do you want to add JSON files to .gitignore?';
     return window.showInformationMessage(text, { modal: true }, ...['Add'])
         .then((action) => action === 'Add' ? true : false);
 }

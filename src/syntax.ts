@@ -439,7 +439,7 @@ export class ClassDefinition {
   constructor(model: ClassNameModel, privateFields = false) {
     this._name = pascalCase(model.className);
     this._path = snakeCase(model.className);
-    this.nameEnhancement = model.nameEnhancement;
+    this.nameEnhancement = model.enhancement;
     this._privateFields = privateFields;
   }
 
@@ -748,8 +748,8 @@ export class ClassDefinition {
 
   private importsForParts(input: Input): string {
     var imports = '';
-    imports += input.freezed ? "part '" + this._path + this.nameEnhancement + ".freezed.dart';\n" : '';
-    imports += input.generate ? "part '" + this._path + this.nameEnhancement + ".g.dart';\n" : '';
+    imports += input.freezed ? `part '${this._path}${this.nameEnhancement}.freezed.dart';\n` : '';
+    imports += input.generate ? `part '${this._path}${this.nameEnhancement}.g.dart';\n` : '';
     if (imports.length === 0) {
       return imports;
     } else {
@@ -764,7 +764,7 @@ export class ClassDefinition {
 
     for (const name of names) {
       if (name !== null) {
-        imports += "import '" + name + this.nameEnhancement + ".dart';\n";
+        imports += `import '${name}${this.nameEnhancement}.dart';\n`;
       }
     }
 
