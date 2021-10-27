@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.1
+
+   - Bugfix.
+
 ## 3.5.0
 
    - Added support for safe `JSON`. The generator can read and parse `json` and `jsonc` from any method.
