@@ -24,6 +24,7 @@ export const transformFromFile = async () => {
         if (confirm) {
             // Start converting.
             for (let i = 0; i < len; i++) {
+                const end = i === len - 1;
                 const [err, data] = allData[i];
 
                 if (err) {
@@ -51,7 +52,9 @@ export const transformFromFile = async () => {
 
                 generateClass(settings).catch(handleError);
 
-                window.showInformationMessage('Models successfully added');
+                if (end) {
+                    window.showInformationMessage('Models successfully added');
+                }
             }
 
             // Format directories
