@@ -20,7 +20,7 @@
 > From JSON to Dart Advanced
 
 <!-- TABLE OF CONTENTS -->
-<details closed="closed">
+<details open="open">
   <summary>Table of Contents</summary>
   <ol>
     <li> <a href="#features">Features</a>
@@ -30,10 +30,13 @@
         <li><a href="#convert-from-clipboard-to-code-generation-libraries-supported-model-classes">Convert from clipboard to code generation</a></li>
         <li><a href="#convert-from-selection-to-code-generation-libraries-supported-model-classes">Convert from selection to code generation</a></li>
         <li><a href="#convert-from-file">Convert from file</a></li>
+        <li><a href="#convert-from-directory">Convert from directory</a></li>
         <li><a href="#annotations">Annotations</a></li>
         <li><a href="#speed-up-converting">Speed up converting</a></li>
         <li><a href="#enhanced-file-names">Enhanced file names</a></li>
         <li><a href="#context-actions">Context actions</a></li>
+        <li><a href="#avoid-dynamic-types">Avoid dynamic Types</a></li>
+        <li><a href="#suffix-for-from-and-to">Suffix for from/to</a></li>
       </ul>
     <li>
       <a href="#the-syntax">The Syntax</a>
@@ -64,7 +67,7 @@
 
 <space><space>
 
-Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**.
+Given a JSON string, this library will generate all the necessary Dart classes to parse and generate JSON in a safe way becouse generator support `jsonc` and `json`. Also designed to generate Flutter-friendly model classes following the [Flutter's doc recommendation](https://flutter.io/json/#serializing-json-manually-using-dartconvert) and [Effective Dart: Style](https://dart.dev/guides/language/effective-dart/style).  Extention supports for both **Serializing JSON manually** and **Serializing JSON** using code generation libraries like **Freezed** and **Json Serializable**.
 
 > **Note:** when you use `Freezed` or `Json Serializable` then `Json to Dart Model` generates only types and everything that happens after, then `Dart Build System builders` takes care of the rest and is responsible for generated code.
 
@@ -111,22 +114,39 @@ To customize your classes is very easy. If you want fast to create a simple clas
 
 `Json to Dart Model` generator keeps all your JSON objects in the file with the name `models.jsonc` and allows you to configure your classes according to your preferences. `models.jsonc` content is a list that contains all of your JSON objects that will later be converted to Dart classes. The `jsonc` format allows you to comment on your JSON objects to easily find them later or make it easier to explain to your team. To create the `models.jsonc` file you can run command in the command palette `Build Models` or use keys binging `Shift + Ctrl + Alt + B` and you will be asked if you want to create a file, hit Enter to add the file. To configure options for output, go to the `Settings/Extensions/JSON To Dart Model`
 
-**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list object separated by commas. **Note that you add base class names to each object with key** `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc`. By adding key `__path` you can override the default path and navigate your models where you want and how your want in your workspace. File should look like this:
+**Create file manually**. Just add a new file to your app directory `my_app/models.jsonc` and put all JSON objects to the list separated by commas for multi JSON conversions at once. **Note that you add base class names to each object with key** `"__className": "MyClass",` the class name will be removed from the object and used as the root class name for your code syntax. Duplicate class names are not allowed to avoid overwriting the files. Inside your `models.jsonc`. By adding key `__path` you can override the default path and navigate your models where you want and how your want in your workspace. File should look like this:
 
+#### Single JSON conversion
+```jsonc
+{
+  "__className": "user_post", // <- The base class name of the object.
+  "__path": "/lib/models/user_post", // <- override default path with a new one by adding '__path' key.
+  "userId": 1,
+  "id": 1, // To mark as required value, change "id" to "r@id".
+  "title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
+  "body": "Json to Dart advanced..."
+}
+```
+#### Multiple JSON conversion
 ```jsonc
 [
   {
-    "__className": "UserPost", // <- The base class name of the object.
-    "__path": "/lib/models/user_post", // <- override default path with a new one by adding '__path' key.
-    "userId": 1,
-    "id": 1, // To mark as required value, change "id" to "r@id".
-    "title": "Json To Dart Model", // To mark as a default value, change "title" to "d@title".
-    "body": "Json to Dart advanced..."
+    "__className": "class_one",
+    /* ... */
+  },
+  {
+    "__className": "class_two",
+    /* ... */
   }
 ]
 ```
 
 After adding the object and convert to Dart classes just run a command from the [command palette](#how-to-use) or simpler use key binding `Shift + Ctrl + Alt + B`. If you want to update some class, just delete the class folder from the directory and run again `Build Models` and `Json to Dart Model` will generate the missing directory.
+
+<!-- CONVERT FROM DIRECTORY -->
+## Convert From Directory
+
+If you are converting `JSON` models from the `models.jsonc` file and it has become too large. Then you can split it inside the `/.json_models` directory. And generator will read all of them and will convert in the same way as from the models.jsonc. Inside the tracked directory supported files are `**.json` and `**.jsonc`  the rest will be ignored. Of course, you can use both tracked locations at the same time `my_app/models.jsonc` and `my_app/.json_models` the generator track the both locations.
 
 <!-- ENHANCED FILE NAMES -->
 ## Enhanced File Names
@@ -178,6 +198,16 @@ This also works with Freezed and JSON Serializable, also initializes non-constan
 ## Speed Up Converting
 
 If you work a lot with JSON files and get tired every time customize your models in the command palette. Then you can go to the `Settings/Extensions/JSON To Dart Model` and set the primary configuration to `true`. And Json to Dart Model will use settings configuration everywhere and never ask you about input. Just choose any command from the selection or clipboard and pick the directory. Set fast mode to `true` for faster converting to the default directory.
+
+<!-- AVOID DYNAMIC TYPES -->
+## Avoid dynamic Types
+
+By using Dart with null-safety you can activate in the setting avoid `dynamic` types and the generator will output `from/to` types as `Map<String, Object?>`. By following Dart standards, `List<dynamic>` type will not change because the default list type is `dynamic` in the Dart language. Also, it has no effect if you generate with code generator libraries because they use `dynamic` types anyway.
+
+<!-- SUFFIX FOR FROM/TO -->
+## Suffix for from and to 
+
+The generator has default `Json` suffix for `from/to` methods. It is possible to change the extension settings or override by converting `JSON`.
 
 <!-- JSON SERIALIZABLE -->
 ## JSON Serializable
@@ -275,21 +305,30 @@ To add Equatable support you just have to select `Equatable` equality support wh
 <!-- EQUALITY OPERATOR -->
 ## Equality Operator
 
-If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator and customize your class as mutable.
+If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator and customize your class as mutable. With utility from the Dart foundation collections, make equality less boilerplate.
 
+### Without null safety
 ```dart
 @override
 bool operator ==(dynamic other) {
   if(identical(other, this)) return true;
   if (other is! Todos) return false;
-  return other.userId == userId &&
-      other.id == id &&
-      other.title == title &&
-      other.completed == completed;
+  return mapEquals(other.toJson() as Map, toJson());
 }
 
 @override
 int get hashCode => userId.hashCode ^ id.hashCode ^ title.hashCode ^ completed.hashCode;
+```
+### With null safety
+```dart
+@override
+bool operator ==(Object other) {
+  if(identical(other, this)) return true;
+  if (other is! Todos) return false;
+  return mapEquals(other.toJson(), toJson());
+}
+
+//..
 ```
 
 <!-- TO STRING METHOD -->

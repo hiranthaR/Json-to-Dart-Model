@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -84,7 +84,7 @@
         {
           "command": "jsonToDart.fromFile",
           "group": "jsonToDartGroup@1",
-          "when": "resourceFilename == models.jsonc"
+          "when": "resourceFilename == models.jsonc || resourceFilename =~ /.json_models/"
         },
         {
           "command": "jsonToDart.addCodeGenerationLibraries",
@@ -218,10 +218,20 @@
             "default": "/lib/models",
             "markdownDescription": "Default target directory when conversion is from the file `models.jsonc`."
           },
+          "jsonToDart.fromAndToSuffix": {
+            "type": "string",
+            "default": "Json",
+            "markdownDescription": "The suffix for the method `from/to`. By default is `fromJson/toJson`."
+          },
           "jsonToDart.runBuilder": {
             "type": "boolean",
             "default": true,
             "description": "Automatically run build runner after generated code for Freezed and JSON Serializable."
+          },
+          "jsonToDart.avoidDynamicTypes": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Generator will generate `dynamic` types as `Object` with null safety check. **Note:** this option work only with Dart null safety."
           }
         }
       }

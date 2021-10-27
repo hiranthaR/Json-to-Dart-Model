@@ -1,8 +1,8 @@
 import * as _ from 'lodash';
-import { InputBoxOptions, OpenDialogOptions, Uri, window } from 'vscode';
-import { CodeGenerator, Equality, ToStringMethod } from '../input';
-import { getWorkspaceRoot } from '../utils';
 
+import { CodeGenerator, Equality, ToStringMethod } from '../input';
+import { InputBoxOptions, OpenDialogOptions, Uri, window } from 'vscode';
+import { getWorkspaceRoot } from '../utils';
 
 /**
  * Code generation for immutable classes that has a simple syntax/API without compromising on the features.
@@ -155,6 +155,15 @@ export const promptForBaseClassName = (): Thenable<string | undefined> => {
         placeHolder: 'User',
     };
     return window.showInputBox(classNamePromptOptions);
+};
+
+export const promptForFromAndToSuffix = (): Thenable<string | undefined> => {
+    const options: InputBoxOptions = {
+        prompt: 'Suffix for methods from/to',
+        placeHolder: 'Json (Default)',
+    };
+
+    return window.showInputBox(options);
 };
 
 export const promptForTargetDirectory = async (): Promise<string | undefined> => {

@@ -5,8 +5,9 @@ import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { CodeGenerator, Input, getUserInput } from '../input';
 import { Uri, window } from 'vscode';
 import { generateClass, runBuildRunner, runDartFormat } from '../index';
-import { getSelectedText, handleError, validateLength } from '../lib';
+import { getSelectedText, handleError, validateJSON } from '../lib';
 import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user-prompts';
+import { hasObject } from '../utils';
 
 export const transformFromSelection = async (uri: Uri) => {
     const className = await promptForBaseClassName();
@@ -33,14 +34,15 @@ export const transformFromSelection = async (uri: Uri) => {
         targetDirectory = uri.fsPath;
     }
 
-    const json: string = await getSelectedText().then(validateLength).catch(handleError);
-
+    const json: string = await getSelectedText().then(validateJSON).catch(handleError);
+    const hasObj = hasObject(JSON.parse(json));
+    const model = new ClassNameModel(className);
     const config: Settings = {
-        model: new ClassNameModel(className),
+        model: model,
         targetDirectory: <string>targetDirectory,
-        object: json,
+        json: json,
         input: input,
-        targetDirectoryType: TargetDirectoryType.Standard,
+        targetDirectoryType: hasObj ? TargetDirectoryType.Compressed : TargetDirectoryType.Expanded,
     };
 
     if (!input.primaryConfiguration) {
@@ -52,7 +54,10 @@ export const transformFromSelection = async (uri: Uri) => {
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        runDartFormat(<string>targetDirectory, 'models');
+        const formattingTarget = hasObj ? model.directoryName : '';
+
+        runDartFormat(<string>targetDirectory, formattingTarget);
+
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }

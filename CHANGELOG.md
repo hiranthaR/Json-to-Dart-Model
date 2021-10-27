@@ -1,5 +1,15 @@
 # Changelog
 
+## 3.5.0
+
+   - Added support for safe `JSON`. The generator can read and parse `json` and `jsonc` from any method.
+   - Added support for multiple files conversion. The generator can read `**.json` and `**.jsonc` files from the tracked file or directory.
+   - Added a better method for writing files from the context or file explorer.
+   - Added option to override from/to suffix.
+   - Added option to avoid `dynamic` types. Generator will generate `dynamic` types as `Object` with null safety check.
+   - Improved conversion performance. 5X faster speed.
+   - Bugfix.
+
 ## 3.4.1
 
    - Bugfix.

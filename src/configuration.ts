@@ -1,5 +1,5 @@
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { CodeGenerator, Equality, ToStringMethod } from './input';
+import { ConfigurationTarget, WorkspaceConfiguration, workspace } from 'vscode';
 
 class Configuration {
     private config: WorkspaceConfiguration;
@@ -33,6 +33,8 @@ class Configuration {
     get targetDirectory() { return this.getConfig<string>('targetDirectory.path', '/lib/models'); }
     get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); }
     get includeIfNull() { return this.getConfig<boolean>('includeIfNull', false); }
+    get fromAndToSuffix() { return this.getConfig<string>('fromAndToSuffix', 'Json'); }
+    get avoidDynamicTypes() { return this.getConfig<boolean>('avoidDynamicTypes', false); }
 }
 
 export const config = new Configuration();

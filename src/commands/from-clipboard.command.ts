@@ -5,13 +5,13 @@ import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { CodeGenerator, Input, getUserInput } from '../input';
 import { Uri, window } from 'vscode';
 import { generateClass, runBuildRunner, runDartFormat, } from '../index';
-import { getClipboardText, handleError, validateLength } from '../lib';
+import { getClipboardText, handleError, validateJSON } from '../lib';
 import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user-prompts';
+import { hasObject } from '../utils';
 
 export const transformFromClipboard = async (uri: Uri) => {
     const className = await promptForBaseClassName();
     let input = new Input();
-    let targetDirectoryType = TargetDirectoryType.Standard;
 
     if (_.isNil(className) || className.trim() === '') {
         window.showErrorMessage('The class name must not be empty');
@@ -31,18 +31,18 @@ export const transformFromClipboard = async (uri: Uri) => {
             return;
         }
     } else {
-        targetDirectoryType = TargetDirectoryType.Raw;
         targetDirectory = uri.fsPath;
     }
 
-    const json: string = await getClipboardText().then(validateLength).catch(handleError);
-
+    const json: string = await getClipboardText().then(validateJSON).catch(handleError);
+    const hasObj = hasObject(JSON.parse(json));
+    const model = new ClassNameModel(className);
     const config: Settings = {
-        model: new ClassNameModel(className),
+        model: model,
         targetDirectory: <string>targetDirectory,
-        object: json,
+        json: json,
         input: input,
-        targetDirectoryType: targetDirectoryType,
+        targetDirectoryType: hasObj ? TargetDirectoryType.Compressed : TargetDirectoryType.Expanded,
     };
 
     if (!input.primaryConfiguration) {
@@ -54,10 +54,10 @@ export const transformFromClipboard = async (uri: Uri) => {
     const settings = new Settings(config);
 
     await generateClass(settings).then((_) => {
-        runDartFormat(
-            <string>targetDirectory,
-            settings.targetDirectoryType === TargetDirectoryType.Raw ? '' : 'models'
-        );
+        const formattingTarget = hasObj ? model.directoryName : '';
+
+        runDartFormat(<string>targetDirectory, formattingTarget);
+
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }
