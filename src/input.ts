@@ -46,6 +46,7 @@ interface InputProperties {
     sortConstructorsFirst?: boolean;
     includeIfNull?: boolean;
     fromAndToSuffix?: string;
+    avoidDynamicTypes?: boolean;
 }
 
 /**
@@ -63,8 +64,9 @@ export class Input implements InputProperties {
     primaryConfiguration: boolean;
     fastMode: boolean;
     sortConstructorsFirst?: boolean;
-    includeIfNull?: boolean;
+    includeIfNull: boolean;
     fromAndToSuffix: string;
+    avoidDynamicTypes: boolean;
 
     constructor(props?: InputProperties) {
         this.codeGenerator = props?.codeGenerator ?? config.codeGenerator;
@@ -81,6 +83,7 @@ export class Input implements InputProperties {
         this.includeIfNull = props?.includeIfNull ?? config.includeIfNull;
         const suffix = props?.fromAndToSuffix ?? config.fromAndToSuffix;
         this.fromAndToSuffix = pascalCase(suffix);
+        this.avoidDynamicTypes = props?.avoidDynamicTypes ?? config.avoidDynamicTypes;
     }
 
     get isImmutable(): boolean {

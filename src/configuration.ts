@@ -34,6 +34,7 @@ class Configuration {
     get sortConstructorsFirst() { return this.getConfig<boolean>('sortConstructorsFirst', false); }
     get includeIfNull() { return this.getConfig<boolean>('includeIfNull', false); }
     get fromAndToSuffix() { return this.getConfig<string>('fromAndToSuffix', 'Json'); }
+    get avoidDynamicTypes() { return this.getConfig<boolean>('avoidDynamicTypes', false); }
 }
 
 export const config = new Configuration();

@@ -227,6 +227,11 @@
             "type": "boolean",
             "default": true,
             "description": "Automatically run build runner after generated code for Freezed and JSON Serializable."
+          },
+          "jsonToDart.avoidDynamicTypes": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Generator will generate `dynamic` types as `Object` with null safety check. **Note:** this option work only with Dart null safety."
           }
         }
       }
