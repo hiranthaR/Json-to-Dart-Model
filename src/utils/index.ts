@@ -1,3 +1,3 @@
-export * from './get-workspace-root';
+export * from './workspace';
 export * from './file-manager';
 export * from './helper';
