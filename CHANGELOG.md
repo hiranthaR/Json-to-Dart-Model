@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.2
+
+   - Bugfix.
+
 ## 3.5.1
 
    - Bugfix.

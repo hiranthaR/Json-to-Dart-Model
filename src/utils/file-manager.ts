@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
+import * as path from 'path';
 
 import { fsPath, getWorkspaceRoot } from './workspace';
 import { window } from 'vscode';
@@ -110,6 +111,14 @@ export class FileManager {
             });
         });
     }
+}
+
+export function toPosixPath(pathLike: string): string {
+    if (pathLike.includes(path.win32.sep)) {
+        return pathLike.split(path.win32.sep).join(path.posix.sep);
+    }
+
+    return pathLike;
 }
 
 export const fm = new FileManager();

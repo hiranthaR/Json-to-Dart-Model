@@ -4,9 +4,10 @@ import * as fs from 'fs';
 import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
 import { Input, getUserInput } from '../input';
 import { Uri, window } from 'vscode';
-import { generateClass, runBuildRunner, runDartFormat } from '../index';
+import { generateClass } from '../index';
 import { getSelectedText, handleError, validateJSON } from '../lib';
 import { promptForBaseClassName, promptForTargetDirectory } from '../shared/user-prompts';
+import { runBuildRunner, runDartFormat } from '../utils';
 
 export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     const className = await promptForBaseClassName();
@@ -37,7 +38,7 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     const model = new ClassNameModel(className);
     const config: Settings = {
         model: model,
-        targetDirectory: <string>targetDirectory,
+        targetDirectory: targetDirectory as string,
         json: json,
         input: input,
         targetDirectoryType: TargetDirectoryType.Compressed,
@@ -48,10 +49,11 @@ export const transformFromSelectionToCodeGen = async (uri: Uri) => {
     await generateClass(settings).then((_) => {
         const formattingTarget = model.directoryName;
 
-        runDartFormat(<string>targetDirectory, formattingTarget);
+        runDartFormat(targetDirectory as string, formattingTarget);
 
         if (input.generate && input.runBuilder) {
             runBuildRunner();
         }
+
     }).catch(handleError);
 };

@@ -1,6 +1,6 @@
 import {
   ExtensionContext,
-  commands, window,
+  commands,
   workspace
 } from 'vscode';
 import {
@@ -48,42 +48,11 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(disposableOnDidSave);
 }
 
-/**
- * Run dart format command to format dart code with formatting that follows Dart guidelines.
- * @param {string} text the destination directory to be formatted.
- * 
- * To format directory test
- * @example
- * ```bash
- * lib test
- * ```
- */
-export const runDartFormat = (directory: string, lastDirectory: string) => {
-  const last = directory.split('/').pop();
-  if (!last) { return; }
-  const index = directory.indexOf('/lib') === -1 ? directory.indexOf(last) : directory.indexOf('/lib');
-  const formatDirectory = directory.substring(index).split('/').join(' ');
-  const fileDirectory = formatDirectory + ' ' + lastDirectory.toLowerCase();
-  const terminal = window.createTerminal({ name: 'dart format bin', hideFromUser: true });
-  console.debug('dart format' + fileDirectory);
-  terminal.sendText('dart format' + fileDirectory);
-};
-
-/**
- * Run "build_runner build".
- */
-export const runBuildRunner = () => {
-  const terminal = window.createTerminal({ name: 'pub get', hideFromUser: false });
-  terminal.sendText(
-    'flutter pub run build_runner build --delete-conflicting-outputs'
-  );
-  terminal.show(true);
-};
-
 export const generateClass = async (settings: Settings) => {
-  const path = `${settings.targetDirectory}`;
-  if (!fm.existsSync(path)) {
-    await fm.createDirectory(path);
+  const dir = settings.targetDirectory;
+
+  if (!fm.existsSync(dir)) {
+    await fm.createDirectory(dir);
   }
 
   await createClass(settings);
