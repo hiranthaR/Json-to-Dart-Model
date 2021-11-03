@@ -85,5 +85,6 @@ export const generateClass = async (settings: Settings) => {
   if (!fm.existsSync(path)) {
     await fm.createDirectory(path);
   }
+
   await createClass(settings);
 };

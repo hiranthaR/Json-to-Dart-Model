@@ -75,7 +75,7 @@ export class FileManager {
         return new Promise(async (resolve, reject) => {
             await mkdirp(path)
                 .then((_) => resolve())
-                .catch((err) => reject(err));
+                .catch((err) => reject(new Error(`Couldn't create directory due to error: ${err}`)));
         });
     }
 
@@ -99,7 +99,7 @@ export class FileManager {
                     if (options?.showError) {
                         window.showErrorMessage(options.showError);
                     } else {
-                        reject(err);
+                        reject(new Error(`Couldn't create file due to error: ${err}`));
                     }
                 } else {
                     if (options?.showInfo) {

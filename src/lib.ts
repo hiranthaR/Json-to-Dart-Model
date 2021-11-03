@@ -1,4 +1,5 @@
 import * as copyPaste from 'copy-paste';
+import * as path from 'path';
 
 import { ViewColumn, window } from 'vscode';
 import { ClassDefinition } from './syntax';
@@ -94,20 +95,19 @@ export async function createClass(settings: Settings) {
   var modelGenerator = new ModelGenerator(settings);
   var classes: ClassDefinition[] = await modelGenerator.generateDartClasses(settings.json);
 
-  for (var i = 0; i < classes.length; ++i) {
-    const classDef = classes[i];
+  for await (var classDef of classes) {
     const enhancement = settings.model.enhancement;
     const fileName = `${classDef.path}${enhancement}.dart`;
-    const path = `${settings.targetDirectory}/${fileName}`;
+    const file = path.join(settings.targetDirectory, fileName);
 
-    if (fm.existsSync(path)) {
+    if (fm.existsSync(file)) {
       window.showInformationMessage(`${fileName} already exists`);
     } else {
       const data = settings.input.generate ?
         classDef.toCodeGenString(settings.input) :
         classDef.toString(settings.input);
 
-      await fm.writeFile(path, data);
+      await fm.writeFile(file, data);
     }
   }
 }
