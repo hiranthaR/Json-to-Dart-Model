@@ -1,9 +1,10 @@
 import { ClassNameModel, Settings, TargetDirectoryType } from '../settings';
-import { generateClass, runBuildRunner, runDartFormat } from '../index';
+import { generateClass } from '../index';
 import { Input } from '../input';
 import { handleError } from '../lib';
 import { jsonReader } from '../json-reader';
 import { window } from 'vscode';
+import { runBuildRunner, runDartFormat } from '../utils';
 
 export const transformFromFile = async () => {
     if (jsonReader.existsSyncFile || jsonReader.existsSyncDir) {

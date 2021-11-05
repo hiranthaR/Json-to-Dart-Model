@@ -1,5 +1,7 @@
+import * as path from 'path';
+
 import { Input } from './input';
-import { snakeCase } from './utils';
+import { snakeCase, toPosixPath } from './utils';
 
 /** Separates class names and enhancement names from the syntax */
 export class ClassNameModel {
@@ -85,10 +87,12 @@ export class Settings implements ISettings {
 const buildTargetDirectory = (settings: ISettings): string => {
     switch (settings.targetDirectoryType) {
         case TargetDirectoryType.Compressed:
-            return settings.targetDirectory + `/${snakeCase(settings.model.className)}`;
+            const dir = path.join(settings.targetDirectory, snakeCase(settings.model.className));
+            return toPosixPath(dir);
         case TargetDirectoryType.Default:
-            return settings.targetDirectory + '/models';
+            const models = path.join(settings.targetDirectory, 'models');
+            return toPosixPath(models);
         default:
-            return settings.targetDirectory;
+            return toPosixPath(settings.targetDirectory);
     }
 };
