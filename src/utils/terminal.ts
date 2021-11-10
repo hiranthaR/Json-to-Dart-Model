@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { window } from 'vscode';
 import { fm } from '../utils';
+import { toPosixPath } from './file-manager';
 
 /**
  * Run dart format command to format dart code with formatting that follows Dart guidelines.
@@ -16,9 +17,10 @@ export const runDartFormat = (directory: string, lastDirectory: string) => {
     if (!fm.workspaceRoot) { return; }
 
     const root = fm.workspaceRoot;
-    const dir = directory.startsWith(root) ?
-        directory.replace(root, '') :
-        directory;
+    const dirPath = toPosixPath(directory);
+    const dir = dirPath.startsWith(root) ?
+        dirPath.replace(root, '') :
+        dirPath;
     const names = path.join(dir, lastDirectory.toLowerCase()).split(path.sep);
     const fileDirectory = names.join(' ');
     const dartFormat = `dart format${fileDirectory}`;

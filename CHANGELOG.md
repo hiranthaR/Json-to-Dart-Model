@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.3
+
+   - Bugfix for windows.
+
 ## 3.5.2
 
    - Bugfix.

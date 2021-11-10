@@ -50,7 +50,7 @@ export function activate(context: ExtensionContext) {
 
 export const generateClass = async (settings: Settings) => {
   const dir = settings.targetDirectory;
-
+  
   if (!fm.existsSync(dir)) {
     await fm.createDirectory(dir);
   }
