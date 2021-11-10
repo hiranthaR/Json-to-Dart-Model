@@ -105,7 +105,7 @@ class JsonReader extends FileManager {
 
     get allData(): SafeData[] {
         const safeData: SafeData[] = [];
-        const files = this.readDirectory(this.dirName);
+        const files = this.readDirectory(this.dirPath);
 
         if (this.existsSyncFile) {
             const json = this.readFile(this.filePath);
