@@ -4,6 +4,7 @@ import * as path from 'path';
 
 import { workspaceFolders, getWorkspaceRoot } from './workspace';
 import { window } from 'vscode';
+import { isWin } from './constans';
 
 type WriteFileOptions = { showError?: string, showInfo?: string };
 
@@ -12,17 +13,28 @@ export class FileManager {
     /** The path for reading directory. */
     get workspaceRoot() {
         const root = getWorkspaceRoot();
-        return root?.startsWith('/') ? root.substring(1) : root;
+
+        if (isWin) {
+            return root?.startsWith('/') ? root.substring(1) : root;
+        }
+
+        return root;
     }
 
-    /** The path for reading files. */
+
     get isOpenWorkspace() {
         return workspaceFolders()[0] !== undefined;
     }
 
+    /** The path for reading files. */
     get fsPath() {
         const fsPath = workspaceFolders()[0].uri.fsPath;
-        return fsPath?.startsWith('/') ? fsPath.substring(1) : fsPath;
+
+        if (isWin) {
+            return fsPath?.startsWith('/') ? fsPath.substring(1) : fsPath;
+        }
+
+        return fsPath;
     }
 
     existsSync(path: string): boolean {

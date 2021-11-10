@@ -204,7 +204,7 @@ class JsonReader extends FileManager {
     }
 
     async createTrackingLocation(): Promise<void> {
-        const gitignore = '/.gitignore';
+        const gitignore = `${this.workspaceRoot}/.gitignore`;
         const error = 'Failed to create the tracking places';
         const createLocation = await promptForLocation();
 
