@@ -2,8 +2,9 @@ import * as fs from 'fs';
 import * as mkdirp from 'mkdirp';
 import * as path from 'path';
 
-import { fsPath, getWorkspaceRoot } from './workspace';
+import { workspaceFolders, getWorkspaceRoot } from './workspace';
 import { window } from 'vscode';
+import { isWin } from './constants';
 
 type WriteFileOptions = { showError?: string, showInfo?: string };
 
@@ -11,31 +12,32 @@ export class FileManager {
 
     /** The path for reading directory. */
     get workspaceRoot() {
-        return getWorkspaceRoot();
+        const root = getWorkspaceRoot();
+
+        if (isWin) {
+            return root?.startsWith('/') ? root.substring(1) : root;
+        }
+
+        return root;
+    }
+
+    get isOpenWorkspace() {
+        return workspaceFolders()[0] !== undefined;
     }
 
     /** The path for reading files. */
     get fsPath() {
-        return fsPath();
-    }
+        const fsPath = workspaceFolders()[0].uri.fsPath;
 
-    /**
-     * Creates a path securely by automatically adding the root path of the workspace if it is missing.
-     * @param {string} path A path to a file or directory.
-     * @returns A string.
-     */
-    safeRootPath(path: string): string {
-        const root = `${this.workspaceRoot}`;
-        return path.startsWith(root) ? path : `${root}${path}`;
-    }
+        if (isWin) {
+            return fsPath?.startsWith('/') ? fsPath.substring(1) : fsPath;
+        }
 
-    safeFsPath(path: string): string {
-        const fsPath = `${this.fsPath}`;
-        return path.startsWith(fsPath) ? path : `${fsPath}${path}`;
+        return fsPath;
     }
 
     existsSync(path: string): boolean {
-        return fs.existsSync(this.safeFsPath(path));
+        return fs.existsSync(path);
     }
 
     /**
@@ -44,7 +46,7 @@ export class FileManager {
      */
     readDirectory(dir: string): string[] {
         try {
-            return fs.readdirSync(this.safeRootPath(dir), 'utf-8');
+            return fs.readdirSync(dir, 'utf-8');
         } catch (_) {
             return [];
         }
@@ -52,50 +54,41 @@ export class FileManager {
 
     /**
      * Removes all existing files in the directory and remove the empty directory.
-     * - Workspace root path not required.
      */
     removeDirectory(dir: string): void {
         if (!this.existsSync(dir)) { return; }
 
         const entries = this.readDirectory(dir);
-        const directory = this.safeRootPath(dir);
 
         if (entries.length > 0) {
             for (const file of entries) {
-                const path = `${directory}/${file}`;
-                this.removeFile(path);
+                const f = path.join(dir, file);
+                this.removeFile(f);
             }
         }
 
-        fs.rmdirSync(directory);
+        fs.rmdirSync(dir);
     }
 
     createDirectory(dir: string): Promise<void> {
-        const path = this.safeRootPath(dir);
-
         return new Promise(async (resolve, reject) => {
-            await mkdirp(path)
+            await mkdirp(dir)
                 .then((_) => resolve())
                 .catch((err) => reject(new Error(`Couldn't create directory due to error: ${err}`)));
         });
     }
 
     removeFile(path: string): void {
-        const dir = this.safeFsPath(path);
-        fs.unlinkSync(dir);
+        fs.unlinkSync(path);
     }
 
     readFile(path: string): string {
-        const dir = this.safeFsPath(path);
-        const data = fs.readFileSync(dir, 'utf-8');
-        return data;
+        return fs.readFileSync(path, 'utf-8');
     }
 
     writeFile(path: string, data: string, options?: WriteFileOptions) {
-        const dir = this.safeFsPath(path);
-
         return new Promise<void>((resolve, reject) => {
-            fs.writeFile(dir, data, 'utf8', (err) => {
+            fs.writeFile(path, data, 'utf8', (err) => {
                 if (err) {
                     if (options?.showError) {
                         window.showErrorMessage(options.showError);
@@ -114,6 +107,7 @@ export class FileManager {
 }
 
 export function toPosixPath(pathLike: string): string {
+
     if (pathLike.includes(path.win32.sep)) {
         return pathLike.split(path.win32.sep).join(path.posix.sep);
     }

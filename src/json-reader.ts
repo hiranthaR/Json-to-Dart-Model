@@ -105,7 +105,7 @@ class JsonReader extends FileManager {
 
     get allData(): SafeData[] {
         const safeData: SafeData[] = [];
-        const files = this.readDirectory(this.dirName);
+        const files = this.readDirectory(this.dirPath);
 
         if (this.existsSyncFile) {
             const json = this.readFile(this.filePath);
@@ -204,7 +204,7 @@ class JsonReader extends FileManager {
     }
 
     async createTrackingLocation(): Promise<void> {
-        const gitignore = '/.gitignore';
+        const gitignore = `${this.workspaceRoot}/.gitignore`;
         const error = 'Failed to create the tracking places';
         const createLocation = await promptForLocation();
 
