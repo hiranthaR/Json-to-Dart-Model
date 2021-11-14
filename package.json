@@ -239,7 +239,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "vscode:publish": "vsce publish -p TOKEN",
+    "vscode:publish": "./node_modules/vsce/vsce publish -p TOKEN",
+    "vscode:package": "./node_modules/vsce/vsce package",
     "compile": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "watch": "tsc -watch -p ./",
