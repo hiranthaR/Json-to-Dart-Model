@@ -12,9 +12,9 @@ jobs:
       - name: install dependencies
         run: npm install
       - name: publish into marketplace
-        run: |
-          export TOKEN=${{ secrets.TOKEN }}
-          npm run vscode:publish
+        run: npm run vscode:publish
+        env:
+          TOKEN: ${{ secrets.TOKEN }}
       - name: extract version number
         run: |
           export BUILD_BRANCH_PARTS=(${GITHUB_REF//// })
