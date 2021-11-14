@@ -11,10 +11,10 @@ jobs:
         uses: actions/checkout@master
       - name: install dependencies
         run: npm install
-      - name: install vsce
-        run: sudo npm install -g vsce
       - name: publish into marketplace
-        run: vsce publish -p ${{ secrets.TOKEN }}
+        run: |
+          export TOKEN=${{ secrets.TOKEN }}
+          npm run vscode:publish
       - name: extract version number
         run: |
           export BUILD_BRANCH_PARTS=(${GITHUB_REF//// })
