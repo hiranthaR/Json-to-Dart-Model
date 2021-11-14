@@ -16,13 +16,11 @@ jobs:
         uses: actions/checkout@master
       - name: install dependencies
         run: npm install
-      - name: install vsce
-        run: sudo npm install -g vsce
       - name: extract version number
         run: |
           jq -r '"BUILD_VERSION=\(.version)"' package.json >> $GITHUB_ENV
       - name: package the extension
-        run: vsce package
+        run: npm run vscode:package
       - name: release package to github repo
         uses: marvinpinto/action-automatic-releases@latest
         with:
