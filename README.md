@@ -456,11 +456,9 @@ If you like this, please give us the :star: and share with your friends. Thank y
 Distributed under the MIT License. See `LICENSE` for more information.
 
 <!-- CONTACT ME -->
-## Contact me
+## Contributors
 
-Feel free to contact me anytime :blush:
-
-- [https://hirantha.xyz](https://hirantha.xyz)
-- [github:нιяαитнα](https://github.com/hiranthar)
-- [mail@hirantha.xyz](mailto:mail@hirantha.xyz)
+<a href="https://github.com/hiranthaR/Json-to-Dart-Model/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hiranthaR/Json-to-Dart-Model" />
+</a>
 
