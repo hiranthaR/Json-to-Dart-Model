@@ -4,7 +4,7 @@ import * as path from 'path';
 
 import { workspaceFolders, getWorkspaceRoot } from './workspace';
 import { window } from 'vscode';
-import { isWin } from './constans';
+import { isWin } from './constants';
 
 type WriteFileOptions = { showError?: string, showInfo?: string };
 
@@ -20,7 +20,6 @@ export class FileManager {
 
         return root;
     }
-
 
     get isOpenWorkspace() {
         return workspaceFolders()[0] !== undefined;
@@ -55,7 +54,6 @@ export class FileManager {
 
     /**
      * Removes all existing files in the directory and remove the empty directory.
-     * - Workspace root path not required.
      */
     removeDirectory(dir: string): void {
         if (!this.existsSync(dir)) { return; }
@@ -109,6 +107,7 @@ export class FileManager {
 }
 
 export function toPosixPath(pathLike: string): string {
+
     if (pathLike.includes(path.win32.sep)) {
         return pathLike.split(path.win32.sep).join(path.posix.sep);
     }
