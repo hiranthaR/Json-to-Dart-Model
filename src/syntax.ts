@@ -994,11 +994,11 @@ export class ClassDefinition {
     if (!input.jsonCodecs) { return ''; }
 
     const comment = `
-    /// \`dart:convert\`
-    ///
-    /// Parses the string and returns the resulting Json object.`;
+  /// \`dart:convert\`
+  ///
+  /// Parses the string and returns the resulting Json object as [${this.name}].`;
     let sb = '';
-    sb += printLine(comment, 0, 1);
+    sb += printLine(comment, 1);
     sb += printLine(`factory ${this.name}.fromJson(String data) {`, 1, 1);
     sb += printLine(`return ${this.name}.from${suffix(input)}(json.decode(data) as ${jsonMapType(input)});`, 1, 2);
     sb += printLine('}', 1, 1);
@@ -1009,11 +1009,11 @@ export class ClassDefinition {
     if (!input.jsonCodecs) { return ''; }
 
     const comment = `
-    /// \`dart:convert\`
-    ///
-    /// Converts [${this.name}] to a JSON string.`;
+  /// \`dart:convert\`
+  ///
+  /// Converts [${this.name}] to a JSON string.`;
     let sb = '';
-    sb += printLine(comment, 0, 1);
+    sb += printLine(comment);
     sb += printLine(`String toJson() => json.encode(to${suffix(input)}());`, 1, 1);
     return sb;
   }
@@ -1026,7 +1026,7 @@ export class ClassDefinition {
     if (!input.copyWith) { return ''; }
     const values = this.fields.map((v) => v.typeDef);
     var sb = '';
-    sb += printLine(`${this.name} copyWith({`, 2, 2);
+    sb += printLine(`${this.name} copyWith({`, 1, 1);
     // Constructor objects.
     for (const value of values) {
       sb += printLine(`${this.addType(value, input, true)} ${value.name},`, 1, 2);

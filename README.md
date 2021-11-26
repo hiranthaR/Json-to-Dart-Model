@@ -37,6 +37,7 @@
         <li><a href="#context-actions">Context actions</a></li>
         <li><a href="#avoid-dynamic-types">Avoid dynamic Types</a></li>
         <li><a href="#suffix-for-from-and-to">Suffix for from/to</a></li>
+        <li><a href="#codecs">Codecs encode/decode</a></li>
       </ul>
     <li>
       <a href="#the-syntax">The Syntax</a>
@@ -368,6 +369,12 @@ Todo copyWith({
   );
 }
 ```
+
+<!-- CODECS -->
+## Codecs
+
+Enabling codecs will implement `fromMap/toMap` methods with `encode/decode` inside the `fromJson/toJson` methods.
+
 <!-- NULL SAFETY -->
 ## Null Safety
 
