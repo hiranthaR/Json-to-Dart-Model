@@ -244,6 +244,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
+    "vscode:publish": "./node_modules/vsce/vsce publish -p $TOKEN",
+    "vscode:package": "./node_modules/vsce/vsce package",
     "compile": "tsc -p ./",
     "lint": "eslint src --ext ts",
     "watch": "tsc -watch -p ./",
@@ -274,6 +276,7 @@
     "jsonc": "^2.0.0",
     "lodash": "^4.17.21",
     "mkdirp": "^1.0.4",
-    "pluralize": "^8.0.0"
+    "pluralize": "^8.0.0",
+    "vsce": "^2.3.0"
   }
 }
