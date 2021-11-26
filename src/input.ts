@@ -1,4 +1,5 @@
 import {
+    promptForCodecs,
     promptForCodeGenerator,
     promptForCopyWithMethod,
     promptForEqualityOperator,
@@ -30,23 +31,24 @@ export enum CodeGenerator {
 }
 
 interface InputProperties {
-    codeGenerator?: CodeGenerator;
-    immutable?: boolean;
-    toString?: ToStringMethod;
-    copyWith?: boolean;
-    equality?: Equality;
-    nullSafety?: boolean;
+    codeGenerator: CodeGenerator;
+    immutable: boolean;
+    toString: ToStringMethod;
+    copyWith: boolean;
+    equality: Equality;
+    nullSafety: boolean;
     /**
      * Required root path. [workspace.workspaceFolders![0].uri.path] 
      */
     targetDirectory?: string;
-    runBuilder?: boolean;
-    primaryConfiguration?: boolean;
-    fastMode?: boolean;
-    sortConstructorsFirst?: boolean;
-    includeIfNull?: boolean;
-    fromAndToSuffix?: string;
-    avoidDynamicTypes?: boolean;
+    runBuilder: boolean;
+    primaryConfiguration: boolean;
+    fastMode: boolean;
+    sortConstructorsFirst: boolean;
+    includeIfNull: boolean;
+    fromAndToSuffix: string;
+    avoidDynamicTypes: boolean;
+    jsonCodecs: boolean;
 }
 
 /**
@@ -63,10 +65,11 @@ export class Input implements InputProperties {
     runBuilder: boolean;
     primaryConfiguration: boolean;
     fastMode: boolean;
-    sortConstructorsFirst?: boolean;
+    sortConstructorsFirst: boolean;
     includeIfNull: boolean;
     fromAndToSuffix: string;
     avoidDynamicTypes: boolean;
+    jsonCodecs: boolean;
 
     constructor(props?: InputProperties) {
         this.codeGenerator = props?.codeGenerator ?? config.codeGenerator;
@@ -81,9 +84,10 @@ export class Input implements InputProperties {
         this.fastMode = props?.fastMode ?? config.fastMode;
         this.sortConstructorsFirst = props?.sortConstructorsFirst ?? config.sortConstructorsFirst;
         this.includeIfNull = props?.includeIfNull ?? config.includeIfNull;
+        this.avoidDynamicTypes = props?.avoidDynamicTypes ?? config.avoidDynamicTypes;
+        this.jsonCodecs = props?.jsonCodecs ?? config.jsonCodecs;
         const suffix = props?.fromAndToSuffix ?? config.fromAndToSuffix;
         this.fromAndToSuffix = pascalCase(suffix);
-        this.avoidDynamicTypes = props?.avoidDynamicTypes ?? config.avoidDynamicTypes;
     }
 
     get isImmutable(): boolean {
@@ -149,6 +153,7 @@ export const getUserInput = async (generate: boolean = false): Promise<Input> =>
             input.fromAndToSuffix = !suffix && !suffix?.length ?
                 config.fromAndToSuffix :
                 pascalCase(suffix);
+            input.jsonCodecs = await promptForCodecs();
         }
 
         input.nullSafety = config.nullSafety;

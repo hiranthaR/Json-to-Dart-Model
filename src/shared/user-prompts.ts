@@ -72,6 +72,26 @@ export async function promptForImmutableClass(): Promise<boolean> {
     }
 }
 
+export async function promptForCodecs(): Promise<boolean> {
+    const selection = await window.showQuickPick(
+        [
+            {
+                label: 'No',
+                picked: true,
+            },
+            { label: 'Yes' },
+        ],
+        { placeHolder: 'Implement Map/Json methods with decode/encode?' }
+    );
+
+    switch (selection?.label) {
+        case 'Yes':
+            return true;
+        default:
+            return false;
+    }
+}
+
 export async function promptForToStringMethod(isEquatableEnabled: boolean = false): Promise<ToStringMethod> {
     const withEquatable = [
         {

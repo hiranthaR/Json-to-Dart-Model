@@ -73,6 +73,17 @@ const jsonMapType = (input: Input): string => {
 };
 
 /**
+ *  Suffix for methods to/from.
+ * @param input the user input.
+ * @returns string
+ */
+const suffix = (input: Input) => {
+  const _suffix = input.fromAndToSuffix;
+  const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
+  return suffix;
+};
+
+/**
  * Adds JSON annotation only if needed for Freezed and JSON serializable.
  * @param {string} jsonKey a raw JSON key.
  */
@@ -191,8 +202,9 @@ const requiredValue = (required: boolean = false, nullSafety: boolean = false): 
  * Returns a string representation of a value obtained from a JSON
  * @param valueKey The key of the value in the JSON
  */
-export const valueFromJson = (valueKey: string): string => {
-  return `json['${valueKey}']`;
+export const valueFromJson = (valueKey: string, input: Input): string => {
+  const mapValue = input.jsonCodecs ? 'data' : 'json';
+  return `${mapValue}['${valueKey}']`;
 };
 
 /**
@@ -205,7 +217,7 @@ export const joinAsClass = (key: string, value: string): string => {
 };
 
 const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): string => {
-  const jsonValue = valueFromJson(typeDef.jsonKey);
+  const jsonValue = valueFromJson(typeDef.jsonKey, input);
   const type = typeDef.type;
   // IMPORTANT. To keep the formatting correct.
   // By using block body. Default tabs are longTab = 5; shortTab = 3; 
@@ -349,7 +361,7 @@ export function jsonParseValue(
   typeDef: TypeDefinition,
   input: Input
 ) {
-  const jsonValue = valueFromJson(key);
+  const jsonValue = valueFromJson(key, input);
   const nullable = questionMark(input, typeDef.nullable);
   const IfNull = `${includeIfNull(jsonValue, input)}`;
   let formatedValue = '';
@@ -391,15 +403,17 @@ export function toJsonExpression(
 }
 
 const buildToJsonClass = (expression: string, nullSafety: boolean = false, input: Input): string => {
-  return nullSafety
-    ? `${expression}.to${input.fromAndToSuffix}()`
-    : `${expression}?.to${input.fromAndToSuffix}()`;
+  return nullSafety ?
+    `${expression}.to${suffix(input)}()` :
+    `${expression}?.to${suffix(input)}()`;
 };
 
 const buildParseClass = (className: string, expression: string, typeDef: TypeDefinition, input: Input): string => {
+  const _suffix = input.fromAndToSuffix;
+  const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
   const name = pascalCase(className).replace(/_/g, '');
   const bangOperator = jsonMapType(input).match('Object?') && !typeDef.isList ? '!' : '';
-  return `${name}.from${input.fromAndToSuffix}(${expression}${bangOperator} as ${jsonMapType(input)})`;
+  return `${name}.from${suffix}(${expression}${bangOperator} as ${jsonMapType(input)})`;
 };
 
 /**
@@ -723,6 +737,10 @@ export class ClassDefinition {
     return immutable ? 'const ' : '';
   }
 
+  private dartImports(input: Input): string {
+    return input.jsonCodecs ? "import 'dart:convert';\n\n" : '';
+  };
+
   /**
    * All imports from the packages library.
    * @param {Input} input the input from the user.
@@ -863,11 +881,11 @@ export class ClassDefinition {
   }
 
   private jsonParseFunc(input: Input): string {
-    const suffix = input.fromAndToSuffix;
+    const mapValue = input.jsonCodecs ? 'data' : 'json';
     const blockBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}`, 2, 1);
-      sb += printLine(`.from${suffix}(${jsonMapType(input)} json) {`);
+      sb += printLine(`.from${suffix(input)}(${jsonMapType(input)} ${mapValue}) {`);
       sb += printLine(`return ${this.name}(\n`, 1, 2);
       sb += this.getFields((f, k) => {
         // Check forced type for only not primitive type.
@@ -882,7 +900,7 @@ export class ClassDefinition {
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine(`factory ${this.name}`, 2, 1);
-      sb += printLine(`.from${suffix}(${jsonMapType(input)} json) => `);
+      sb += printLine(`.from${suffix(input)}(${jsonMapType(input)} ${mapValue}) => `);
       sb += printLine(`${this.name}(\n`);
       sb += this.getFields((f, k) => {
         // Check forced type for only not primitive type.
@@ -899,7 +917,8 @@ export class ClassDefinition {
   }
 
   private toJsonFunc(input: Input): string {
-    const suffix = input.fromAndToSuffix;
+    const _suffix = input.fromAndToSuffix;
+    const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
     const blockBody = (): string => {
       let sb = '';
       sb += printLine(`${jsonMapType(input)} to${suffix}() {`, 0, 1);
@@ -969,6 +988,34 @@ export class ClassDefinition {
     return expressionBody().length > 78
       ? blockBody()
       : expressionBody();
+  }
+
+  private decodeFromJson(input: Input): string {
+    if (!input.jsonCodecs) { return ''; }
+
+    const comment = `
+    /// \`dart:convert\`
+    ///
+    /// Parses the string and returns the resulting Json object.`;
+    let sb = '';
+    sb += printLine(comment, 0, 1);
+    sb += printLine(`factory ${this.name}.fromJson(String data) {`, 1, 1);
+    sb += printLine(`return ${this.name}.from${suffix(input)}(json.decode(data) as ${jsonMapType(input)});`, 1, 2);
+    sb += printLine('}', 1, 1);
+    return sb;
+  }
+
+  private encodeToJson(input: Input): string {
+    if (!input.jsonCodecs) { return ''; }
+
+    const comment = `
+    /// \`dart:convert\`
+    ///
+    /// Converts [${this.name}] to a JSON string.`;
+    let sb = '';
+    sb += printLine(comment, 0, 1);
+    sb += printLine(`String toJson() => json.encode(to${suffix(input)}());`, 1, 1);
+    return sb;
   }
 
   /**
@@ -1082,13 +1129,12 @@ export class ClassDefinition {
     // }
 
     // New test template...
-    const suffix = input.fromAndToSuffix;
     const typeCast = input.nullSafety ? '' : ' as Map';
     sb += printLine('@override', 2, 1);
     sb += printLine(`bool operator ==(${type} other) {`, 1, 1);
     sb += printLine('if (identical(other, this)) return true;', 1, 2);
     sb += printLine(`if (other is! ${this.name}) return false;`, 1, 2);
-    sb += printLine(`return mapEquals(other.to${suffix}()${typeCast}, to${suffix}());`, 1, 2);
+    sb += printLine(`return mapEquals(other.to${suffix(input)}()${typeCast}, to${suffix(input)}());`, 1, 2);
     // ent test template...
     sb += printLine('}', 1, 1);
     return sb;
@@ -1133,56 +1179,58 @@ export class ClassDefinition {
     }
 
     if (input.freezed) {
-      field += `${this.importsFromPackage(input)}`;
-      field += `${this.importList()}`;
-      field += `${this.importsForParts(input)}`;
-      field += `${this.freezedField(input)}`;
+      field += this.importsFromPackage(input);
+      field += this.importList();
+      field += this.importsForParts(input);
+      field += this.freezedField(input);
       return field;
     } else {
       if (this._privateFields) {
-        field += `${this.importsFromPackage(input)}`;
-        field += `${this.importList()}`;
-        field += `${this.importsForParts(input)}`;
+        field += this.importsFromPackage(input);
+        field += this.importList();
+        field += this.importsForParts(input);
         field += '@JsonSerializable()\n';
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''}; {\n`;
         if (input.sortConstructorsFirst) {
-          field += `${this.defaultPrivateConstructor(input)}\n\n`;
-          field += `${this.fieldListCodeGen(input)}`;
+          field += this.defaultPrivateConstructor(input) + '\n\n';
+          field += this.fieldListCodeGen(input);
         } else {
-          field += `${this.fieldListCodeGen(input)}\n`;
-          field += `${this.defaultPrivateConstructor(input)}`;
+          field += this.fieldListCodeGen(input) + '\n';
+          field += this.defaultPrivateConstructor(input);
         }
-        field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
-        field += `${this.gettersSetters(input)}\n\n`;
-        field += `${this.codeGenJsonParseFunc(input)}\n\n`;
-        field += `${this.codeGenToJsonFunc()}`;
-        field += `${this.copyWithMethod(input)}`;
-        field += `${this.equalityOperator(input)}`;
-        field += `${this.hashCode(input)}`;
-        field += `${this.stringify(input.isAutoOrStringify)}`;
-        field += `${this.equatablePropList(input)}\n}\n`;
+        field += this.toStringMethod(input.isAutoOrToStringMethod);
+        field += this.gettersSetters(input) + '\n\n';
+        field += this.codeGenJsonParseFunc(input) + '\n\n';
+        field += this.codeGenToJsonFunc();
+        field += this.copyWithMethod(input);
+        field += this.equalityOperator(input);
+        field += this.hashCode(input);
+        field += this.stringify(input.isAutoOrStringify);
+        field += this.equatablePropList(input);
+        field += '\n}\n'; // close class
         return field;
       } else {
-        field += `${this.importsFromPackage(input)}`;
-        field += `${this.importList()}`;
-        field += `${this.importsForParts(input)}`;
+        field += this.importsFromPackage(input);
+        field += this.importList();
+        field += this.importsForParts(input);
         field += '@JsonSerializable()\n';
         field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
         if (input.sortConstructorsFirst) {
-          field += `${this.defaultConstructor(input)}\n\n`;
-          field += `${this.fieldListCodeGen(input)}`;
+          field += this.defaultConstructor(input) + '\n\n';
+          field += this.fieldListCodeGen(input);
         } else {
-          field += `${this.fieldListCodeGen(input)}\n`;
-          field += `${this.defaultConstructor(input)}`;
+          field += this.fieldListCodeGen(input) + '\n';
+          field += this.defaultConstructor(input);
         }
-        field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
-        field += `${this.codeGenJsonParseFunc(input)}\n\n`;
-        field += `${this.codeGenToJsonFunc()}`;
-        field += `${this.copyWithMethod(input)}`;
-        field += `${this.equalityOperator(input)}`;
-        field += `${this.hashCode(input)}`;
-        field += `${this.stringify(input.isAutoOrStringify)}`;
-        field += `${this.equatablePropList(input)}\n}\n`;
+        field += this.toStringMethod(input.isAutoOrToStringMethod);
+        field += this.codeGenJsonParseFunc(input) + '\n\n';
+        field += this.codeGenToJsonFunc();
+        field += this.copyWithMethod(input);
+        field += this.equalityOperator(input);
+        field += this.hashCode(input);
+        field += this.stringify(input.isAutoOrStringify);
+        field += this.equatablePropList(input);
+        field += '\n}\n'; // close class
         return field;
       }
     }
@@ -1197,49 +1245,55 @@ export class ClassDefinition {
     }
 
     if (this._privateFields) {
-      field += `${this.importsFromPackage(input)}`;
-      field += `${this.importList()}`;
-      field += `${this.importsForParts(input)}`;
+      field += this.dartImports(input);
+      field += this.importsFromPackage(input);
+      field += this.importList();
+      field += this.importsForParts(input);
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       if (input.sortConstructorsFirst) {
-        field += `${this.defaultPrivateConstructor(input)}\n\n`;
-        field += `${this.fieldList(input)}`;
+        field += this.defaultPrivateConstructor(input) + '\n\n';
+        field += this.fieldList(input);
       } else {
-        field += `${this.fieldList(input)}\n\n`;
-        field += `${this.defaultPrivateConstructor(input)}`;
+        field += this.fieldList(input) + '\n\n';
+        field += this.defaultPrivateConstructor(input);
       }
-      field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
-      field += `${this.gettersSetters(input)}\n\n`;
-      field += `${this.jsonParseFunc(input)}\n\n`;
-      field += `${this.toJsonFunc(input)}`;
-      field += `${this.copyWithMethod(input)}`;
-      field += `${this.equalityOperator(input)}`;
-      field += `${this.hashCode(input)}`;
-      field += `${this.stringify(input.isAutoOrStringify)}`;
-      field += `${this.equatablePropList(input)}\n}\n`;
+      field += this.toStringMethod(input.isAutoOrToStringMethod);
+      field += this.gettersSetters(input) + '\n\n';
+      field += this.jsonParseFunc(input) + '\n\n';
+      field += this.toJsonFunc(input);
+      field += this.copyWithMethod(input);
+      field += this.equalityOperator(input);
+      field += this.hashCode(input);
+      field += this.stringify(input.isAutoOrStringify);
+      field += this.equatablePropList(input);
+      field += '\n}\n'; // close class
       return field;
     } else {
-      field += `${this.importsFromPackage(input)}`;
-      field += `${this.importList()}`;
-      field += `${this.importsForParts(input)}`;
+      field += this.dartImports(input);
+      field += this.importsFromPackage(input);
+      field += this.importList();
+      field += this.importsForParts(input);
       field += `${input.immutable ? '@immutable\n' : ''}`;
       field += `class ${this.name}${input.equatable ? ' extends Equatable' : ''} {\n`;
       if (input.sortConstructorsFirst) {
-        field += `${this.defaultConstructor(input)}\n\n`;
-        field += `${this.fieldList(input)}`;
+        field += this.defaultConstructor(input) + '\n\n';
+        field += this.fieldList(input);
       } else {
-        field += `${this.fieldList(input)}\n\n`;
-        field += `${this.defaultConstructor(input)}`;
+        field += this.fieldList(input) + '\n\n';
+        field += this.defaultConstructor(input);
       }
-      field += `${this.toStringMethod(input.isAutoOrToStringMethod)}`;
-      field += `${this.jsonParseFunc(input)}\n\n`;
-      field += `${this.toJsonFunc(input)}`;
-      field += `${this.copyWithMethod(input)}`;
-      field += `${this.equalityOperator(input)}`;
-      field += `${this.hashCode(input)}`;
-      field += `${this.stringify(input.isAutoOrStringify)}`;
-      field += `${this.equatablePropList(input)}\n}\n`;
+      field += this.toStringMethod(input.isAutoOrToStringMethod);
+      field += this.jsonParseFunc(input) + '\n\n';
+      field += this.toJsonFunc(input);
+      field += this.decodeFromJson(input) + '\n';
+      field += this.encodeToJson(input) + '\n';
+      field += this.copyWithMethod(input);
+      field += this.equalityOperator(input);
+      field += this.hashCode(input);
+      field += this.stringify(input.isAutoOrStringify);
+      field += this.equatablePropList(input);
+      field += '\n}\n'; // close class
       return field;
     }
   }

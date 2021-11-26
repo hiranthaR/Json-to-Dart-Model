@@ -35,6 +35,7 @@ class Configuration {
     get includeIfNull() { return this.getConfig<boolean>('includeIfNull', false); }
     get fromAndToSuffix() { return this.getConfig<string>('fromAndToSuffix', 'Json'); }
     get avoidDynamicTypes() { return this.getConfig<boolean>('avoidDynamicTypes', false); }
+    get jsonCodecs() { return this.getConfig<boolean>('json.codecs', false); }
 }
 
 export const config = new Configuration();
