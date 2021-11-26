@@ -2,7 +2,7 @@
   "name": "json-to-dart",
   "displayName": "Json to Dart Model",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.5.3",
+  "version": "3.5.4",
   "publisher": "hirantha",
   "icon": "icon.png",
   "engines": {
@@ -157,6 +157,11 @@
             "type": "boolean",
             "default": false,
             "description": "Generate immutable classes."
+          },
+          "jsonToDart.json.codecs": {
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Implements `encode/decode` inside the `fromJson/toJson` methods."
           },
           "jsonToDart.toString": {
             "type": "string",
