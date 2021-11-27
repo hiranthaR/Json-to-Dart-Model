@@ -8,12 +8,15 @@ import { Settings } from './settings';
 import { fm } from './utils';
 import { jsonc } from 'jsonc';
 
-export function getClipboardText() {
-  try {
-    return Promise.resolve(copyPaste.paste());
-  } catch (error) {
-    return Promise.reject(error);
-  }
+export function getClipboardText(): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    copyPaste.paste((err, text) => {
+      if (err !== null) {
+        reject(err);
+      }
+      resolve(text);
+    });
+  });
 }
 
 export function handleError(error: Error) {

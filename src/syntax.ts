@@ -80,7 +80,7 @@ const jsonMapType = (input: Input): string => {
 const suffix = (input: Input) => {
   const _suffix = input.fromAndToSuffix;
   const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
-  return suffix;
+  return input.codeGenerator === 'JSON' ? 'Json' : suffix;
 };
 
 /**
@@ -893,7 +893,7 @@ export class ClassDefinition {
         return `\t\t\t${joinAsClass(f.getName(this._privateFields), jsonParseValue(key, f, input))}`;
       }).join('\n');
       sb += printLine(');', 1, 2);
-      sb += printLine('}', 1, 1);
+      sb += printLine('}\n\n', 1, 1);
       return sb;
     };
 
@@ -921,7 +921,7 @@ export class ClassDefinition {
     const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
     const blockBody = (): string => {
       let sb = '';
-      sb += printLine(`${jsonMapType(input)} to${suffix}() {`, 0, 1);
+      sb += printLine(`${jsonMapType(input)} to${suffix}() {`, 2, 1);
       sb += printLine('return {', 1, 2);
       this.getFields((f) => {
         sb += printLine(`${toJsonExpression(f, this._privateFields, input)}`, 1, 3);
@@ -933,7 +933,7 @@ export class ClassDefinition {
 
     const expressionBody = (): string => {
       var sb = '';
-      sb += printLine(`${jsonMapType(input)} to${suffix}() => {`, 0, 1);
+      sb += printLine(`${jsonMapType(input)} to${suffix}() => {`, 2, 1);
       this.getFields((f) => {
         sb += printLine(`${toJsonExpression(f, this._privateFields, input)}`, 1, 4);
       });
@@ -1026,7 +1026,7 @@ export class ClassDefinition {
     if (!input.copyWith) { return ''; }
     const values = this.fields.map((v) => v.typeDef);
     var sb = '';
-    sb += printLine(`${this.name} copyWith({`, 1, 1);
+    sb += printLine(`${this.name} copyWith({`, 2, 1);
     // Constructor objects.
     for (const value of values) {
       sb += printLine(`${this.addType(value, input, true)} ${value.name},`, 1, 2);
@@ -1284,10 +1284,10 @@ export class ClassDefinition {
         field += this.defaultConstructor(input);
       }
       field += this.toStringMethod(input.isAutoOrToStringMethod);
-      field += this.jsonParseFunc(input) + '\n\n';
+      field += this.jsonParseFunc(input);
       field += this.toJsonFunc(input);
-      field += this.decodeFromJson(input) + '\n';
-      field += this.encodeToJson(input) + '\n';
+      field += this.decodeFromJson(input);
+      field += this.encodeToJson(input);
       field += this.copyWithMethod(input);
       field += this.equalityOperator(input);
       field += this.hashCode(input);
