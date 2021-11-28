@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.5
+
+   - Bugfix and syntaxt corecction.
+
 ## 3.5.4
 
    - Added possibility to implement JSON converter, `encode/decode` inside the `toJson/fromJson` methods. Also will be added extra methods toMap/fromMap.
