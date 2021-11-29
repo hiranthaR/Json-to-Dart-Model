@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.6
+
+   - Updated failing build scripts.
+
 ## 3.5.5
 
    - Bugfix and syntaxt corecction.
