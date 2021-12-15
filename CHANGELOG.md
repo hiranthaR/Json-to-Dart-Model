@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.6
+
+   - Fixed lint error for non-nullable typecast to the nullable type for JSON parser.
+
 ## 3.5.5
 
    - Bugfix and syntaxt corecction.

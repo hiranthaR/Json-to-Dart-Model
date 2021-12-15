@@ -96,8 +96,12 @@ const jsonKeyAnnotation = (name: string, jsonKey: string): string => {
  * @param {Input} input the user input.
  * @returns string as "?" if null safety enabled. Otherwise empty string.
  */
-const questionMark = (input: Input, nullabe: boolean): string => {
-  return input.nullSafety && nullabe ? '?' : '';
+const questionMark = (input: Input, typeDef?: TypeDefinition): string => {
+  if (typeDef) {
+    return input.nullSafety && typeDef.nullable ? '?' : '';
+  } else {
+    return input.nullSafety ? '?' : '';
+  }
 };
 
 /**
@@ -231,7 +235,7 @@ const jsonParseClass = (key: string, typeDef: TypeDefinition, input: Input): str
       // List of List Classes (List<List.......<Class>>)
       // This will generate deeply nested infinity list depending on how many lists are in the lists.
       const result = filterListType(type);
-      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input, typeDef.nullable)})`);
+      formatedValue = printLine(`(${jsonValue} as List<dynamic>${questionMark(input, typeDef)})`);
       for (let i = 0; i < result.length - 1; i++) {
         var index = i * 2;
         const tabs = longTab + index;
@@ -362,20 +366,27 @@ export function jsonParseValue(
   input: Input
 ) {
   const jsonValue = valueFromJson(key, input);
-  const nullable = questionMark(input, typeDef.nullable);
+  const nullable = questionMark(input, typeDef);
+  const isDouble = typeDef.type === 'double';
+  const dafaultVal = typeDef.defaultValue
+    ? `${isDouble ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
+    : '';
   const IfNull = `${includeIfNull(jsonValue, input)}`;
   let formatedValue = '';
 
   if (typeDef.isPrimitive) {
+    const required = typeDef.required && input.avoidDynamicTypes ? '!' : '';
+
     if (typeDef.isDate) {
       formatedValue = jsonParseClass(key, typeDef, input);
     } else {
-      if (typeDef.type?.match('dynamic') && !typeDef.isList) {
+      if (!typeDef.nullable && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
-      } if (typeDef.type?.match('double')) {
-        formatedValue = `${IfNull}(${jsonValue} as num${nullable})${nullable}.toDouble()`;
+      } if (isDouble) {
+        const nullableDouble = input.nullSafety && !typeDef.required ? '?' : '';
+        formatedValue = `${IfNull}(${jsonValue}${required} as num${nullableDouble})${nullableDouble}.toDouble()` + dafaultVal;
       } else {
-        formatedValue = `${IfNull}${jsonValue} as ${typeDef.type}` + nullable;
+        formatedValue = `${IfNull}${jsonValue}${required} as ${typeDef.type}` + nullable + dafaultVal;
       }
     }
   } else {
@@ -590,13 +601,12 @@ export class ClassDefinition {
     this.fields.push(new Dependency(name, typeDef));
   }
 
-  private addType(typeDef: TypeDefinition, input: Input, nullable?: boolean) {
+  private addType(typeDef: TypeDefinition, input: Input) {
     const isDynamic = typeDef.type?.match('dynamic') && !typeDef.isList;
-    const isNullable = nullable ?? typeDef.nullable;
 
     return isDynamic
       ? typeDef.type
-      : typeDef.type + questionMark(input, isNullable);
+      : typeDef.type + questionMark(input, typeDef);
 
   }
 
@@ -655,7 +665,7 @@ export class ClassDefinition {
       sb += printLine(jsonKey + required + defaultVal, 1, 2);
 
       if (typeDef.isDate && typeDef.defaultValue && !typeDef.isList) {
-        sb += printLine(`${this.addType(typeDef, input, input.nullSafety)} ${optional},`);
+        sb += printLine(`${this.addType(typeDef, input)} ${optional},`);
       } else {
         sb += printLine(`${this.addType(typeDef, input)} ${fieldName},`);
       }
@@ -678,7 +688,7 @@ export class ClassDefinition {
     const expressionBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
-      sb += printLine(`List<Object${questionMark(input, true)}> get props => [`, 1, 1);
+      sb += printLine(`List<Object${questionMark(input)}> get props => [`, 1, 1);
       for (let i = 0; i < fields.length; i++) {
         const separator = fields.length - 1 === i ? '];' : ', ';
         const f = fields[i];
@@ -691,7 +701,7 @@ export class ClassDefinition {
     const blockBody = (): string => {
       let sb = '';
       sb += printLine('@override', 2, 1);
-      sb += printLine(`List<Object${questionMark(input, true)}> get props {`, 1, 1);
+      sb += printLine(`List<Object${questionMark(input)}> get props {`, 1, 1);
       sb += printLine('return [', 1, 2);
       for (let i = 0; i < fields.length; i++) {
         const f = fields[i];
@@ -1029,7 +1039,7 @@ export class ClassDefinition {
     sb += printLine(`${this.name} copyWith({`, 2, 1);
     // Constructor objects.
     for (const value of values) {
-      sb += printLine(`${this.addType(value, input, true)} ${value.name},`, 1, 2);
+      sb += printLine(`${this.addType(value, input)} ${value.name},`, 1, 2);
     }
     sb += printLine('}) {', 1, 1);
     sb += printLine(`return ${this.name}(`, 1, 2);
