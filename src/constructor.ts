@@ -145,6 +145,9 @@ export class TypeDefinition implements TypeDefinitionProperties {
       if (isList(type)) {
         this.isList = true;
       }
+      if (type === 'dynamic') {
+        this.nullable = false;
+      }
     }
     if (isAmbiguous === null) {
       isAmbiguous = false;
