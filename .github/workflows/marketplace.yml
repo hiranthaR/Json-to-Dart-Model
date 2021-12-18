@@ -24,7 +24,7 @@ jobs:
           echo "tag version: ${TAG_VERSION}"
           echo "TAG_VERSION=${TAG_VERSION}" >> ${GITHUB_ENV}
       - name: package the extension
-        run: vsce package
+        run: npm run vscode:package
       - name: release package to github repo
         uses: marvinpinto/action-automatic-releases@latest
         with:

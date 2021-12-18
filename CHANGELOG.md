@@ -1,8 +1,13 @@
 # Changelog
 
-## 3.5.6
+## 3.5.7
 
    - Fixed lint error for non-nullable typecast to the nullable type for JSON parser.
+   - Added better equality operator with `DeepCollectionEquality` from the Dart collection.
+
+## 3.5.6
+
+   - Updated failing build scripts.
 
 ## 3.5.5
 

@@ -764,7 +764,7 @@ export class ClassDefinition {
       ? "import 'package:equatable/equatable.dart';\n"
       : '';
     imports += input.immutable && !input.serializable || input.equality === 'Dart' // || required || listEquality
-      ? "import 'package:flutter/foundation.dart';\n"
+      ? "import 'package:collection/collection.dart';\n"
       : '';
     imports += input.serializable && !input.freezed
       ? 'import \'package:json_annotation/json_annotation.dart\';\n'
@@ -1144,6 +1144,7 @@ export class ClassDefinition {
     sb += printLine(`bool operator ==(${type} other) {`, 1, 1);
     sb += printLine('if (identical(other, this)) return true;', 1, 2);
     sb += printLine(`if (other is! ${this.name}) return false;`, 1, 2);
+    sb += printLine('final mapEquals = const DeepCollectionEquality().equals;', 1, 2);
     sb += printLine(`return mapEquals(other.to${suffix(input)}()${typeCast}, to${suffix(input)}());`, 1, 2);
     // ent test template...
     sb += printLine('}', 1, 1);

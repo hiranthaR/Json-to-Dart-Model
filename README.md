@@ -306,7 +306,7 @@ To add Equatable support you just have to select `Equatable` equality support wh
 <!-- EQUALITY OPERATOR -->
 ## Equality Operator
 
-If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator and customize your class as mutable. With utility from the Dart foundation collections, make equality less boilerplate.
+If you don't want to install the Equatable package and work with `@immutable` classes and values then you can add equality operator and customize your class as mutable. With utility from the Dart collection, make equality less boilerplate.
 
 ### Without null safety
 ```dart
@@ -314,6 +314,7 @@ If you don't want to install the Equatable package and work with `@immutable` cl
 bool operator ==(dynamic other) {
   if(identical(other, this)) return true;
   if (other is! Todos) return false;
+  final mapEquals = const DeepCollectionEquality().equals;
   return mapEquals(other.toJson() as Map, toJson());
 }
 
@@ -326,6 +327,7 @@ int get hashCode => userId.hashCode ^ id.hashCode ^ title.hashCode ^ completed.h
 bool operator ==(Object other) {
   if(identical(other, this)) return true;
   if (other is! Todos) return false;
+  final mapEquals = const DeepCollectionEquality().equals;
   return mapEquals(other.toJson(), toJson());
 }
 
