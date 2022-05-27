@@ -110,7 +110,7 @@ export const snakeToCamel = (text: string) => text.replace(
  * @returns true if include supported formats.
  */
 export function isDate(date: string): boolean {
-    const datePattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(Z|[\+-]\d{2}:?\d{2})?$/gm;
+    const datePattern = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d*))(Z|[\+-]\d{2}:?\d{2})?$/gm;
     return datePattern.exec(date) !== null ? true : false;
 }
 
