@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.8
+
+   - Now can detect fractional seconds.
+
 ## 3.5.7
 
    - Fixed lint error for non-nullable typecast to the nullable type for JSON parser.
