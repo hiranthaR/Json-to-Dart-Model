@@ -367,9 +367,12 @@ export function jsonParseValue(
 ) {
   const jsonValue = valueFromJson(key, input);
   const nullable = questionMark(input, typeDef);
-  const isDouble = typeDef.type === 'double';
+  const isNumber = typeDef.type === 'double' || typeDef.type === 'int';
+  const isString = typeDef.type === 'String';
+  const isMap = typeDef.type?.includes('Map');
+  const isList = typeDef.type?.includes('List');
   const dafaultVal = typeDef.defaultValue
-    ? `${isDouble ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
+    ? `${isNumber ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
     : '';
   const IfNull = `${includeIfNull(jsonValue, input)}`;
   let formatedValue = '';
@@ -382,9 +385,12 @@ export function jsonParseValue(
     } else {
       if (!typeDef.nullable && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
-      } if (isDouble) {
-        const nullableDouble = input.nullSafety && !typeDef.required ? '?' : '';
-        formatedValue = `${IfNull}(${jsonValue}${required} as num${nullableDouble})${nullableDouble}.toDouble()` + dafaultVal;
+      } else if (isNumber) {
+        formatedValue = `${IfNull}${typeDef.type}.tryParse(${jsonValue}.toString())`;
+      } else if (isString) {
+        formatedValue = `${IfNull}${jsonValue}?.toString()`;
+      } else if (isMap || isList) {
+        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue})`;
       } else {
         formatedValue = `${IfNull}${jsonValue}${required} as ${typeDef.type}` + nullable + dafaultVal;
       }
@@ -424,7 +430,7 @@ const buildParseClass = (className: string, expression: string, typeDef: TypeDef
   const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
   const name = pascalCase(className).replace(/_/g, '');
   const bangOperator = jsonMapType(input).match('Object?') && !typeDef.isList ? '!' : '';
-  return `${name}.from${suffix}(${expression}${bangOperator} as ${jsonMapType(input)})`;
+  return `${name}.from${suffix}(${jsonMapType(input)}.from(${expression}${bangOperator}))`;
 };
 
 /**
