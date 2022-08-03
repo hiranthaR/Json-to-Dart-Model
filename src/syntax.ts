@@ -371,6 +371,7 @@ export function jsonParseValue(
   const isString = typeDef.type === 'String';
   const isMap = typeDef.type?.includes('Map');
   const isList = typeDef.type?.includes('List');
+  const isBool = typeDef.type === 'bool';
   const dafaultVal = typeDef.defaultValue
     ? `${isNumber ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
     : '';
@@ -386,11 +387,13 @@ export function jsonParseValue(
       if (!typeDef.nullable && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
       } else if (isNumber) {
-        formatedValue = `${IfNull}${typeDef.type}.tryParse(${jsonValue}.toString())`;
+        formatedValue = `${IfNull}num.tryParse(${jsonValue}.toString())`;
       } else if (isString) {
-        formatedValue = `${IfNull}${jsonValue}?.toString()`;
+        formatedValue = `${IfNull}${jsonValue}${nullable}.toString()`;
       } else if (isMap || isList) {
         formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue})`;
+      } else if (isBool) {
+        formatedValue = `${IfNull}${jsonValue}${nullable}.toString().contains("true")`;
       } else {
         formatedValue = `${IfNull}${jsonValue}${required} as ${typeDef.type}` + nullable + dafaultVal;
       }
@@ -609,11 +612,10 @@ export class ClassDefinition {
 
   private addType(typeDef: TypeDefinition, input: Input) {
     const isDynamic = typeDef.type?.match('dynamic') && !typeDef.isList;
-
+    const isNumber = typeDef.type === 'double' || typeDef.type === 'int';
     return isDynamic
       ? typeDef.type
-      : typeDef.type + questionMark(input, typeDef);
-
+      : (isNumber ? 'num' : typeDef.type) + questionMark(input, typeDef);
   }
 
   private fieldList(input: Input): string {
