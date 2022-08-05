@@ -311,7 +311,7 @@ const toJsonClass = (
         // By default this line starts with keyword List, slice will remove it.
         if (input.nullSafety) {
           const isNullable = typeDef.nullable;
-          sb += printLine(`'${typeDef.jsonKey}': ${thisKey}?`);
+          sb += printLine(`if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?`);
           sb += Array.from(result).map(_ => printLine('.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
             sb += printLine(`.map((e) => ${toIsoString('e', isNullable)})`);
@@ -321,7 +321,7 @@ const toJsonClass = (
           sb += Array.from(result).map(_ => printLine('.toList())')).slice(0, -1).join('');
           sb += printLine('.toList(),');
         } else {
-          sb += printLine(`'${typeDef.jsonKey}': ${thisKey}`);
+          sb += printLine(`if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}`);
           sb += Array.from(result).map(_ => printLine('?.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
             sb += printLine(`?.map((e) => ${toIsoString('e')})`);
@@ -335,15 +335,15 @@ const toJsonClass = (
         if (input.nullSafety) {
           const isNullable = typeDef.nullable;
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNullable)}).toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNullable)}).toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNullable, input)}).toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNullable, input)}).toList(),`;
           }
         } else {
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e')})?.toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e')})?.toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', false, input)})?.toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', false, input)})?.toList(),`;
           }
         }
       }
@@ -351,9 +351,9 @@ const toJsonClass = (
       // Class
       const isNullable = input.nullSafety && !typeDef.nullable;
       if (typeDef.isDate) {
-        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNullable)},`;
+        sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${toIsoString(thisKey, isNullable)},`;
       } else {
-        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNullable, input)},`;
+        sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNullable, input)},`;
       }
     }
   }
@@ -415,7 +415,7 @@ export function toJsonExpression(
     if (typeDef.isDate) {
       return toJsonClass(typeDef, privateField, input);
     } else {
-      return `if (${typeDef.jsonKey} != null) '${typeDef.jsonKey}': ${thisKey},`;
+      return `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey},`;
     }
   } else {
     return toJsonClass(typeDef, privateField, input);
