@@ -415,7 +415,7 @@ export function toJsonExpression(
     if (typeDef.isDate) {
       return toJsonClass(typeDef, privateField, input);
     } else {
-      return `'${typeDef.jsonKey}': ${thisKey},`;
+      return `if (${typeDef.jsonKey} != null) '${typeDef.jsonKey}': ${thisKey},`;
     }
   } else {
     return toJsonClass(typeDef, privateField, input);
@@ -444,8 +444,8 @@ const buildParseClass = (className: string, expression: string, typeDef: TypeDef
  */
 const parseDateTime = (expression: string, withoutTypeCast: boolean = false, typeDef: TypeDefinition, input: Input): string => {
   const bangOperator = input.nullSafety && input.avoidDynamicTypes && !typeDef.isList ? '!' : '';
-  const withArgumentType = `DateTime.parse(${expression}${bangOperator} as String)`;
-  const withoutArgumentType = `DateTime.parse(${expression})`;
+  const withArgumentType = `DateTime.tryParse(${expression}${bangOperator}.toString())`;
+  const withoutArgumentType = `DateTime.tryParse(${expression})`;
   return withoutTypeCast ? withoutArgumentType : withArgumentType;
 };
 
