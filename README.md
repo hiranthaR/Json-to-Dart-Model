@@ -5,9 +5,9 @@
 
 <!-- BADGES -->
 <p align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?labelColor=009903&style=flat-square" alt="Version"></a>
+<!-- <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/version/hirantha.json-to-dart.svg?labelColor=009903&style=flat-square" alt="Version"></a>
 <a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/installs/hirantha.json-to-dart.svg?label=Installs&labelColor=009903&style=flat-square" alt="Install"></a>
-<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?label=Downloads&labelColor=009903&style=flat-square" alt="Download"></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=hirantha.json-to-dart"><img src="https://vsmarketplacebadge.apphb.com/downloads/hirantha.json-to-dart.svg?label=Downloads&labelColor=009903&style=flat-square" alt="Download"></a> -->
 <a href="https://www.hirantha.xyz"><img src="https://img.shields.io/badge/Ask%20Me-Anything-1abc9c.svg?labelColor=007d80&style=flat-square" alt="Ask Me Anything"></a>
 <a href="https://github.com/hiranthaR/Json-to-Dart-Model/issues"><img src="https://img.shields.io/github/issues/hiranthaR/Json-to-Dart-Model?label=Issues&labelColor=c95149&logo=github&color=ff5b4f&style=flat-square" alt="Issues"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-orange.svg?labelColor=d67c15&style=flat-square" alt="License: MIT"></a>

@@ -6,7 +6,7 @@
 
 ## 3.5.9
 
-   - Fix with dynamic response
+   - Non cast variable
 
 ## 3.5.8
 

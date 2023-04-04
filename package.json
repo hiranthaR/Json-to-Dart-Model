@@ -1,9 +1,9 @@
 {
-  "name": "json-to-dart",
-  "displayName": "Json to Dart Model",
+  "name": "json-to-dart-enhanced",
+  "displayName": "Json to Dart Model Enhanced",
   "description": "Extension convert Json to Dart Model class",
-  "version": "3.5.8",
-  "publisher": "hirantha",
+  "version": "3.6.0",
+  "publisher": "HuongTran",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.59.0"
@@ -38,9 +38,9 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hiranthar/Json-to-Dart-Model.git"
+    "url": "https://github.com/tranhuongk/Json-to-Dart-Model.git"
   },
-  "author": "https://github.com/hiranthar",
+  "author": "https://github.com/tranhuongk",
   "main": "./out/index.js",
   "contributes": {
     "commands": [
