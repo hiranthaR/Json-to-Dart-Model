@@ -390,8 +390,10 @@ export function jsonParseValue(
         formatedValue = `${IfNull}num.tryParse(${jsonValue}.toString())`;
       } else if (isString) {
         formatedValue = `${IfNull}${jsonValue}${nullable}.toString()`;
-      } else if (isMap || isList) {
-        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue})`;
+      } else if (isList) {
+        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue} ?? [])`;
+      } else if (isMap) {
+        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue} ?? {})`;
       } else if (isBool) {
         formatedValue = `${IfNull}${jsonValue}${nullable}.toString().contains("true")`;
       } else {
