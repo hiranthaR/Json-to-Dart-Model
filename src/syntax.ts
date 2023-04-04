@@ -311,7 +311,7 @@ const toJsonClass = (
         // By default this line starts with keyword List, slice will remove it.
         if (input.nullSafety) {
           const isNullable = typeDef.nullable;
-          sb += printLine(`'${typeDef.jsonKey}': ${thisKey}?`);
+          sb += printLine(`if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?`);
           sb += Array.from(result).map(_ => printLine('.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
             sb += printLine(`.map((e) => ${toIsoString('e', isNullable)})`);
@@ -321,7 +321,7 @@ const toJsonClass = (
           sb += Array.from(result).map(_ => printLine('.toList())')).slice(0, -1).join('');
           sb += printLine('.toList(),');
         } else {
-          sb += printLine(`'${typeDef.jsonKey}': ${thisKey}`);
+          sb += printLine(`if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}`);
           sb += Array.from(result).map(_ => printLine('?.map((e) => e')).slice(0, -1).join('');
           if (typeDef.isDate) {
             sb += printLine(`?.map((e) => ${toIsoString('e')})`);
@@ -335,15 +335,15 @@ const toJsonClass = (
         if (input.nullSafety) {
           const isNullable = typeDef.nullable;
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNullable)}).toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e', isNullable)}).toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNullable, input)}).toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', isNullable, input)}).toList(),`;
           }
         } else {
           if (typeDef.isDate) {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e')})?.toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${toIsoString('e')})?.toList(),`;
           } else {
-            sb = `'${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', false, input)})?.toList(),`;
+            sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey}?.map((e) => ${buildToJsonClass('e', false, input)})?.toList(),`;
           }
         }
       }
@@ -351,9 +351,9 @@ const toJsonClass = (
       // Class
       const isNullable = input.nullSafety && !typeDef.nullable;
       if (typeDef.isDate) {
-        sb = `'${typeDef.jsonKey}': ${toIsoString(thisKey, isNullable)},`;
+        sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${toIsoString(thisKey, isNullable)},`;
       } else {
-        sb = `'${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNullable, input)},`;
+        sb = `if (${thisKey} != null) '${typeDef.jsonKey}': ${buildToJsonClass(thisKey, isNullable, input)},`;
       }
     }
   }
@@ -367,9 +367,13 @@ export function jsonParseValue(
 ) {
   const jsonValue = valueFromJson(key, input);
   const nullable = questionMark(input, typeDef);
-  const isDouble = typeDef.type === 'double';
+  const isNumber = typeDef.type === 'double' || typeDef.type === 'int';
+  const isString = typeDef.type === 'String';
+  const isMap = typeDef.type?.includes('Map');
+  const isList = typeDef.type?.includes('List');
+  const isBool = typeDef.type === 'bool';
   const dafaultVal = typeDef.defaultValue
-    ? `${isDouble ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
+    ? `${isNumber ? '' : '?'} ?? ${defaultValue(typeDef, input.nullSafety, false).replace(/=|const/gi, '').trim()}`
     : '';
   const IfNull = `${includeIfNull(jsonValue, input)}`;
   let formatedValue = '';
@@ -382,9 +386,16 @@ export function jsonParseValue(
     } else {
       if (!typeDef.nullable && !typeDef.isList) {
         formatedValue = `${jsonValue}`;
-      } if (isDouble) {
-        const nullableDouble = input.nullSafety && !typeDef.required ? '?' : '';
-        formatedValue = `${IfNull}(${jsonValue}${required} as num${nullableDouble})${nullableDouble}.toDouble()` + dafaultVal;
+      } else if (isNumber) {
+        formatedValue = `${IfNull}num.tryParse(${jsonValue}.toString())`;
+      } else if (isString) {
+        formatedValue = `${IfNull}${jsonValue}${nullable}.toString()`;
+      } else if (isList) {
+        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue} ?? [])`;
+      } else if (isMap) {
+        formatedValue = `${IfNull}${typeDef.type}.from(${jsonValue} ?? {})`;
+      } else if (isBool) {
+        formatedValue = `${IfNull}${jsonValue}${nullable}.toString().contains("true")`;
       } else {
         formatedValue = `${IfNull}${jsonValue}${required} as ${typeDef.type}` + nullable + dafaultVal;
       }
@@ -406,7 +417,7 @@ export function toJsonExpression(
     if (typeDef.isDate) {
       return toJsonClass(typeDef, privateField, input);
     } else {
-      return `'${typeDef.jsonKey}': ${thisKey},`;
+      return `if (${thisKey} != null) '${typeDef.jsonKey}': ${thisKey},`;
     }
   } else {
     return toJsonClass(typeDef, privateField, input);
@@ -424,7 +435,7 @@ const buildParseClass = (className: string, expression: string, typeDef: TypeDef
   const suffix = input.jsonCodecs && _suffix.toLowerCase() === 'json' ? 'Map' : _suffix;
   const name = pascalCase(className).replace(/_/g, '');
   const bangOperator = jsonMapType(input).match('Object?') && !typeDef.isList ? '!' : '';
-  return `${name}.from${suffix}(${expression}${bangOperator} as ${jsonMapType(input)})`;
+  return `${name}.from${suffix}(${jsonMapType(input)}.from(${expression}${bangOperator}))`;
 };
 
 /**
@@ -435,8 +446,8 @@ const buildParseClass = (className: string, expression: string, typeDef: TypeDef
  */
 const parseDateTime = (expression: string, withoutTypeCast: boolean = false, typeDef: TypeDefinition, input: Input): string => {
   const bangOperator = input.nullSafety && input.avoidDynamicTypes && !typeDef.isList ? '!' : '';
-  const withArgumentType = `DateTime.parse(${expression}${bangOperator} as String)`;
-  const withoutArgumentType = `DateTime.parse(${expression})`;
+  const withArgumentType = `DateTime.tryParse(${expression}${bangOperator}.toString())`;
+  const withoutArgumentType = `DateTime.tryParse(${expression})`;
   return withoutTypeCast ? withoutArgumentType : withArgumentType;
 };
 
@@ -603,11 +614,10 @@ export class ClassDefinition {
 
   private addType(typeDef: TypeDefinition, input: Input) {
     const isDynamic = typeDef.type?.match('dynamic') && !typeDef.isList;
-
+    const isNumber = typeDef.type === 'double' || typeDef.type === 'int';
     return isDynamic
       ? typeDef.type
-      : typeDef.type + questionMark(input, typeDef);
-
+      : (isNumber ? 'num' : typeDef.type) + questionMark(input, typeDef);
   }
 
   private fieldList(input: Input): string {

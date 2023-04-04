@@ -1,5 +1,13 @@
 # Changelog
 
+## 3.6.0
+
+   - Fix with dynamic List and Map response
+
+## 3.5.9
+
+   - Non cast variable
+
 ## 3.5.8
 
    - Now can detect fractional seconds.
